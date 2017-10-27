@@ -1,0 +1,8 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/include
+
+Name: xtensor
+Description: xtensor-io is a C++ library that enables opening and saving of common file and image formats to and from xtensor arrays.
+Version: @xtensor-io_VERSION@
+Cflags: -I${includedir}
