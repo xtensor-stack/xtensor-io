@@ -1,8 +1,10 @@
 #include <stdexcept>
 #include <string>
+
 #include <OpenImageIO/imageio.h>
 
 #include "xtensor/xarray.hpp"
+#include "xtensor/xeval.hpp"
 
 using namespace OIIO;
 
@@ -36,9 +38,9 @@ namespace xt
     }
 
     template <class E>
-    void dump_image(std::string filename, const xexpression<E>& e)
+    void dump_image(std::string filename, const xexpression<E>& e, int quality = 90)
     {
-        const E& ex = e.derived_cast();
+        auto&& ex = eval(e.derived_cast());
 
         ImageOutput *out = ImageOutput::create(filename);
         if (!out)
@@ -46,10 +48,12 @@ namespace xt
             // something went wrong
             throw std::runtime_error("Couldn't open file to write image.");
         }
-        ImageSpec spec(ex.shape()[0], ex.shape()[1], ex.shape()[2], TypeDesc::UINT8);
+        ImageSpec spec((int) ex.shape()[0], (int) ex.shape()[1], (int) ex.shape()[2], TypeDesc::UINT8);
+
+        spec.attribute("CompressionQuality", quality);
 
         out->open(filename, spec);
-        out->write_image (TypeDesc::UINT8, ex.raw_data());
+        out->write_image(TypeDesc::UINT8, ex.raw_data());
         out->close();
         ImageOutput::destroy(out);
     }

@@ -46,8 +46,6 @@ message(STATUS "Found zlib: ${zlib_INCLUDE_DIRS}")
 
 set(XTENSOR_IO_HEADERS
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximageio.hpp
-    ${XTENSOR_IO_INCLUDE_DIR}/thirdparty/zstr/strict_fstream.hpp
-    ${XTENSOR_IO_INCLUDE_DIR}/thirdparty/zstr/zstr.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
 )
@@ -79,6 +77,9 @@ include(CMakePackageConfigHelpers)
 
 install(FILES ${XTENSOR_IO_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xtensor-io)
+
+install(DIRECTORY ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/thirdparty/zstr
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xtensor-io/thirdparty)
 
 set(XTENSOR_IO_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}" CACHE
     STRING "install path for xtensor-ioConfig.cmake")

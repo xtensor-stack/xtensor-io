@@ -146,7 +146,7 @@ public:
                 {
                     // empty input buffer: refill from the start
                     in_buff_start = in_buff;
-                    std::streamsize sz = sbuf_p->sgetn(in_buff, buff_size);
+                    std::streamsize sz = sbuf_p->sgetn(in_buff, (std::streamsize) buff_size);
                     in_buff_end = in_buff + sz;
                     if (in_buff_end == in_buff_start) break; // end of input
                 }
@@ -154,8 +154,8 @@ public:
                 if (auto_detect && !auto_detect_run)
                 {
                     auto_detect_run = true;
-                    unsigned char b0 = *reinterpret_cast< unsigned char * >(in_buff_start);
-                    unsigned char b1 = *reinterpret_cast< unsigned char * >(in_buff_start + 1);
+                    unsigned char b0 = *reinterpret_cast<unsigned char *>(in_buff_start);
+                    unsigned char b1 = *reinterpret_cast<unsigned char *>(in_buff_start + 1);
                     // Ref:
                     // http://en.wikipedia.org/wiki/Gzip
                     // http://stackoverflow.com/questions/9050260/what-does-a-zlib-header-look-like
@@ -177,11 +177,14 @@ public:
                 else
                 {
                     // run inflate() on input
-                    if (! zstrm_p) zstrm_p = new detail::z_stream_wrapper(true);
-                    zstrm_p->next_in = reinterpret_cast< decltype(zstrm_p->next_in) >(in_buff_start);
-                    zstrm_p->avail_in = in_buff_end - in_buff_start;
-                    zstrm_p->next_out = reinterpret_cast< decltype(zstrm_p->next_out) >(out_buff_free_start);
-                    zstrm_p->avail_out = (out_buff + buff_size) - out_buff_free_start;
+                    if (!zstrm_p)
+                    {
+                        zstrm_p = new detail::z_stream_wrapper(true);
+                    }
+                    zstrm_p->next_in = reinterpret_cast<decltype(zstrm_p->next_in)>(in_buff_start);
+                    zstrm_p->avail_in = static_cast<decltype(zstrm_p->avail_in)>(in_buff_end - in_buff_start);
+                    zstrm_p->next_out = reinterpret_cast<decltype(zstrm_p->next_out)>(out_buff_free_start);
+                    zstrm_p->avail_out = static_cast<decltype(zstrm_p->avail_out)>((out_buff + buff_size) - out_buff_free_start);
                     int ret = inflate(zstrm_p, Z_NO_FLUSH);
                     // process return code
                     if (ret != Z_OK && ret != Z_STREAM_END) throw Exception(zstrm_p, ret);
@@ -247,12 +250,12 @@ public:
     {
         while (true)
         {
-            zstrm_p->next_out = reinterpret_cast< decltype(zstrm_p->next_out) >(out_buff);
-            zstrm_p->avail_out = buff_size;
+            zstrm_p->next_out = reinterpret_cast<decltype(zstrm_p->next_out)>(out_buff);
+            zstrm_p->avail_out = static_cast<decltype(zstrm_p->avail_out)>(buff_size);
             int ret = deflate(zstrm_p, flush);
             if (ret != Z_OK && ret != Z_STREAM_END && ret != Z_BUF_ERROR) throw Exception(zstrm_p, ret);
-            std::streamsize sz = sbuf_p->sputn(out_buff, reinterpret_cast< decltype(out_buff) >(zstrm_p->next_out) - out_buff);
-            if (sz != reinterpret_cast< decltype(out_buff) >(zstrm_p->next_out) - out_buff)
+            std::streamsize sz = sbuf_p->sputn(out_buff, reinterpret_cast<decltype(out_buff)>(zstrm_p->next_out) - out_buff);
+            if (sz != reinterpret_cast<decltype(out_buff)>(zstrm_p->next_out) - out_buff)
             {
                 // there was an error in the sink stream
                 return -1;
@@ -283,7 +286,7 @@ public:
     virtual std::streambuf::int_type overflow(std::streambuf::int_type c = traits_type::eof())
     {
         zstrm_p->next_in = reinterpret_cast< decltype(zstrm_p->next_in) >(pbase());
-        zstrm_p->avail_in = pptr() - pbase();
+        zstrm_p->avail_in = static_cast<decltype(zstrm_p->avail_in)>(pptr() - pbase());
         while (zstrm_p->avail_in > 0)
         {
             int r = deflate_loop(Z_NO_FLUSH);
@@ -294,7 +297,7 @@ public:
             }
         }
         setp(in_buff, in_buff + buff_size);
-        return traits_type::eq_int_type(c, traits_type::eof()) ? traits_type::eof() : sputc(c);
+        return traits_type::eq_int_type(c, traits_type::eof()) ? traits_type::eof() : sputc((char) c);
     }
     virtual int sync()
     {
@@ -328,7 +331,7 @@ public:
         exceptions(std::ios_base::badbit);
     }
 
-    istream(std::istream & is, std::streamsize buff_size)
+    istream(std::istream & is, std::size_t buff_size)
         : std::istream(new istreambuf(is.rdbuf(), buff_size))
     {
         exceptions(std::ios_base::badbit);
