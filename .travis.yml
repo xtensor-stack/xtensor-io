@@ -49,7 +49,7 @@ install:
     # Testing
     - mkdir build
     - cd build
-    - cmake -DBUILD_TESTS=ON -DDOWNLOAD_GTEST=ON ..;
+    - cmake -DBUILD_TESTS=ON -DDOWNLOAD_GTEST=ON -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_SYSTEM_IGNORE_PATH=/usr/lib ..;
     - make -j2 test_xtensor_io
     - cd test
 script:
