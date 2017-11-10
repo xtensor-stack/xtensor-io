@@ -76,8 +76,8 @@ find_package(ZLIB REQUIRED)
 
 include_directories(${XTENSOR_INCLUDE_DIR})
 include_directories(${XTENSOR_IO_INCLUDE_DIR})
-include_directories(${OIIO_INCLUDE_DIR})
-include_directories(${ZLIB_INCLUDE_DIR})
+include_directories(${OIIO_INCLUDE_DIRS})
+include_directories(${ZLIB_INCLUDE_DIRS})
 include_directories(${xtl_INCLUDE_DIRS})
 include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -108,11 +108,16 @@ add_executable(${XTENSOR_IO_TARGET} ${XTENSOR_IO_TESTS} ${XTENSOR_IO_HEADERS})
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     add_dependencies(${XTENSOR_IO_TARGET} gtest_main)
 endif()
+
+message("OIIO_LIBRARIES: ${OIIO_LIBRARIES}")
+
 target_link_libraries(${XTENSOR_IO_TARGET}
-                        ${OIIO_LIBRARIES}
                         ${ZLIB_LIBRARIES}
+                        ${OIIO_LIBRARIES}
+                        ${CMAKE_DL_LIBS}
                         ${GTEST_BOTH_LIBRARIES}
-                        ${CMAKE_THREAD_LIBS_INIT})
+                        ${CMAKE_THREAD_LIBS_INIT}
+)
 
 add_custom_target(xtest
     COMMAND test_xtensor_io
