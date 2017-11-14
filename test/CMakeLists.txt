@@ -71,16 +71,27 @@ else()
 endif()
 
 find_package(Threads)
-find_package(OIIO REQUIRED)
-find_package(ZLIB REQUIRED)
-find_package(SndFile REQUIRED)
 
-include_directories(${XTENSOR_INCLUDE_DIR})
+find_package(OIIO REQUIRED)
+message(STATUS "Found OpenImageIO: ${OIIO_LIBRARIES}")
+
+find_package(ZLIB REQUIRED)
+message(STATUS "Found zlib: ${ZLIB_LIBRARIES}")
+
+find_package(SndFile REQUIRED)
+message(STATUS "Found SndFile: ${LIBSNDFILE_LIBRARIES}")
+
+
+find_package(ZLIB)
+
+include_directories(${xtensor_INCLUDE_DIRS})
+include_directories(${xtl_INCLUDE_DIRS})
+
 include_directories(${XTENSOR_IO_INCLUDE_DIR})
+
 include_directories(${OIIO_INCLUDE_DIRS})
 include_directories(${LIBSNDFILE_INCLUDE_DIRS})
 include_directories(${ZLIB_INCLUDE_DIRS})
-include_directories(${xtl_INCLUDE_DIRS})
 include_directories(${GTEST_INCLUDE_DIRS})
 
 set(XTENSOR_IO_TESTS
@@ -112,9 +123,6 @@ add_executable(${XTENSOR_IO_TARGET} ${XTENSOR_IO_TESTS} ${XTENSOR_IO_HEADERS})
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     add_dependencies(${XTENSOR_IO_TARGET} gtest_main)
 endif()
-
-message("OIIO_LIBRARIES: ${OIIO_LIBRARIES}")
-message("LIBSND LIBRARIES: ${LIBSNDFILE_LIBRARIES}")
 
 target_link_libraries(${XTENSOR_IO_TARGET}
                       ${ZLIB_LIBRARIES}

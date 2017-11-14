@@ -33,13 +33,6 @@ message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 
 # Find OpenImageIO
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
-message("MODULE PATH: ${CMAKE_MODULE_PATH}")
-
-find_package(OIIO)
-message(STATUS "Found OpenImageIO: ${OIIO_INCLUDE_DIRS}")
-
-find_package(ZLIB)
-message(STATUS "Found zlib: ${zlib_INCLUDE_DIRS}")
 
 # Build
 # =====
