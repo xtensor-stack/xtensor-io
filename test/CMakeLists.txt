@@ -73,6 +73,7 @@ endif()
 find_package(Threads)
 find_package(OIIO REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(SndFile REQUIRED)
 
 include_directories(${XTENSOR_INCLUDE_DIR})
 include_directories(${XTENSOR_IO_INCLUDE_DIR})
@@ -84,7 +85,8 @@ include_directories(${GTEST_INCLUDE_DIRS})
 set(XTENSOR_IO_TESTS
     main.cpp
     test_xnpz.cpp
-    test_ximageio.cpp
+    test_ximage.cpp
+    test_xaudio.cpp
 )
 
 set(XTENSOR_IO_TARGET test_xtensor_io)
@@ -97,6 +99,7 @@ set(XTENSOR_IO_FILES
     test.jpg
     test.gif
     big.jpg
+    xtensor.wav
 )
 
 foreach(filename IN LISTS XTENSOR_IO_FILES)
@@ -112,11 +115,12 @@ endif()
 message("OIIO_LIBRARIES: ${OIIO_LIBRARIES}")
 
 target_link_libraries(${XTENSOR_IO_TARGET}
-                        ${ZLIB_LIBRARIES}
-                        ${OIIO_LIBRARIES}
-                        ${CMAKE_DL_LIBS}
-                        ${GTEST_BOTH_LIBRARIES}
-                        ${CMAKE_THREAD_LIBS_INIT}
+                      ${ZLIB_LIBRARIES}
+                      ${OIIO_LIBRARIES}
+                      ${LIBSNDFILE_LIBRARIES}
+                      ${CMAKE_DL_LIBS}
+                      ${GTEST_BOTH_LIBRARIES}
+                      ${CMAKE_THREAD_LIBS_INIT}
 )
 
 add_custom_target(xtest

@@ -7,7 +7,7 @@
 ****************************************************************************/
 
 #include "gtest/gtest.h"
-#include "xtensor-io/ximageio.hpp"
+#include "xtensor-io/ximage.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xoperation.hpp"
 

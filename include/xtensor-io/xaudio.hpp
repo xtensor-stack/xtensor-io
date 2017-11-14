@@ -39,6 +39,6 @@ namespace xt
     {
         auto&& de = xt::eval(e.derived_cast());
         SndfileHandle file(filename, SFM_WRITE, format, (int) de.shape()[1], samplerate);
-        file.write(de.raw_data(), de.size());
+        file.write(de.raw_data(), (sf_count_t) de.size());
     }
 }
