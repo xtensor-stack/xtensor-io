@@ -65,7 +65,7 @@ sudo apt-get install libsndfile-dev
 sudo dnf install libsndfile-devel
 ```
 
-For image handling, (`OpenImageIO`)[http://openimageio.org/] is required.
+For image handling, [`OpenImageIO`](http://openimageio.org/) is required.
 We have a build of OpenImageIO on the conda QuantStack channel, but it can also
 be optained from your favorite package manager on Linux. Note the conda build
 is only tested with the `gcc-6` package from the QuantStack channel.
