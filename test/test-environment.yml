@@ -4,6 +4,7 @@ channels:
     - conda-forge
     - defaults
 dependencies:
+    - toolchain
     - cmake
     - xtensor
     - libsndfile
