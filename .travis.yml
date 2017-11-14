@@ -1,5 +1,5 @@
 language: cpp
-dist: precise
+dist: trusty
 env:
 matrix:
   fast_finish: true
