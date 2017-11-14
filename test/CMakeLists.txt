@@ -78,6 +78,7 @@ find_package(SndFile REQUIRED)
 include_directories(${XTENSOR_INCLUDE_DIR})
 include_directories(${XTENSOR_IO_INCLUDE_DIR})
 include_directories(${OIIO_INCLUDE_DIRS})
+include_directories(${LIBSNDFILE_INCLUDE_DIRS})
 include_directories(${ZLIB_INCLUDE_DIRS})
 include_directories(${xtl_INCLUDE_DIRS})
 include_directories(${GTEST_INCLUDE_DIRS})
@@ -113,6 +114,7 @@ if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
 endif()
 
 message("OIIO_LIBRARIES: ${OIIO_LIBRARIES}")
+message("LIBSND LIBRARIES: ${LIBSNDFILE_LIBRARIES}")
 
 target_link_libraries(${XTENSOR_IO_TARGET}
                       ${ZLIB_LIBRARIES}
