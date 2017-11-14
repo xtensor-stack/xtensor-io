@@ -1,0 +1,12 @@
+name: test-xtensorio
+channels:
+    - QuantStack
+    - conda-forge
+    - defaults
+dependencies:
+    - cmake
+    - xtensor
+    - libsndfile
+    - openimageio
+    - boost
+    - gcc-6

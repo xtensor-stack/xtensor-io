@@ -71,20 +71,34 @@ else()
 endif()
 
 find_package(Threads)
-find_package(OIIO REQUIRED)
-find_package(ZLIB REQUIRED)
 
-include_directories(${XTENSOR_INCLUDE_DIR})
-include_directories(${XTENSOR_IO_INCLUDE_DIR})
-include_directories(${OIIO_INCLUDE_DIR})
-include_directories(${ZLIB_INCLUDE_DIR})
+find_package(OIIO REQUIRED)
+message(STATUS "Found OpenImageIO: ${OIIO_LIBRARIES}")
+
+find_package(ZLIB REQUIRED)
+message(STATUS "Found zlib: ${ZLIB_LIBRARIES}")
+
+find_package(SndFile REQUIRED)
+message(STATUS "Found SndFile: ${LIBSNDFILE_LIBRARIES}")
+
+
+find_package(ZLIB)
+
+include_directories(${xtensor_INCLUDE_DIRS})
 include_directories(${xtl_INCLUDE_DIRS})
+
+include_directories(${XTENSOR_IO_INCLUDE_DIR})
+
+include_directories(${OIIO_INCLUDE_DIRS})
+include_directories(${LIBSNDFILE_INCLUDE_DIRS})
+include_directories(${ZLIB_INCLUDE_DIRS})
 include_directories(${GTEST_INCLUDE_DIRS})
 
 set(XTENSOR_IO_TESTS
     main.cpp
     test_xnpz.cpp
-    test_ximageio.cpp
+    test_ximage.cpp
+    test_xaudio.cpp
 )
 
 set(XTENSOR_IO_TARGET test_xtensor_io)
@@ -97,6 +111,7 @@ set(XTENSOR_IO_FILES
     test.jpg
     test.gif
     big.jpg
+    xtensor.wav
 )
 
 foreach(filename IN LISTS XTENSOR_IO_FILES)
@@ -108,11 +123,15 @@ add_executable(${XTENSOR_IO_TARGET} ${XTENSOR_IO_TESTS} ${XTENSOR_IO_HEADERS})
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     add_dependencies(${XTENSOR_IO_TARGET} gtest_main)
 endif()
+
 target_link_libraries(${XTENSOR_IO_TARGET}
-                        ${OIIO_LIBRARIES}
-                        ${ZLIB_LIBRARIES}
-                        ${GTEST_BOTH_LIBRARIES}
-                        ${CMAKE_THREAD_LIBS_INIT})
+                      ${ZLIB_LIBRARIES}
+                      ${OIIO_LIBRARIES}
+                      ${LIBSNDFILE_LIBRARIES}
+                      ${CMAKE_DL_LIBS}
+                      ${GTEST_BOTH_LIBRARIES}
+                      ${CMAKE_THREAD_LIBS_INIT}
+)
 
 add_custom_target(xtest
     COMMAND test_xtensor_io

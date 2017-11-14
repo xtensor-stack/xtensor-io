@@ -7,9 +7,9 @@
 ****************************************************************************/
 
 #include "gtest/gtest.h"
-#include "xtensor-io/ximageio.hpp"
-#include "xtensor/xio.hpp"
 #include "xtensor/xoperation.hpp"
+
+#include "xtensor-io/ximage.hpp"
 
 namespace xt
 {
@@ -34,40 +34,40 @@ namespace xt
                                       {{222, 124, 237},
                                        {255, 253, 255}}};
 
-    TEST(ximageio, load_png)
+    TEST(ximage, load_png)
     {
         auto img = load_image("files/test.png");
         EXPECT_TRUE(all(equal(test_image_rgb, img)));
     }
 
-    TEST(ximageio, load_gif)
+    TEST(ximage, load_gif)
     {
         auto img = load_image("files/test.gif");
         EXPECT_TRUE(all(equal(test_image_rgba, img)));
     }
 
-    TEST(ximageio, load_jpg)
+    TEST(ximage, load_jpg)
     {
         auto img = load_image("files/test.jpg");
         bool test = (amax(test_image_rgb - img)() <= 35);
         EXPECT_TRUE(test);
     }
 
-    TEST(ximageio, save_png)
+    TEST(ximage, save_png)
     {
         dump_image("files/dump_test.png", test_image_rgb);
         auto img = load_image("files/dump_test.png");
         EXPECT_TRUE(all(equal(test_image_rgb, img)));
     }
 
-    TEST(ximageio, save_gif)
+    TEST(ximage, save_gif)
     {
         dump_image("files/dump_test.gif", test_image_rgba);
         auto img = load_image("files/dump_test.gif");
         EXPECT_TRUE(all(equal(test_image_rgba, img)));
     }
 
-    TEST(ximageio, save_jpg)
+    TEST(ximage, save_jpg)
     {
         auto img_large = load_image("files/big.jpg");
         dump_image("files/dump_test.jpg", img_large);
