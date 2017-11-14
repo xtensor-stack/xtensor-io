@@ -38,6 +38,9 @@ install:
     - source activate test-xtensorio
     - export CC=$CONDA_PREFIX/bin/gcc
     - export CXX=$CONDA_PREFIX/bin/g++
+    # from conda toolchain package
+    - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
+    - export LINKFLAGS="${LDFLAGS}"
     # Testing
     - mkdir build
     - cd build
