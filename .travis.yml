@@ -43,11 +43,10 @@ install:
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    - conda install gtest cmake -c conda-forge
-    - conda install xtensor==0.13.2 -c conda-forge
-    - conda install gcc-6 openimageio libsndfile -c QuantStack -c conda-forge
-    - export CXX=$CONDA_PREFIX/bin/g++
-    - export CC=$CONDA_PREFIX/bin/gcc
+    - conda info -a
+    # Start test environement
+    - conda env create -f ./test/test-environment.yml
+    - source activate test-xtensorio
     # Testing
     - mkdir build
     - cd build
