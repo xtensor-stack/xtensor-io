@@ -45,7 +45,8 @@ message(STATUS "Found zlib: ${zlib_INCLUDE_DIRS}")
 # =====
 
 set(XTENSOR_IO_HEADERS
-    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximageio.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xaudio.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
 )
