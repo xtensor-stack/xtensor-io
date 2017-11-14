@@ -47,14 +47,14 @@ xt::dump_wav("files/sine.wav", y, SF_FORMAT_WAV | SF_FORMAT_PCM_16, sampling_fre
 
 xtensor-io depends on thirdparty libraries for audio and image handling.
 
-The easiest installation (including all dependencies) is through conda:
+The easiest way to install xtensor-io (including all dependencies) is through conda:
 
 ```bash
 conda install xtensor-io
 ```
 
-To use xaudio linking with [`libsndfile`](http://www.mega-nerd.com/libsndfile/).
-Libsndfile can be installed as follows:
+To use xaudio, it's required to link with [`libsndfile`](http://www.mega-nerd.com/libsndfile/).
+The library can be installed as follows:
 
 ```bash
 # Conda
