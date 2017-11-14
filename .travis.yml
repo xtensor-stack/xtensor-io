@@ -45,7 +45,7 @@ install:
     - conda update -q conda
     - conda install gtest cmake -c conda-forge
     - conda install xtensor==0.13.0 -c conda-forge
-    - apt-get install libopenimageio-dev
+    - apt-get install libopenimageio-dev -y
     # Testing
     - mkdir build
     - cd build
