@@ -57,4 +57,15 @@ namespace xt
 		EXPECT_TRUE(all(equal(std::get<1>(load_back), expected)));
 		EXPECT_EQ(std::get<0>(load_back), sampling_freq);
 	}
+
+	TEST(xaudio, errors)
+	{
+		EXPECT_THROW(load_wav("files/big.jpg"), std::runtime_error);
+		EXPECT_THROW(load_wav("hahahahahaha.jpg"), std::runtime_error);
+
+		auto load_one = xt::load_wav("files/xtensor.wav");
+		auto& arr_one = std::get<1>(load_one);
+		EXPECT_THROW(xt::dump_wav("/out.wav", arr_one, SF_FORMAT_WAV | SF_FORMAT_PCM_16, std::get<0>(load_one)),
+					 std::runtime_error);
+	}
 }
