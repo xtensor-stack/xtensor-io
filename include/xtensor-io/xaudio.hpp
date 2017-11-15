@@ -22,7 +22,7 @@ namespace xt
     {
         SndfileHandle file(filename);
         // testing for rawHandle because file not exist isn't handled otherwise
-        if (!file || file.rawHandle() == 0)
+        if (!file || file.rawHandle() == nullptr)
         {
             throw std::runtime_error(std::string("load_wav: ") + file.strError());
         }
