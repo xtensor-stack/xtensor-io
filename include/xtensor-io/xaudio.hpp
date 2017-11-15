@@ -21,8 +21,8 @@ namespace xt
     auto load_wav(std::string filename)
     {
         SndfileHandle file(filename);
-        // testing for format == 0 because file not exist isn't handled otherwise
-        if (!file || file.format() == 0)
+        // testing for rawHandle because file not exist isn't handled otherwise
+        if (!file || file.rawHandle() == 0)
         {
             throw std::runtime_error(std::string("load_wav: ") + file.strError());
         }
