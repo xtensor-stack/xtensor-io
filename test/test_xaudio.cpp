@@ -14,7 +14,7 @@ namespace xt
 {
 	TEST(xaudio, load)
 	{
-		auto res = xt::load_wav("files/xtensor.wav");
+		auto res = xt::load_audio("files/xtensor.wav");
 		EXPECT_EQ(std::get<0>(res), 44100); // bitrate
 
 		auto& arr = std::get<1>(res);
@@ -30,11 +30,11 @@ namespace xt
 
 	TEST(xaudio, roundtrip)
 	{
-		auto load_one = xt::load_wav("files/xtensor.wav");
+		auto load_one = xt::load_audio("files/xtensor.wav");
 		auto& arr_one = std::get<1>(load_one);
-		xt::dump_wav("files/out.wav", arr_one, SF_FORMAT_WAV | SF_FORMAT_PCM_16, std::get<0>(load_one));
+		xt::dump_audio("files/out.wav", arr_one, std::get<0>(load_one));
 
-		auto load_two = xt::load_wav("files/out.wav");
+		auto load_two = xt::load_audio("files/out.wav");
 		EXPECT_EQ(std::get<0>(load_one), std::get<0>(load_two));
 		EXPECT_EQ(std::get<1>(load_one), std::get<1>(load_two));
 	}
@@ -48,8 +48,8 @@ namespace xt
 		auto t = xt::arange(0.0, duration, 1.0 / sampling_freq);
 		auto y = xt::sin(2.0 * numeric_constants<double>::PI * freq * t);
 
-		xt::dump_wav("files/sine.wav", y, SF_FORMAT_WAV | SF_FORMAT_PCM_16, sampling_freq);
-		auto load_back = xt::load_wav("files/sine.wav");
+		xt::dump_audio("files/sine.wav", y, sampling_freq);
+		auto load_back = xt::load_audio("files/sine.wav");
 
 		xt::xarray<short> expected = xt::cast<short>(xt::round(y * 32767.0));
 		expected.reshape({44100, 1});
@@ -60,12 +60,12 @@ namespace xt
 
 	TEST(xaudio, errors)
 	{
-		EXPECT_THROW(load_wav("files/big.jpg"), std::runtime_error);
-		EXPECT_THROW(load_wav("hahahahahaha.jpg"), std::runtime_error);
+		EXPECT_THROW(load_audio("files/big.jpg"), std::runtime_error);
+		EXPECT_THROW(load_audio("hahahahahaha.jpg"), std::runtime_error);
 
-		auto load_one = xt::load_wav("files/xtensor.wav");
+		auto load_one = xt::load_audio("files/xtensor.wav");
 		auto& arr_one = std::get<1>(load_one);
-		EXPECT_THROW(xt::dump_wav("/out.wav", arr_one, SF_FORMAT_WAV | SF_FORMAT_PCM_16, std::get<0>(load_one)),
+		EXPECT_THROW(xt::dump_audio("/out.wav", arr_one, std::get<0>(load_one)),
 					 std::runtime_error);
 	}
 }

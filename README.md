@@ -29,7 +29,7 @@ auto arr_0 = npy_map["arr_0"].cast<double>();
 auto arr_1 = npy_map["arr_1"].cast<unsigned long>();
 
 // open a wav file
-auto audio = xt::load_wav("files/xtensor.wav");
+auto audio = xt::load_audio("files/xtensor.wav");
 auto& arr = std::get<1>(audio); // audio contents (like scipy.io.wavfile results)
 
 // save a sine wave sound
@@ -40,7 +40,7 @@ double duration = 1.0;
 auto t = xt::arange(0.0, duration, 1.0 / sampling_freq);
 auto y = xt::sin(2.0 * numeric_constants<double>::PI * freq * t);
 
-xt::dump_wav("files/sine.wav", y, SF_FORMAT_WAV | SF_FORMAT_PCM_16, sampling_freq);
+xt::dump_audio("files/sine.wav", y, SF_FORMAT_WAV | SF_FORMAT_PCM_16, sampling_freq);
 ```
 
 ### Installation
