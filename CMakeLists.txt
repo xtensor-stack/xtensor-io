@@ -11,6 +11,19 @@ project(xtensor-io)
 
 set(XTENSOR_IO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+# Configuration
+# =============
+
+# TODO: use the library directory of the found LIBS implementation instead of CMAKE_INSTALL_PREFIX
+set(XTENSOR_IO_CLING_LIBRARY_DIR_64 "\"${CMAKE_INSTALL_PREFIX}/lib64\"")
+set(XTENSOR_IO_CLING_LIBRARY_DIR_32 "\"${CMAKE_INSTALL_PREFIX}/lib32\"")
+set(XTENSOR_IO_CLING_LIBRARY_DIR "\"${CMAKE_INSTALL_PREFIX}/lib\"")
+
+configure_file (
+    "${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp.in"
+    "${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp"
+)
+
 # Versionning
 # ===========
 

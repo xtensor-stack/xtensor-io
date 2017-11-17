@@ -25,12 +25,17 @@
 
 #include <xtensor/xnpy.hpp>
 
+#pragma cling load("z")
+
 namespace xt
 {
     using namespace std::string_literals;
 
     /**
-     * Loads a npz file (optionally compressed).
+     * Loads a npz file.
+     * This function returns a map. The individual arrays are not casted to a
+     * specific file format. This has to be done before they can be used as
+     * xarrays (e.g. ``auto arr_0 = npz_map["arr_0"].cast<double>();``)
      *
      * @param filename The filename of the npz file
      *
@@ -113,7 +118,8 @@ namespace xt
     }
 
     /**
-     * Loads a specific array from npz file.
+     * Loads a specific array indicated by search_varname from npz file.
+     * All other data in the npz file is ignored.
      *
      * @param filename The npz filename
      * @param search_varname The array name to be loaded
@@ -312,6 +318,18 @@ namespace xt
         }
     }
 
+    /**
+     * Save a xarray or xtensor to a NPZ file.
+     * If a npz file with ``filename`` exists already, the new data
+     * is appended to the existing file by default. Note: currently no checking
+     * of name-collision is performed!
+     *
+     * @param filename filename to save to
+     * @param varname desired name of the variable
+     * @param e xexpression to save
+     * @param compression true enables compression, otherwise store uncompressed (default false)
+     * @param append_to_existing_file If true, appends new data to existing file
+     */
     template <class E>
     void dump_npz(std::string filename,
                   std::string varname, const xt::xexpression<E>& e,
