@@ -1,6 +1,7 @@
 # ![xtensor-io](http://quantstack.net/assets/images/xtensor-io.svg)
 
 [![Travis](https://travis-ci.org/QuantStack/xtensor-io.svg?branch=master)](https://travis-ci.org/QuantStack/xtensor-io)
+[![ReadTheDocs](https://readthedocs.org/projects/xtensor-io/badge/?version=stable)](http://xtensor-io.readthedocs.io/en/stable/)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
