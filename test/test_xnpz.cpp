@@ -6,6 +6,8 @@
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
 
+#include <cstdint>
+
 #include "gtest/gtest.h"
 #include "xtensor-io/xnpz.hpp"
 
@@ -15,8 +17,8 @@ namespace xt
     {
         auto npz_map = xt::load_npz("files/uncompressed.npz");
         auto arr_0 = npz_map["arr_0"].cast<double>();
-        auto arr_1 = npz_map["arr_1"].cast<unsigned long>(false);
-        xt::xarray<unsigned long> xarr_1 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        auto arr_1 = npz_map["arr_1"].cast<uint64_t>(false);
+        xt::xarray<uint64_t> xarr_1 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         EXPECT_TRUE(xt::all(xt::isclose(arr_0, linspace<double>(0, 100))));
         EXPECT_TRUE(xt::all(xt::equal(arr_1, xarr_1)));
     }
@@ -24,9 +26,9 @@ namespace xt
     TEST(xnpz, load_compressed)
     {
         auto npz_map = xt::load_npz("files/compressed.npz");
-        auto arr_0 = npz_map["arr_0"].cast<unsigned long>(false);
+        auto arr_0 = npz_map["arr_0"].cast<uint64_t>(false);
         auto arr_1 = npz_map["arr_1"].cast<double>();
-        xt::xarray<unsigned long> xarr_0 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        xt::xarray<uint64_t> xarr_0 = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         EXPECT_TRUE(xt::all(xt::isclose(arr_1, linspace<double>(0, 100))));
         EXPECT_TRUE(xt::all(xt::equal(arr_0, xarr_0)));
     }
@@ -67,14 +69,14 @@ namespace xt
     TEST(xnpz, save_uncompressed)
     {
         dump_npz("files/dump_uncompressed.npz", "arr_0", linspace<double>(0, 100), false, false);
-        xt::xarray<long> arr = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        xt::xarray<int64_t> arr = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         dump_npz("files/dump_uncompressed.npz", "arr_1", arr);
         EXPECT_TRUE(compare_binary_files("files/dump_uncompressed.npz", "files/uncompressed.npz", 2));
     }
 
     TEST(xnpz, save_compressed)
     {
-        xt::xarray<long> arr = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
+        xt::xarray<int64_t> arr = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
         dump_npz("files/dump_compressed.npz", "arr_1", linspace<double>(0, 100), true, false );
         dump_npz("files/dump_compressed.npz", "arr_0", arr, true);
         EXPECT_TRUE(compare_binary_files("files/dump_compressed.npz", "files/compressed.npz", 2));
