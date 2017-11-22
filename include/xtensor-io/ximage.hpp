@@ -24,13 +24,13 @@ namespace xt
     xarray<T> load_image(std::string filename)
     {
         // TODO handle types better
-        OIIO::ImageInput *in = OIIO::ImageInput::open(filename);
+        OIIO::ImageInput* in = OIIO::ImageInput::open(filename);
         if (!in)
         {
             // something went wrong
             throw std::runtime_error("Error reading image.");
         }
-        const OIIO::ImageSpec &spec = in->spec();
+        const OIIO::ImageSpec& spec = in->spec();
         int xres = spec.width;
         int yres = spec.height;
         int channels = spec.nchannels;
@@ -66,13 +66,15 @@ namespace xt
     {
         auto&& ex = eval(data.derived_cast());
 
-        OIIO::ImageOutput *out = OIIO::ImageOutput::create(filename);
+        OIIO::ImageOutput* out = OIIO::ImageOutput::create(filename);
         if (!out)
         {
             // something went wrong
             throw std::runtime_error("Error opening file to write image.");
         }
-        OIIO::ImageSpec spec((int) ex.shape()[0], (int) ex.shape()[1], (int) ex.shape()[2], OIIO::TypeDesc::UINT8);
+        OIIO::ImageSpec spec(static_cast<int>(ex.shape()[0]),
+                             static_cast<int>(ex.shape()[1]),
+                             static_cast<int>(ex.shape()[2]), OIIO::TypeDesc::UINT8);
 
         spec.attribute("CompressionQuality", quality);
 

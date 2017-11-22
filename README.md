@@ -4,17 +4,49 @@
 [![ReadTheDocs](https://readthedocs.org/projects/xtensor-io/badge/?version=stable)](http://xtensor-io.readthedocs.io/en/stable/)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+Reading and writing image, sound and npz file formats to and from xtensor data structures.
 
-xtensor-io offers a couple of functions to read and write images, audio files, and
-NumPy's compressed storage format (NPZ) from C++ into xtensor data structures.
-It makes use of well known libraries for image and audio handling (OpenImageIO and libsndfile).
-Currently, only a few basic functions are provided, but upon demand we can consider to
-improve the interface and offer more options to customize and improve the input-output
-performance.
+## Introduction
 
-We haven't started building and testing on Windows, yet! Contributions welcome!
+**xtensor-io is an early developer preview, and is not suitable for general usage yet. Features and implementation are subject to change.**
 
-### Example
+`xtensor-io` offers API of to read and write various file formats into `xtensor` data structures:
+
+ - images,
+ - audio files,
+ - NumPy's compressed storage format (NPZ).
+
+`xtensor-io` wraps the [OpenImageIO](https://github.com/OpenImageIO/oiio), [libsndfile](https://github.com/erikd/libsndfile) and [zlib](https://github.com/madler/zlib) libraries.
+
+## Installation
+
+`xtensor-io` is a header-only library. We provide a package for the conda package manager.
+
+```bash
+conda install xtensor-io -c QuantStack
+```
+
+- `xtensor-io` depends on `xtensor` `^0.13.2`.
+
+- `OpenImageIO`, `libsndfile` and `zlib` are optional dependencies to `xtensor-io`
+
+  - `OpenImageIO` is required to read and write image files.
+  - `libsndfile` is required to read and write sound files.
+  - `zlib` is required to load NPZ files.
+
+All three libraries are available for the conda package manager.
+
+You can also install `xtensor-io` from source:
+
+```
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
+
+## Usage
 
 ```cpp
 // loads png image into xarray with shape WIDTH x HEIGHT x CHANNELS
@@ -44,61 +76,9 @@ auto y = xt::sin(2.0 * numeric_constants<double>::PI * freq * t);
 xt::dump_audio("files/sine.wav", y, sampling_freq);
 ```
 
-### Installation
+## License
 
-xtensor-io depends on thirdparty libraries for audio and image handling.
+We use a shared copyright model that enables all contributors to maintain the
+copyright on their contributions.
 
-The easiest way to install xtensor-io (including all dependencies) is through conda:
-
-```bash
-conda install xtensor-io
-```
-
-To use xaudio, it's required to link with [`libsndfile`](http://www.mega-nerd.com/libsndfile/).
-The library can be installed as follows:
-
-```bash
-# Conda
-conda install libsndfile -c conda-forge
-# Ubuntu / Debian
-sudo apt-get install libsndfile-dev
-# Fedora
-sudo dnf install libsndfile-devel
-```
-
-For image handling, [`OpenImageIO`](http://openimageio.org/) is required.
-We have a build of OpenImageIO on the conda QuantStack channel, but it can also
-be optained from your favorite package manager on Linux. Note the conda build
-is only tested with the `gcc-6` package from the QuantStack channel.
-
-```bash
-# Conda
-(maybe: ) conda install gcc-6 -c QuantStack
-conda install openimageio -c QuantStack
-# Ubuntu / Debian
-sudo apt-get install libopenimageio-dev
-# Fedora
-sudo dnf install OpenImageIO-devel
-```
-
-In order to decompress and read NPZ files, zlib is needed. It should be installed
-on linux, but you can also obtain it:
-
-```bash
-# Conda
-conda install zlib -c conda-forge
-# Ubuntu / Debian
-sudo apt-get install zlib1g-dev
-# Fedora
-sudo dnf install zlib-devel
-```
-
-From this directory:
-
-```
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
-```
+This software is licensed under the BSD-3-Clause license. See the [LICENSE](LICENSE) file for details.
