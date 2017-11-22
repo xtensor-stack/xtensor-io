@@ -8,18 +8,18 @@
 
 // Inspired by cnpy: https://github.com/rogersce/cnpy/
 
-#include <string>
-#include <stdexcept>
-#include <sstream>
-#include <vector>
-#include <typeinfo>
-#include <fstream>
 #include <cassert>
-#include <map>
-#include <memory>
 #include <cstdint>
 #include <ctime>
+#include <fstream>
+#include <map>
+#include <memory>
 #include <numeric>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <typeinfo>
+#include <vector>
 
 #include "thirdparty/zstr/zstr.hpp"
 
@@ -42,58 +42,59 @@ namespace xt
      * @return returns a map with the stored arrays.
      *         Array names are the keys.
      */
-    auto load_npz(std::string filename) {
+    auto load_npz(std::string filename)
+    {
         std::ifstream stream(filename, std::ifstream::binary);
 
-        if(!stream)
+        if (!stream)
         {
-            throw std::runtime_error("npz_load: Error! Unable to open file");
+            throw std::runtime_error("load_npz: Error! Unable to open file");
         }
 
         using result_type = std::map<std::string, detail::npy_file>;
         result_type arrays;
 
-        while(1)
+        while (1)
         {
             char local_header[30];
             stream.read(&local_header[0], 30);
-            if(!stream)
+            if (!stream)
             {
-                throw std::runtime_error("npz_load: failed to read enough characters.");
+                throw std::runtime_error("load_npz: failed to read enough characters.");
             }
 
             //if we've reached the global header, stop reading
-            if(local_header[2] != 0x03 || local_header[3] != 0x04)
+            if (local_header[2] != 0x03 || local_header[3] != 0x04)
             {
                 break;
             }
 
             //read in the variable name
-            uint16_t name_len = *(uint16_t*) &local_header[26];
+            uint16_t name_len = *reinterpret_cast<uint16_t*>(&local_header[26]);
             std::string varname(name_len, ' ');
             stream.read(&varname[0], name_len);
-            if(!stream)
+            if (!stream)
             {
-                throw std::runtime_error("npz_load: failed to read variable name.");
+                throw std::runtime_error("load_npz: failed to read variable name.");
             }
 
             //erase the lagging .npy
             varname.erase(varname.end() - 4, varname.end());
 
             //read in the extra field
-            uint16_t extra_field_len = *(uint16_t*) &local_header[28];
-            if(extra_field_len > 0)
+            uint16_t extra_field_len = *reinterpret_cast<uint16_t*>(&local_header[28]);
+            if (extra_field_len > 0)
             {
                 std::vector<char> buff(extra_field_len);
                 stream.read(&buff[0], extra_field_len);
-                if(!stream)
+                if (!stream)
                 {
-                    throw std::runtime_error("npz_load: failed reading extra field.");
+                    throw std::runtime_error("load_npz: failed reading extra field.");
                 }
             }
 
-            uint16_t compr_method  = *reinterpret_cast<uint16_t*>(&local_header[0] + 8);
-            uint32_t compr_bytes   = *reinterpret_cast<uint32_t*>(&local_header[0] + 18);
+            uint16_t compr_method = *reinterpret_cast<uint16_t*>(&local_header[0] + 8);
+            uint32_t compr_bytes = *reinterpret_cast<uint32_t*>(&local_header[0] + 18);
             uint32_t uncompr_bytes = *reinterpret_cast<uint32_t*>(&local_header[0] + 22);
 
             if (compr_method == 0)
@@ -105,9 +106,9 @@ namespace xt
             {
                 zstr::istream zstream(stream, compr_bytes);
 
-                if(!zstream)
+                if (!zstream)
                 {
-                    throw std::runtime_error("npz_load: failed to open zstream");
+                    throw std::runtime_error("load_npz: failed to open zstream");
                 }
 
                 arrays.insert(result_type::value_type(varname,
@@ -131,55 +132,55 @@ namespace xt
     {
         std::ifstream stream(filename, std::ifstream::binary);
 
-        if(!stream)
+        if (!stream)
         {
-            throw std::runtime_error("npz_load: Error! Unable to open file");
+            throw std::runtime_error("load_npz: Error! Unable to open file");
         }
 
         using result_type = std::map<std::string, detail::npy_file>;
         result_type arrays;
 
-        while(1)
+        while (1)
         {
             char local_header[30];
             stream.read(&local_header[0], 30);
-            if(!stream)
+            if (!stream)
             {
-                throw std::runtime_error("npz_load: failed to read enough characters.");
+                throw std::runtime_error("load_npz: failed to read enough characters.");
             }
 
             //if we've reached the global header, stop reading
-            if(local_header[2] != 0x03 || local_header[3] != 0x04)
+            if (local_header[2] != 0x03 || local_header[3] != 0x04)
             {
                 break;
             }
 
             //read in the variable name
-            uint16_t name_len = *(uint16_t*) &local_header[26];
+            uint16_t name_len = *reinterpret_cast<uint16_t*>(&local_header[26]);
             std::string varname(name_len, ' ');
             stream.read(&varname[0], name_len);
-            if(!stream)
+            if (!stream)
             {
-                throw std::runtime_error("npz_load: failed to read variable name.");
+                throw std::runtime_error("load_npz: failed to read variable name.");
             }
 
             //erase the lagging .npy
             varname.erase(varname.end() - 4, varname.end());
 
             //read in the extra field
-            uint16_t extra_field_len = *(uint16_t*) &local_header[28];
-            if(extra_field_len > 0)
+            uint16_t extra_field_len = *reinterpret_cast<uint16_t*>(&local_header[28]);
+            if (extra_field_len > 0)
             {
                 std::vector<char> buff(extra_field_len);
                 stream.read(&buff[0], extra_field_len);
-                if(!stream)
+                if (!stream)
                 {
-                    throw std::runtime_error("npz_load: failed reading extra field.");
+                    throw std::runtime_error("load_npz: failed reading extra field.");
                 }
             }
 
-            uint16_t compr_method  = *reinterpret_cast<uint16_t*>(&local_header[0] + 8);
-            uint32_t compr_bytes   = *reinterpret_cast<uint32_t*>(&local_header[0] + 18);
+            uint16_t compr_method = *reinterpret_cast<uint16_t*>(&local_header[0] + 8);
+            uint32_t compr_bytes = *reinterpret_cast<uint32_t*>(&local_header[0] + 18);
             uint32_t uncompr_bytes = *reinterpret_cast<uint32_t*>(&local_header[0] + 22);
 
             if (varname == search_varname)
@@ -193,7 +194,7 @@ namespace xt
                 {
                     zstr::istream zstream(stream, compr_bytes);
 
-                    if(!zstream)
+                    if (!zstream)
                     {
                         throw std::runtime_error("npz_load: failed to open zstream");
                     }
@@ -204,7 +205,7 @@ namespace xt
             }
             else
             {
-                stream.seekg((std::streamsize) compr_bytes, std::ios_base::cur);
+                stream.seekg(static_cast<std::streamsize>(compr_bytes), std::ios_base::cur);
             }
         }
         throw std::runtime_error("Array "s + search_varname + " not found in file: "s + filename);
@@ -228,7 +229,7 @@ namespace xt
             {
                 for (size_t byte = 0; byte < sizeof(T); byte++)
                 {
-                    char val = *((char*)&rhs+byte);
+                    char val = *((char*)&rhs + byte);
                     this->push_back(val);
                 }
                 return *this;
@@ -240,11 +241,12 @@ namespace xt
                 return *this;
             }
 
-            self_type& operator<<(const char* rhs) {
+            self_type& operator<<(const char* rhs)
+            {
                 //write in little endian
                 std::size_t len = strlen(rhs);
                 this->reserve(len);
-                for(std::size_t byte = 0; byte < len; byte++)
+                for (std::size_t byte = 0; byte < len; byte++)
                 {
                     this->push_back(rhs[byte]);
                 }
@@ -254,7 +256,7 @@ namespace xt
             bool write(const char* char_arr, std::size_t size)
             {
                 this->reserve(this->size() + size);
-                for(std::size_t byte = 0; byte < size; byte++)
+                for (std::size_t byte = 0; byte < size; byte++)
                 {
                     this->push_back(char_arr[byte]);
                 }
@@ -284,13 +286,13 @@ namespace xt
             }
 
             uint16_t disk_no, disk_start, nrecs_on_disk, comment_len;
-            disk_no = *(uint16_t*) &footer[4];
-            disk_start = *(uint16_t*) &footer[6];
-            nrecs_on_disk = *(uint16_t*) &footer[8];
-            nrecs = *(uint16_t*) &footer[10];
-            global_header_size = *(uint32_t*) &footer[12];
-            global_header_offset = *(uint32_t*) &footer[16];
-            comment_len = *(uint16_t*) &footer[20];
+            disk_no = *reinterpret_cast<uint16_t*>(&footer[4]);
+            disk_start = *reinterpret_cast<uint16_t*>(&footer[6]);
+            nrecs_on_disk = *reinterpret_cast<uint16_t*>(&footer[8]);
+            nrecs = *reinterpret_cast<uint16_t*>(&footer[10]);
+            global_header_size = *reinterpret_cast<uint32_t*>(&footer[12]);
+            global_header_offset = *reinterpret_cast<uint32_t*>(&footer[16]);
+            comment_len = *reinterpret_cast<uint16_t*>(&footer[20]);
 
             assert(disk_no == 0);
             assert(disk_start == 0);
@@ -301,20 +303,22 @@ namespace xt
 
     namespace detail
     {
-        inline uint16_t msdos_time(uint16_t hour, uint16_t min, uint16_t sec) {
-            return (uint16_t) (hour << 11 | min << 5 | (sec / 2));
+        inline uint16_t msdos_time(uint16_t hour, uint16_t min, uint16_t sec)
+        {
+            return static_cast<uint16_t>(hour << 11 | min << 5 | (sec / 2));
         }
 
-        inline uint16_t msdos_date(uint16_t year, uint16_t month, uint16_t day) {
-            return (uint16_t) ((year - 1980) << 9 | month << 5 | day);
+        inline uint16_t msdos_date(uint16_t year, uint16_t month, uint16_t day)
+        {
+            return static_cast<uint16_t>((year - 1980) << 9 | month << 5 | day);
         }
 
         inline std::pair<uint16_t, uint16_t> time_pair()
         {
             std::time_t t = std::time(nullptr);
             auto tm = std::localtime(&t);
-            return {msdos_time((uint16_t) tm->tm_hour, (uint16_t) tm->tm_min, (uint16_t) tm->tm_sec),
-                    msdos_date((uint16_t) (tm->tm_year + 1900), (uint16_t) (tm->tm_mon + 1), (uint16_t) tm->tm_mday)};
+            return {msdos_time(static_cast<uint16_t>(tm->tm_hour), static_cast<uint16_t>(tm->tm_min), static_cast<uint16_t>(tm->tm_sec)),
+                    msdos_date(static_cast<uint16_t>(tm->tm_year + 1900), static_cast<uint16_t>(tm->tm_mon + 1), static_cast<uint16_t>(tm->tm_mday))};
         }
     }
 
@@ -356,11 +360,11 @@ namespace xt
             std::streamsize global_header_size;
             detail::parse_zip_footer(in_stream, nrecs, global_header_size, global_header_offset);
             in_stream.seekg(global_header_offset);
-            global_header.resize((std::size_t) global_header_size);
+            global_header.resize(static_cast<std::size_t>(global_header_size));
             in_stream.read(&global_header[0], global_header_size);
-            if(!in_stream)
+            if (!in_stream)
             {
-                throw std::runtime_error("npz_save: header read error while adding to existing zip");
+                throw std::runtime_error("dump_npz: header read error while adding to existing zip");
             }
         }
 
@@ -379,7 +383,7 @@ namespace xt
         detail::dump_npy_stream(array_contents, e);
 
         //get the CRC of the data to be added
-        uint32_t crc = (uint32_t) crc32(0L, (uint8_t*) &array_contents[0], (unsigned int) array_contents.size());
+        uint32_t crc = static_cast<uint32_t>(crc32(0L, reinterpret_cast<uint8_t*>(&array_contents[0]), static_cast<unsigned int>(array_contents.size())));
         std::size_t uncompressed_size = array_contents.size();
         std::size_t compressed_size = uncompressed_size;
 
@@ -390,7 +394,7 @@ namespace xt
             std::ostringstream ss;
             compression_method = 8;
             zstr::ostream compressed_array(ss, compression_method);
-            compressed_array.write(&array_contents[0], (std::streamsize) array_contents.size());
+            compressed_array.write(&array_contents[0], static_cast<std::streamsize>(array_contents.size()));
             compressed_array.flush();
             array_contents.clear();
             array_contents << ss.str();
@@ -453,4 +457,4 @@ namespace xt
         stream.write(&footer[0], (std::streamsize) footer.size());
     }
 
-} // namespace xt
+}  // namespace xt
