@@ -8,6 +8,9 @@
 
 // Inspired by cnpy: https://github.com/rogersce/cnpy/
 
+#ifndef XTENSOR_IO_XNPZ_HPP
+#define XTENSOR_IO_XNPZ_HPP
+
 #include <cassert>
 #include <cstdint>
 #include <ctime>
@@ -459,3 +462,5 @@ namespace xt
     }
 
 }  // namespace xt
+
+#endif
