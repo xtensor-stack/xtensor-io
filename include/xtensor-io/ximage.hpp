@@ -1,19 +1,22 @@
 #include <stdexcept>
 #include <string>
 
-#include <OpenImageIO/imageio.h>
-
 #include "xtensor/xarray.hpp"
 #include "xtensor/xeval.hpp"
 
 #include "xtensor_io_config.hpp"
 
 #ifdef __CLING__
-#pragma clang diagnostic push
-// silencing warnings from OpenEXR 2.2.0 / OpenImageIO
-#pragma clang diagnostic ignored "-Wdeprecated-register"
-#pragma cling load("OpenImageIO")
-#pragma clang diagnostic pop
+    #pragma clang diagnostic push
+    // silencing warnings from OpenEXR 2.2.0 / OpenImageIO
+    #pragma clang diagnostic ignored "-Wdeprecated-register"
+    #pragma cling load("OpenImageIO")
+#endif
+
+#include <OpenImageIO/imageio.h>
+
+#ifdef __CLING__
+    #pragma clang diagnostic pop
 #endif
 
 namespace xt
