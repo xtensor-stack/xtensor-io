@@ -25,6 +25,7 @@
 
 #include <xtensor/xnpy.hpp>
 
+#include "xtensor_io_config.hpp"
 #pragma cling load("z")
 
 namespace xt
