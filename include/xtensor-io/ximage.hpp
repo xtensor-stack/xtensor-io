@@ -6,6 +6,7 @@
 #include "xtensor/xarray.hpp"
 #include "xtensor/xeval.hpp"
 
+#include "xtensor_io_config.hpp"
 #pragma cling load("OpenImageIO")
 
 namespace xt
