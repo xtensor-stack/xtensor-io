@@ -1,6 +1,7 @@
 name: xtensor-io
 channels:
   - nodefaults
+  - conda-forge
   - QuantStack
 dependencies:
   - xtensor
