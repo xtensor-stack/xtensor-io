@@ -1,0 +1,10 @@
+name: xtensor-io
+channels:
+  - nodefaults
+  - QuantStack
+dependencies:
+  - xtensor
+  - xtensor-io
+  - xeus-cling
+  - xwidgets
+  - notebook
