@@ -8,6 +8,14 @@
 
 #include <vector>
 
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+namespace mmap {
+    #include <sys/mman.h>
+}
+#include <unistd.h>
+#include <fcntl.h>
+#endif
+
 #include <highfive/H5DataSet.hpp>
 #include <highfive/H5DataType.hpp>
 #include <highfive/H5DataSpace.hpp>
@@ -20,11 +28,11 @@
 
 namespace xt
 {
-namespace HF = HighFive;
+    namespace HF = HighFive;
 
     namespace detail
     {
-        auto split_string(const std::string &str, char delim = '/')
+        auto split_string(const std::string& str, char delim = '/')
         {
             std::vector<std::string> cont;
             std::size_t current, previous = 0;
@@ -87,6 +95,33 @@ namespace HF = HighFive;
             return cast_impl<xtensor<T, dim>>(name);
         }
 
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+        /**
+         * Memory Map HDF5 dataset to xadapt.
+         *
+         * @param name path of the dataset
+         * @tparam datatype to cast to
+         */
+        template <class T>
+        auto mmap(const std::string& name)
+        {
+            return mmap_impl<T, std::vector<std::size_t>>(name);
+        }
+
+        /**
+         * Memory Map HDF5 dataset to xadapt.
+         *
+         * @param name path of the dataset
+         * @tparam datatype to cast to
+         * @tparam dim compile-time known dimensionality
+         */
+        template <class T, std::size_t dim>
+        auto mmap(const std::string& name)
+        {
+            return mmap_impl<T, std::array<std::size_t, dim>>(name);
+        }
+#endif
+
         /**
          * Save an xexpression to the HDF5 file
          *
@@ -132,7 +167,33 @@ namespace HF = HighFive;
             m_file.createGroup(name);
         }
 
+
     private:
+
+#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+        template <class T, class ST>
+        inline auto mmap_impl(const std::string& name)
+        {
+            HF::DataSet ds = m_file.getDataSet(name);
+            std::size_t offset = ds.getOffset();
+
+            int* fd;
+            H5Fget_vfd_handle(m_file.getId(), H5P_DEFAULT, reinterpret_cast<void**>(&fd));
+
+            std::size_t pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
+
+            auto space = ds.getSpace();
+            auto dims = space.getDimensions();
+            auto sz = std::accumulate(dims.begin(), dims.end(), std::size_t(1), std::multiplies<>());
+
+            std::size_t length = sz * sizeof(T);
+            void* ptr = mmap::mmap(nullptr, length + offset - pa_offset, PROT_READ,
+                                   MAP_PRIVATE, *fd, pa_offset);
+            T* t_ptr = reinterpret_cast<T*>(ptr + offset - pa_offset);
+
+            return xt::adapt(t_ptr, sz, xt::no_ownership(), ST(dims.begin(), dims.end()));
+        }
+#endif
 
         template <class T>
         inline T cast_impl(const std::string& name)
