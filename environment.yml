@@ -1,14 +1,13 @@
 name: xtensor-io
 channels:
-  - nodefaults
   - QuantStack
   - conda-forge
 dependencies:
   - xtensor
-  - boost ==1.65.1
-  - boost-cpp ==1.65.1
+  - boost ==1.66.0
+  - boost-cpp ==1.66.0
   - widgetsnbextension
   - xtensor-io
-  - xeus-cling
-  - xwidgets
+  - xeus-cling ==0.2.3
+  - xwidgets ==0.8.0
   - notebook
