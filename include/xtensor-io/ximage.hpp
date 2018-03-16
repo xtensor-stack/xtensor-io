@@ -9,11 +9,12 @@
 #ifndef XTENSOR_IO_XIMAGE_HPP
 #define XTENSOR_IO_XIMAGE_HPP
 
+#include <cstddef>
 #include <stdexcept>
 #include <string>
 
-#include "xtensor/xarray.hpp"
-#include "xtensor/xeval.hpp"
+#include <xtensor/xarray.hpp>
+#include <xtensor/xeval.hpp>
 
 #include "xtensor_io_config.hpp"
 
@@ -39,7 +40,7 @@ namespace xt
      * @param filename The path of the file to load
      *
      * @return xarray with image contents. The shape of the xarray
-     *         is ``WIDTH x HEIGHT x CHANNELS`` of the loaded image, where
+     *         is ``HEIGHT x WIDTH x CHANNELS`` of the loaded image, where
      *         ``CHANNELS`` are ordered in standard ``R G B (A)``.
      */
     template <class T = unsigned char>
