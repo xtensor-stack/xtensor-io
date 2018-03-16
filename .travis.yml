@@ -9,16 +9,14 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-          packages:
-            - g++-6
-      env: COMPILER=gcc GCC=6
+    - os: osx
+      osx_image: xcode8
+      compiler: clang
 env:
   global:
     - MINCONDA_VERSION="latest"
     - MINCONDA_LINUX="Linux-x86_64"
     - MINCONDA_OSX="MacOSX-x86_64"
-# before_install:
-
 install:
     # Define the version of miniconda to download
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -28,20 +26,24 @@ install:
       fi
     - wget "http://repo.continuum.io/miniconda/Miniconda3-$MINCONDA_VERSION-$MINCONDA_OS.sh" -O miniconda.sh;
     - bash miniconda.sh -b -p $HOME/miniconda
+    - export CONDA_PREFIX=$HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - conda info -a
-    # Start test environement
-    - conda env create -f ./test/test-environment.yml
-    - source activate test-xtensorio
-    - export CC=$CONDA_PREFIX/bin/gcc
-    - export CXX=$CONDA_PREFIX/bin/g++
-    # from conda toolchain package
+    - |
+      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        export CC=$CONDA_PREFIX/bin/gcc
+        export CXX=$CONDA_PREFIX/bin/g++
+        conda install gcc-7 -c QuantStack -c conda-forge
+      elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        export CXX=clang++ CC=clang;
+        conda install libcxx clangdev -c QuantStack -c conda-forge
+      fi
+    - conda install cmake openimageio libsndfile boost zlib xtensor=0.15.5 -c QuantStack -c conda-forge
     - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
     - export LINKFLAGS="${LDFLAGS}"
-    # Testing
     - mkdir build
     - cd build
     - cmake -DBUILD_TESTS=ON -DDOWNLOAD_GTEST=ON -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..;
