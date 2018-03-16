@@ -8,6 +8,7 @@
 
 #include "gtest/gtest.h"
 #include "xtensor/xoperation.hpp"
+#include "xtensor/xview.hpp"
 
 #include "xtensor-io/ximage.hpp"
 
@@ -51,6 +52,12 @@ namespace xt
         auto img = load_image("files/test.jpg");
         bool test = (amax(test_image_rgb - img)() <= 35);
         EXPECT_TRUE(test);
+    }
+
+    TEST(ximage, exceptions)
+    {
+        EXPECT_THROW(dump_image("files/dump_test.png", view(test_image_rgb, all(), 0, 0)), std::runtime_error);
+        EXPECT_THROW(dump_image("files/dump_test.png", view(test_image_rgb, all(), all(), all(), newaxis())), std::runtime_error);
     }
 
     TEST(ximage, save_png)
