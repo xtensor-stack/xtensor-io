@@ -58,8 +58,8 @@ namespace xt
         int channels = spec.nchannels;
 
         // allocate memory
-        auto image = xarray<T>::from_shape({static_cast<std::size_t>(spec.width),
-                                            static_cast<std::size_t>(spec.height),
+        auto image = xarray<T>::from_shape({static_cast<std::size_t>(spec.height),
+                                            static_cast<std::size_t>(spec.width),
                                             static_cast<std::size_t>(spec.nchannels)});
 
         in->read_image(OIIO::TypeDesc::UINT8, image.raw_data());
@@ -94,8 +94,8 @@ namespace xt
             // something went wrong
             throw std::runtime_error("Error opening file to write image.");
         }
-        OIIO::ImageSpec spec(static_cast<int>(ex.shape()[0]),
-                             static_cast<int>(ex.shape()[1]),
+        OIIO::ImageSpec spec(static_cast<int>(ex.shape()[1]),
+                             static_cast<int>(ex.shape()[0]),
                              static_cast<int>(ex.shape()[2]), OIIO::TypeDesc::UINT8);
 
         spec.attribute("CompressionQuality", quality);
