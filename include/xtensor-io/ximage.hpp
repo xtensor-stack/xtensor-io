@@ -88,15 +88,23 @@ namespace xt
     {
         auto&& ex = eval(data.derived_cast());
 
+        XTENSOR_PRECONDITION(ex.dimension() == 2 || ex.dimension() == 3,
+            "dump_image(): data must have 2 or 3 dimensions (channels must be last).");
+
         OIIO::ImageOutput* out = OIIO::ImageOutput::create(filename);
         if (!out)
         {
             // something went wrong
-            throw std::runtime_error("Error opening file to write image.");
+            throw std::runtime_error("dump_image(): Error opening file '" + filename + "' to write image.");
         }
+
+        int channels = ex.dimension() == 2
+                           ? 1
+                           : static_cast<int>(ex.shape()[2]);
+
         OIIO::ImageSpec spec(static_cast<int>(ex.shape()[1]),
                              static_cast<int>(ex.shape()[0]),
-                             static_cast<int>(ex.shape()[2]), OIIO::TypeDesc::UINT8);
+                             channels, OIIO::TypeDesc::UINT8);
 
         spec.attribute("CompressionQuality", quality);
 
