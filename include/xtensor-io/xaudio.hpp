@@ -14,11 +14,14 @@
 
 #include <sndfile.hh>
 
-#include "xtensor/xarray.hpp"
-#include "xtensor/xeval.hpp"
+#include <xtensor/xarray.hpp>
+#include <xtensor/xeval.hpp>
 
 #include "xtensor_io_config.hpp"
-#pragma cling load("sndfile")
+
+#ifdef __CLING__
+    #pragma cling load("sndfile")
+#endif
 
 namespace xt
 {
