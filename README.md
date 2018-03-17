@@ -52,7 +52,7 @@ sudo make install
 ## Usage
 
 ```cpp
-// loads png image into xarray with shape WIDTH x HEIGHT x CHANNELS
+// loads png image into xarray with shape HEIGHT x WIDTH x CHANNELS
 auto arr = xt::load_image("test.png");
 
 // write xarray out to JPEG image
