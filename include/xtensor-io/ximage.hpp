@@ -11,9 +11,11 @@
 
 #include <stdexcept>
 #include <string>
+#include <memory>
 
-#include "xtensor/xarray.hpp"
-#include "xtensor/xeval.hpp"
+#include <xtensor/xarray.hpp>
+#include <xtensor/xmath.hpp>
+#include <xtensor/xeval.hpp>
 
 #include "xtensor_io_config.hpp"
 
@@ -39,79 +41,154 @@ namespace xt
      * @param filename The path of the file to load
      *
      * @return xarray with image contents. The shape of the xarray
-     *         is ``WIDTH x HEIGHT x CHANNELS`` of the loaded image, where
+     *         is ``HEIGHT x WIDTH x CHANNELS`` of the loaded image, where
      *         ``CHANNELS`` are ordered in standard ``R G B (A)``.
      */
     template <class T = unsigned char>
     xarray<T> load_image(std::string filename)
     {
-        // TODO handle types better
-        OIIO::ImageInput* in = OIIO::ImageInput::open(filename);
+        auto close_file  =  [](OIIO::ImageInput * file)
+                            {
+                                file->close();
+                                OIIO::ImageInput::destroy(file);
+                            };
+
+        std::unique_ptr<OIIO::ImageInput, decltype(close_file)> in(OIIO::ImageInput::open(filename), close_file);
         if (!in)
         {
-            // something went wrong
-            throw std::runtime_error("Error reading image.");
+            throw std::runtime_error("load_image(): Error reading image '" + filename + "'.");
         }
+
         const OIIO::ImageSpec& spec = in->spec();
-        int xres = spec.width;
-        int yres = spec.height;
-        int channels = spec.nchannels;
 
         // allocate memory
         auto image = xarray<T>::from_shape({static_cast<std::size_t>(spec.height),
                                             static_cast<std::size_t>(spec.width),
                                             static_cast<std::size_t>(spec.nchannels)});
 
-        in->read_image(OIIO::TypeDesc::UINT8, image.raw_data());
-        in->close();
-        OIIO::ImageInput::destroy(in);
+        in->read_image(OIIO::BaseTypeFromC<T>::value, image.raw_data());
 
         return image;
     }
 
+        /** \brief Pass options to dump_image().
+        */
+    struct dump_image_options
+    {
+            /** \brief Initialize options to default values.
+            */
+        dump_image_options()
+        : spec(0,0,0)
+        , autoconvert(true)
+        {
+            spec.attribute("CompressionQuality", 90);
+        }
+
+            /** \brief Allow automatic conversion of the image.
+
+                This options is invoked when the desired file type doesn't support
+                the image's ``value_type``. If ``false``, mismatch will result in an exception,
+                otherwise the data is transformed to UINT8.
+
+                Default: ``true``
+            */
+        dump_image_options & autoconvert_value_type(bool a=true)
+        {
+            autoconvert = a;
+            return *this;
+        }
+
+            /** \brief Forward an attribute to an OpenImageIO ImageSpec.
+
+                See the documentation of OIIO::ImageSpec::attribute() for a list
+                of supported attributes.
+
+                Default: "CompressionQuality" = 90
+            */
+        template <class T>
+        dump_image_options & attribute(OIIO::string_view name, T const & v)
+        {
+            spec.attribute(name, v);
+            return *this;
+        }
+
+        OIIO::ImageSpec spec;
+        bool autoconvert;
+    };
 
     /**
      * Save image to disk.
      * The desired image format is deduced from ``filename``.
      * Supported formats are those supported by OpenImageIO.
      * Most common formats are supported (jpg, png, gif, bmp, tiff).
+     * The shape of the array must be ``HEIGHT x WIDTH`` or ``HEIGHT x WIDTH x CHANNELS``.
      *
      * @param filename The path to the desired file
      * @param data Image data
-     * @param quality If saving in a compressed format such as JPEG, setting the quality
-     *                will select how strong the compression will reduce the image quality.
-     *                Quality is an integer from 100 (best image quality, less compression)
-     *                to 0 (worst image quality, low filesize).
+     * @param options Pass a dump_image_options object to fine-tune image export
      */
     template <class E>
-    void dump_image(std::string filename, const xexpression<E>& data, int quality = 90)
+    void dump_image(std::string filename, const xexpression<E>& data,
+                    dump_image_options const & options = dump_image_options())
     {
-        auto&& ex = eval(data.derived_cast());
+        using value_type = typename std::decay_t<decltype(data.derived_cast())>::value_type;
 
-        XTENSOR_PRECONDITION(ex.dimension() == 2 || ex.dimension() == 3,
+        auto shape = data.derived_cast().shape();
+        XTENSOR_PRECONDITION(shape.size() == 2 || shape.size() == 3,
             "dump_image(): data must have 2 or 3 dimensions (channels must be last).");
 
-        OIIO::ImageOutput* out = OIIO::ImageOutput::create(filename);
+        auto close_file  =  [](OIIO::ImageOutput * file)
+                            {
+                                file->close();
+                                OIIO::ImageOutput::destroy(file);
+                            };
+
+        std::unique_ptr<OIIO::ImageOutput, decltype(close_file)> out(OIIO::ImageOutput::create(filename), close_file);
         if (!out)
         {
-            // something went wrong
             throw std::runtime_error("dump_image(): Error opening file '" + filename + "' to write image.");
         }
 
-        int channels = ex.dimension() == 2
+        OIIO::ImageSpec spec = options.spec;
+
+        spec.width     = static_cast<int>(shape[1]);
+        spec.height    = static_cast<int>(shape[0]);
+        spec.nchannels = (shape.size() == 2)
                            ? 1
-                           : static_cast<int>(ex.shape()[2]);
-
-        OIIO::ImageSpec spec(static_cast<int>(ex.shape()[1]),
-                             static_cast<int>(ex.shape()[0]),
-                             channels, OIIO::TypeDesc::UINT8);
-
-        spec.attribute("CompressionQuality", quality);
+                           : static_cast<int>(shape[2]);
+        spec.format    = OIIO::BaseTypeFromC<value_type>::value;
 
         out->open(filename, spec);
-        out->write_image(OIIO::TypeDesc::UINT8, ex.raw_data());
-        out->close();
-        OIIO::ImageOutput::destroy(out);
+
+        auto&& ex = eval(data.derived_cast());
+        if(out->spec().format == OIIO::BaseTypeFromC<value_type>::value)
+        {
+            // file type supports value_type
+            out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
+        }
+        else
+        {
+            XTENSOR_PRECONDITION(options.autoconvert,
+                "dump_image(): " + out->format_name() + " does not support your data's value_type.\n"
+                "              Consider setting 'options.autoconvert_value_type(true)'.");
+
+            auto mM = minmax(ex)();
+
+            if(mM[0] == mM[1])
+            {
+                out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
+            }
+            else
+            {
+                double f = 255.0 / (mM[1] - mM[0]);
+                xarray<unsigned char> tmp = round(f * (ex - mM[0]));
+
+                spec.format = OIIO::TypeDesc::UINT8;
+                out->close();
+                out->open(filename, spec);
+                out->write_image(OIIO::TypeDesc::UINT8, tmp.raw_data());
+            }
+        }
     }
 }
 

@@ -9,6 +9,7 @@
 #include "gtest/gtest.h"
 #include "xtensor/xoperation.hpp"
 #include "xtensor/xview.hpp"
+#include "xtensor/xio.hpp"
 
 #include "xtensor-io/ximage.hpp"
 
@@ -81,5 +82,25 @@ namespace xt
         auto img = load_image("files/dump_test.jpg");
         bool test = (amax(img - img_large)() <= 50);
         EXPECT_TRUE(test);
+    }
+
+    TEST(ximage, float_img)
+    {
+        xarray<float> test_float(test_image_rgb);
+
+        EXPECT_THROW(dump_image("files/dump_test_float.png", test_float,
+                                dump_image_options().autoconvert_value_type(false)), std::runtime_error);
+
+        // TIFF supports float pixels
+        dump_image("files/dump_test_float.tif", test_float);
+        auto img = load_image<float>("files/dump_test_float.tif");
+        EXPECT_EQ(test_float, img);
+
+        // PNG does not support float pixels
+        dump_image("files/dump_test_float.png", test_float);
+        auto cimg = load_image("files/dump_test_float.png");
+        EXPECT_EQ(test_image_rgb, cimg);
+        img = load_image<float>("files/dump_test_float.png");
+        EXPECT_TRUE(allclose(test_float, 255.0*img));
     }
 }
