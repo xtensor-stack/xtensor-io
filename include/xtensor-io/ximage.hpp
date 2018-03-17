@@ -90,7 +90,7 @@ namespace xt
 
                 This options is invoked when the desired file type doesn't support
                 the image's ``value_type``. If ``false``, mismatch will result in an exception,
-                otherwise the data is transformed to UINT8.
+                otherwise the data is transformed to the closest supported type.
 
                 Default: ``true``
             */
