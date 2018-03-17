@@ -29,7 +29,10 @@
 #include <xtensor/xnpy.hpp>
 
 #include "xtensor_io_config.hpp"
-#pragma cling load("z")
+
+#ifdef __CLING__
+    #pragma cling load("z")
+#endif
 
 namespace xt
 {

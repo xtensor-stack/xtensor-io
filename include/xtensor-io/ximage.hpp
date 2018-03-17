@@ -9,6 +9,7 @@
 #ifndef XTENSOR_IO_XIMAGE_HPP
 #define XTENSOR_IO_XIMAGE_HPP
 
+#include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <memory>

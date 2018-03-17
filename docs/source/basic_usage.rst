@@ -22,7 +22,7 @@ Example : Reading images, audio and NPZ files
 
     int main()
     {
-        // loads png image into xarray with shape WIDTH x HEIGHT x CHANNELS
+        // loads png image into xarray with shape HEIGHT x WIDTH x CHANNELS
         auto arr = xt::load_image("test.png");
 
         // write xarray out to JPEG image
@@ -37,7 +37,7 @@ Example : Reading images, audio and NPZ files
         // open a wav file
         auto audio = xt::load_audio("files/xtensor.wav");
         std::cout << "Sampling Frequency: " << std::get<0>(audio) << std::endl;
-        auto& arr = std::get<1>(audio); // audio contents (like scipy.io.wavfile results)
+        auto& arr = std::get<1>(audio);  // audio contents (like scipy.io.wavfile results)
 
         // save a sine wave sound
         int freq = 2000;
