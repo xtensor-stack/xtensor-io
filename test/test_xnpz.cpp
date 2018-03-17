@@ -62,7 +62,7 @@ namespace xt
         }
         // this is date + time == 4 bytes per file + once in global header
         std::size_t unequal_allowed = (n_zipped_files + 2) * 4;
-        if (unequal != unequal_allowed)
+        if (unequal > unequal_allowed)
         {
             std::stringstream ss;
             ss << "Number of unequal elements not allowed size: " << unequal << " vs allowed: " << unequal_allowed << std::endl;
