@@ -17,7 +17,6 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xmath.hpp>
 #include <xtensor/xeval.hpp>
-#include <xtensor/xnoalias.hpp>
 
 #include "xtensor_io_config.hpp"
 
