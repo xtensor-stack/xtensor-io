@@ -16,6 +16,7 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xmath.hpp>
 #include <xtensor/xeval.hpp>
+#include <xtensor/xnoalias.hpp>
 
 #include "xtensor_io_config.hpp"
 
@@ -160,35 +161,28 @@ namespace xt
 
         out->open(filename, spec);
 
-        auto&& ex = eval(data.derived_cast());
-        if(out->spec().format == OIIO::BaseTypeFromC<value_type>::value)
+        xarray<value_type> ex = eval(data.derived_cast());
+        if(out->spec().format != OIIO::BaseTypeFromC<value_type>::value)
         {
-            // file type supports value_type
-            out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
-        }
-        else
-        {
+            // OpenImageIO changed the target type because the file format doesn't support value_type
+
             XTENSOR_PRECONDITION(options.autoconvert,
                 "dump_image(): " + out->format_name() + " does not support your data's value_type.\n"
                 "              Consider setting 'options.autoconvert_value_type(true)'.");
 
-            auto mM = minmax(ex)();
-
-            if(mM[0] == mM[1])
+            if(!std::is_integral<value_type>::value)
             {
-                out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
-            }
-            else
-            {
-                double f = 255.0 / (mM[1] - mM[0]);
-                xarray<unsigned char> tmp = round(f * (ex - mM[0]));
+                // OpenImageIO expects floating-point data in the range 0...1
+                // when converting to integer
+                auto mM = minmax(ex)();
 
-                spec.format = OIIO::TypeDesc::UINT8;
-                out->close();
-                out->open(filename, spec);
-                out->write_image(OIIO::TypeDesc::UINT8, tmp.raw_data());
+                if(mM[0] != mM[1])
+                {
+                    noalias(ex) = (1.0 / (mM[1] - mM[0])) * (ex - mM[0]) ;
+                }
             }
         }
+        out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
     }
 }
 
