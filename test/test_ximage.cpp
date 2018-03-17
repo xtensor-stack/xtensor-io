@@ -63,9 +63,18 @@ namespace xt
 
     TEST(ximage, save_png)
     {
-        dump_image("files/dump_test.png", test_image_rgb);
-        auto img = load_image("files/dump_test.png");
-        EXPECT_TRUE(all(equal(test_image_rgb, img)));
+        {
+            // save as 'unsigned char'
+            dump_image("files/dump_test.png", test_image_rgb);
+            auto img = load_image("files/dump_test.png");
+            EXPECT_TRUE(all(equal(test_image_rgb, img)));
+        }
+        {
+            // save as 'int'
+            dump_image("files/dump_test.png", 1*test_image_rgb);
+            auto img = load_image("files/dump_test.png");
+            EXPECT_TRUE(all(equal(test_image_rgb, img)));
+        }
     }
 
     TEST(ximage, save_gif)

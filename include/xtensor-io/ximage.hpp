@@ -162,7 +162,7 @@ namespace xt
 
         out->open(filename, spec);
 
-        xarray<value_type> ex = eval(data.derived_cast());
+        auto && ex = eval(data.derived_cast());
         if(out->spec().format != OIIO::BaseTypeFromC<value_type>::value)
         {
             // OpenImageIO changed the target type because the file format doesn't support value_type
@@ -171,19 +171,24 @@ namespace xt
                 "dump_image(): " + out->format_name() + " does not support your data's value_type.\n"
                 "              Consider setting 'options.autoconvert_value_type(true)'.");
 
-            if(!std::is_integral<value_type>::value)
-            {
-                // OpenImageIO expects floating-point data in the range 0...1
-                // when converting to integer
-                auto mM = minmax(ex)();
+            // OpenImageIO expects floating-point data in the range 0...1 to convert properly
+            auto mM = minmax(ex)();
 
-                if(mM[0] != mM[1])
-                {
-                    noalias(ex) = (1.0 / (mM[1] - mM[0])) * (ex - mM[0]) ;
-                }
+            if(mM[0] != mM[1])
+            {
+                using real_t = real_promote_type_t<value_type>;
+                auto && normalized = eval((real_t(1.0) / (mM[1] - mM[0])) * (ex - mM[0]));
+                out->write_image(OIIO::BaseTypeFromC<real_t>::value, normalized.raw_data());
+            }
+            else
+            {
+                out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
             }
         }
-        out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
+        else
+        {
+            out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
+        }
     }
 }
 
