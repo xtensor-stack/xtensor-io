@@ -85,20 +85,6 @@ namespace xt
             spec.attribute("CompressionQuality", 90);
         }
 
-            /** \brief Allow automatic conversion of the image.
-
-                This options is invoked when the desired file type doesn't support
-                the image's ``value_type``. If ``false``, mismatch will result in an exception,
-                otherwise the data is transformed to the closest supported type.
-
-                Default: ``true``
-            */
-        dump_image_options & autoconvert_value_type(bool a=true)
-        {
-            autoconvert = a;
-            return *this;
-        }
-
             /** \brief Forward an attribute to an OpenImageIO ImageSpec.
 
                 See the documentation of OIIO::ImageSpec::attribute() for a list
@@ -164,13 +150,9 @@ namespace xt
         auto && ex = eval(data.derived_cast());
         if(out->spec().format != OIIO::BaseTypeFromC<value_type>::value)
         {
-            // OpenImageIO changed the target type because the file format doesn't support value_type
-
-            XTENSOR_PRECONDITION(options.autoconvert,
-                "dump_image(): " + out->format_name() + " does not support your data's value_type.\n"
-                "              Consider setting 'options.autoconvert_value_type(true)'.");
-
-            // OpenImageIO expects floating-point data in the range 0...1 to convert properly
+            // OpenImageIO changed the target type because the file format doesn't support value_type.
+            // It will do automatic conversion, but the data should be in the range 0...1
+            // for good results.
             auto mM = minmax(ex)();
 
             if(mM[0] != mM[1])

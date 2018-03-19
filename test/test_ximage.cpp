@@ -97,15 +97,12 @@ namespace xt
     {
         xarray<float> test_float(test_image_rgb);
 
-        EXPECT_THROW(dump_image("files/dump_test_float.png", test_float,
-                                dump_image_options().autoconvert_value_type(false)), std::runtime_error);
-
         // TIFF supports float pixels
         dump_image("files/dump_test_float.tif", test_float);
         auto img = load_image<float>("files/dump_test_float.tif");
         EXPECT_EQ(test_float, img);
 
-        // PNG does not support float pixels
+        // PNG does not support float pixels => test automatic conversion
         dump_image("files/dump_test_float.png", test_float);
         auto cimg = load_image("files/dump_test_float.png");
         EXPECT_EQ(test_image_rgb, cimg);
