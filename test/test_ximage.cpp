@@ -9,6 +9,7 @@
 #include "gtest/gtest.h"
 #include "xtensor/xoperation.hpp"
 #include "xtensor/xview.hpp"
+#include "xtensor/xio.hpp"
 
 #include "xtensor-io/ximage.hpp"
 
@@ -62,9 +63,18 @@ namespace xt
 
     TEST(ximage, save_png)
     {
-        dump_image("files/dump_test.png", test_image_rgb);
-        auto img = load_image("files/dump_test.png");
-        EXPECT_TRUE(all(equal(test_image_rgb, img)));
+        {
+            // save as 'unsigned char'
+            dump_image("files/dump_test.png", test_image_rgb);
+            auto img = load_image("files/dump_test.png");
+            EXPECT_TRUE(all(equal(test_image_rgb, img)));
+        }
+        {
+            // save as 'int'
+            dump_image("files/dump_test.png", 1*test_image_rgb);
+            auto img = load_image("files/dump_test.png");
+            EXPECT_TRUE(all(equal(test_image_rgb, img)));
+        }
     }
 
     TEST(ximage, save_gif)
@@ -81,5 +91,22 @@ namespace xt
         auto img = load_image("files/dump_test.jpg");
         bool test = (amax(img - img_large)() <= 50);
         EXPECT_TRUE(test);
+    }
+
+    TEST(ximage, float_img)
+    {
+        xarray<float> test_float(test_image_rgb);
+
+        // TIFF supports float pixels
+        dump_image("files/dump_test_float.tif", test_float);
+        auto img = load_image<float>("files/dump_test_float.tif");
+        EXPECT_EQ(test_float, img);
+
+        // PNG does not support float pixels => test automatic conversion
+        dump_image("files/dump_test_float.png", test_float);
+        auto cimg = load_image("files/dump_test_float.png");
+        EXPECT_EQ(test_image_rgb, cimg);
+        img = load_image<float>("files/dump_test_float.png");
+        EXPECT_TRUE(allclose(test_float, 255.0*img));
     }
 }

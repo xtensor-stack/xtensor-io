@@ -44,6 +44,9 @@ message(STATUS "Building xtensor-io v${${PROJECT_NAME}_VERSION}")
 find_package(xtensor REQUIRED)
 message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 
+find_package(xtl REQUIRED)
+message(STATUS "Found xtl: ${xtl_INCLUDE_DIRS}/xtl")
+
 # Find OpenImageIO
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
 
