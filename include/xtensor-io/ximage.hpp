@@ -28,6 +28,7 @@
 #endif
 
 #include <OpenImageIO/imageio.h>
+#include <OpenImageIO/imagebuf.h>
 
 #ifdef __CLING__
     #pragma clang diagnostic pop
@@ -48,11 +49,10 @@ namespace xt
     template <class T = unsigned char>
     xarray<T> load_image(std::string filename)
     {
-        auto close_file  =  [](OIIO::ImageInput * file)
-                            {
-                                file->close();
-                                OIIO::ImageInput::destroy(file);
-                            };
+        auto close_file = [](OIIO::ImageInput* file) {
+            file->close();
+            OIIO::ImageInput::destroy(file);
+        };
 
         std::unique_ptr<OIIO::ImageInput, decltype(close_file)> in(OIIO::ImageInput::open(filename), close_file);
         if (!in)
@@ -72,26 +72,25 @@ namespace xt
         return image;
     }
 
-        /** \brief Pass options to dump_image().
-        */
+    /** \brief Pass options to dump_image().
+     */
     struct dump_image_options
     {
-            /** \brief Initialize options to default values.
-            */
+        /** \brief Initialize options to default values.
+         */
         dump_image_options()
-        : spec(0,0,0)
-        , autoconvert(true)
+           : spec(0,0,0), autoconvert(true)
         {
             spec.attribute("CompressionQuality", 90);
         }
 
-            /** \brief Forward an attribute to an OpenImageIO ImageSpec.
-
-                See the documentation of OIIO::ImageSpec::attribute() for a list
-                of supported attributes.
-
-                Default: "CompressionQuality" = 90
-            */
+        /** \brief Forward an attribute to an OpenImageIO ImageSpec.
+         *
+         * See the documentation of OIIO::ImageSpec::attribute() for a list
+         * of supported attributes.
+         *
+         * Default: "CompressionQuality" = 90
+         */
         template <class T>
         dump_image_options & attribute(OIIO::string_view name, T const & v)
         {
@@ -116,19 +115,18 @@ namespace xt
      */
     template <class E>
     void dump_image(std::string filename, const xexpression<E>& data,
-                    dump_image_options const & options = dump_image_options())
+                    const dump_image_options& options = dump_image_options())
     {
-        using value_type = typename std::decay_t<decltype(data.derived_cast())>::value_type;
+        using value_type = typename E::value_type;
 
-        auto shape = data.derived_cast().shape();
-        XTENSOR_PRECONDITION(shape.size() == 2 || shape.size() == 3,
+        const auto& s = data.derived_cast().shape();
+        XTENSOR_PRECONDITION(s.size() == 2 || s.size() == 3,
             "dump_image(): data must have 2 or 3 dimensions (channels must be last).");
 
-        auto close_file  =  [](OIIO::ImageOutput * file)
-                            {
-                                file->close();
-                                OIIO::ImageOutput::destroy(file);
-                            };
+        auto close_file  = [](OIIO::ImageOutput* file) {
+            file->close();
+            OIIO::ImageOutput::destroy(file);
+        };
 
         std::unique_ptr<OIIO::ImageOutput, decltype(close_file)> out(OIIO::ImageOutput::create(filename), close_file);
         if (!out)
@@ -138,27 +136,26 @@ namespace xt
 
         OIIO::ImageSpec spec = options.spec;
 
-        spec.width     = static_cast<int>(shape[1]);
-        spec.height    = static_cast<int>(shape[0]);
-        spec.nchannels = (shape.size() == 2)
-                           ? 1
-                           : static_cast<int>(shape[2]);
+        spec.width     = static_cast<int>(s[1]);
+        spec.height    = static_cast<int>(s[0]);
+        spec.nchannels = s.size() == 2 ? 1 : static_cast<int>(s[2]);
         spec.format    = OIIO::BaseTypeFromC<value_type>::value;
 
         out->open(filename, spec);
 
-        auto && ex = eval(data.derived_cast());
+        auto&& ex = eval(data.derived_cast());
         if(out->spec().format != OIIO::BaseTypeFromC<value_type>::value)
         {
-            // OpenImageIO changed the target type because the file format doesn't support value_type.
-            // It will do automatic conversion, but the data should be in the range 0...1
-            // for good results.
+            // OpenImageIO changed the target type because the file format
+            // doesn't support value_type.
+            // It will do automatic conversion, but the data should be in the
+            // range 0...1 for better results.
             auto mM = minmax(ex)();
 
             if(mM[0] != mM[1])
             {
                 using real_t = real_promote_type_t<value_type>;
-                auto && normalized = eval((real_t(1.0) / (mM[1] - mM[0])) * (ex - mM[0]));
+                auto&& normalized = eval((real_t(1.0) / (mM[1] - mM[0])) * (ex - mM[0]));
                 out->write_image(OIIO::BaseTypeFromC<real_t>::value, normalized.raw_data());
             }
             else
@@ -170,6 +167,55 @@ namespace xt
         {
             out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
         }
+    }
+
+    template <class E>
+    xbuffer_adaptor<char*, acquire_ownership> dump_image(const xexpression<E>& data,
+                                                         const dump_image_options& options = dump_image_options())
+    {
+        using value_type = typename E::value_type;
+        OIIO::ImageSpec spec = options.spec;
+
+        const auto& s  = data.derived_cast().shape();
+        spec.width     = static_cast<int>(s[1]);
+        spec.height    = static_cast<int>(s[0]);
+        spec.nchannels = (s.size() == 2) ? 1 : static_cast<int>(s[2]);
+        spec.format    = OIIO::BaseTypeFromC<value_type>::value;
+
+        std::cout << "buf spec" << std::endl;
+        OIIO::ImageBuf buf(spec);
+
+        char* file_buffer = nullptr;     // will get ptr to the memory
+        uint64_t file_buffer_size = 0;   // will get the size
+
+        void* ptr = &file_buffer;
+        buf.specmod().attribute("oiio:write_memory", OIIO::TypeDesc::PTR, &ptr);
+        ptr = &file_buffer_size;
+        buf.specmod().attribute("oiio:write_memory_size", OIIO::TypeDesc::PTR, &ptr);
+
+        std::cout << "eval" << std::endl;
+        auto&& ex = eval(data.derived_cast());
+
+        std::cout << "create" << std::endl;
+
+        auto close_file = [](OIIO::ImageInput* file) {
+            file->close();
+            OIIO::ImageInput::destroy(file);
+        };
+
+        std::string filename = "foo.png";
+        std::unique_ptr<OIIO::ImageOutput, decltype(close_file)> out(OIIO::ImageOutput::create(filename), close_file);
+        if (!out || !out->supports("write_memory"))
+        {
+            std::cout << "BAAAAAh" << std::endl;
+            //OIIO::ImageOutput::destroy(out);
+            //out = nullptr;
+            //return;
+        }
+        std::cout << "write_image" << std::endl;
+        out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
+
+        return xbuffer_adaptor<char*, acquire_ownership>(file_buffer, file_buffer_size);
     }
 }
 
