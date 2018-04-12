@@ -2,7 +2,7 @@
 
 [![Travis](https://travis-ci.org/QuantStack/xtensor-io.svg?branch=master)](https://travis-ci.org/QuantStack/xtensor-io)
 [![ReadTheDocs](https://readthedocs.org/projects/xtensor-io/badge/?version=stable)](http://xtensor-io.readthedocs.io/en/stable/)
-[![Binder](https://img.shields.io/badge/launch-binder-brightgreen.svg)](https://mybinder.org/v2/gh/QuantStack/xtensor-io/master?filepath=notebooks/demo.ipynb)
+[![Binder](https://img.shields.io/badge/launch-binder-brightgreen.svg)](https://mybinder.org/v2/gh/QuantStack/xtensor-io/0.3.0?filepath=notebooks/demo.ipynb)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Reading and writing image, sound and npz file formats to and from xtensor data structures. <br>
