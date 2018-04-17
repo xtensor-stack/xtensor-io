@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software. #
 ############################################################################
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.8)
 project(xtensor-io)
 
 set(XTENSOR_IO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -42,10 +42,9 @@ message(STATUS "Building xtensor-io v${${PROJECT_NAME}_VERSION}")
 # ============
 
 find_package(xtensor REQUIRED)
-message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
-
 find_package(xtl REQUIRED)
-message(STATUS "Found xtl: ${xtl_INCLUDE_DIRS}/xtl")
+
+message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 
 # Find OpenImageIO
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
@@ -54,16 +53,20 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
 # =====
 
 set(XTENSOR_IO_HEADERS
-    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
-    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xaudio.hpp
-    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
-    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xaudio.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
 )
 
 OPTION(BUILD_TESTS "xtensor-io test suite" OFF)
-# OPTION(BUILD_BENCHMARK "xtensor-io benchmark" OFF)
 OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
+
+add_library(xtensor-io INTERFACE)
+target_include_directories(xtensor-io INTERFACE $<BUILD_INTERFACE:${XTENSOR_IO_INCLUDE_DIR}>
+                                                $<INSTALL_INTERFACE:include>)
+target_link_libraries(xtensor-io INTERFACE xtensor)
 
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
@@ -73,17 +76,19 @@ if(BUILD_TESTS)
     add_subdirectory(test)
 endif()
 
-if(BUILD_BENCHMARK)
-    add_subdirectory(benchmark)
-endif()
-
-include_directories(${xtensor_INCLUDE_DIRS})
-
 # Installation
 # ============
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+# install(FILES ${XTENSOR_IO_HEADERS}
+#         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xtensor-io)
+install(TARGETS xtensor-io
+        EXPORT ${PROJECT_NAME}-targets)
+
+export(EXPORT ${PROJECT_NAME}-targets
+       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 install(FILES ${XTENSOR_IO_HEADERS}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xtensor-io)

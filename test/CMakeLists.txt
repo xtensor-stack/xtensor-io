@@ -74,6 +74,7 @@ find_package(Threads)
 
 find_package(OIIO REQUIRED)
 message(STATUS "Found OpenImageIO: ${OIIO_LIBRARIES}")
+message(STATUS "Found OpenImageIO Headers: ${OIIO_INCLUDE_DIRS}")
 
 find_package(ZLIB REQUIRED)
 message(STATUS "Found zlib: ${ZLIB_LIBRARIES}")
@@ -83,11 +84,6 @@ message(STATUS "Found SndFile: ${LIBSNDFILE_LIBRARIES}")
 
 
 find_package(ZLIB)
-
-include_directories(${xtensor_INCLUDE_DIRS})
-include_directories(${xtl_INCLUDE_DIRS})
-
-include_directories(${XTENSOR_IO_INCLUDE_DIR})
 
 include_directories(${OIIO_INCLUDE_DIRS})
 include_directories(${LIBSNDFILE_INCLUDE_DIRS})
@@ -125,12 +121,15 @@ if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
 endif()
 
 target_link_libraries(${XTENSOR_IO_TARGET}
-                      ${ZLIB_LIBRARIES}
-                      ${OIIO_LIBRARIES}
-                      ${LIBSNDFILE_LIBRARIES}
-                      ${CMAKE_DL_LIBS}
-                      ${GTEST_BOTH_LIBRARIES}
-                      ${CMAKE_THREAD_LIBS_INIT}
+  PUBLIC
+    ${ZLIB_LIBRARIES}
+    ${OIIO_LIBRARIES}
+    ${LIBSNDFILE_LIBRARIES}
+    ${CMAKE_DL_LIBS}
+    ${GTEST_BOTH_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+  PRIVATE
+    xtensor-io
 )
 
 add_custom_target(xtest
