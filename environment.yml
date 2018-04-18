@@ -8,6 +8,6 @@ dependencies:
   - boost-cpp ==1.66.0
   - widgetsnbextension
   - xtensor-io ==0.3.0
-  - xeus-cling ==0.2.3
-  - xwidgets ==0.8.0
+  - xeus-cling ==0.4.2
+  - xwidgets ==0.10.0
   - notebook
