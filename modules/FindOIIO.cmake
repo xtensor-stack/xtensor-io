@@ -22,20 +22,25 @@
 # language governing permissions and limitations under the Apache License.
 #
 
+set(_OIIO_HINTS
+  "${CMAKE_INSTALL_PREFIX}"
+  "${OIIO_LOCATION}"
+  "$ENV{OIIO_LOCATION}"
+  "${OIIO_BASE_DIR}"
+  "/opt/oiio"
+)
+
 if(UNIX)
     find_path(OIIO_BASE_DIR
             include/OpenImageIO/oiioversion.h
         HINTS
-            "${OIIO_LOCATION}"
-            "$ENV{OIIO_LOCATION}"
+            ${_OIIO_HINTS}
             "/opt/oiio"
     )
     find_path(OIIO_LIBRARY_DIR
             libOpenImageIO.so
         HINTS
-            "${OIIO_LOCATION}"
-            "$ENV{OIIO_LOCATION}"
-            "${OIIO_BASE_DIR}"
+            ${_OIIO_HINTS}
         PATH_SUFFIXES
             lib/
         DOC
@@ -45,15 +50,12 @@ elseif(WIN32)
     find_path(OIIO_BASE_DIR
             include/OpenImageIO/oiioversion.h
         HINTS
-            "${OIIO_LOCATION}"
-            "$ENV{OIIO_LOCATION}"
+            ${_OIIO_HINTS}
     )
     find_path(OIIO_LIBRARY_DIR
             OpenImageIO.lib
         HINTS
-            "${OIIO_LOCATION}"
-            "$ENV{OIIO_LOCATION}"
-            "${OIIO_BASE_DIR}"
+            ${_OIIO_HINTS}
         PATH_SUFFIXES
             lib/
         DOC
@@ -64,9 +66,7 @@ endif()
 find_path(OIIO_INCLUDE_DIR
         OpenImageIO/oiioversion.h
     HINTS
-        "${OIIO_LOCATION}"
-        "$ENV{OIIO_LOCATION}"
-        "${OIIO_BASE_DIR}"
+        ${_OIIO_HINTS}
     PATH_SUFFIXES
         include/
     DOC
@@ -83,9 +83,7 @@ foreach(OIIO_LIB
     find_library(OIIO_${OIIO_LIB}_LIBRARY
             ${OIIO_LIB}
         HINTS
-            "${OIIO_LOCATION}"
-            "$ENV{OIIO_LOCATION}"
-            "${OIIO_BASE_DIR}"
+            ${_OIIO_HINTS}
         PATH_SUFFIXES
             lib/
         DOC
@@ -109,9 +107,7 @@ foreach(OIIO_BIN
     find_program(OIIO_${OIIO_BIN}_BINARY
             ${OIIO_BIN}
         HINTS
-            "${OIIO_LOCATION}"
-            "$ENV{OIIO_LOCATION}"
-            "${OIIO_BASE_DIR}"
+            ${_OIIO_HINTS}
         PATH_SUFFIXES
             bin/
         DOC

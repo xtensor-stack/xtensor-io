@@ -8,22 +8,22 @@
 #  LIBSNDFILE_INCLUDE_DIRS - the libsndfile include directories
 #  LIBSNDFILE_LIBRARIES - link these to use libsndfile
 
-# Use pkg-config to get hints about paths
-find_package(PkgConfig QUIET)
-if(PKG_CONFIG_FOUND)
-	pkg_check_modules(LIBSNDFILE_PKGCONF sndfile)
-endif(PKG_CONFIG_FOUND)
-
 # Include dir
+
+set(_LIBSNDFILE_HINTS
+    "${LIBSNDFILE_HINTS}"
+    "${CMAKE_INSTALL_PREFIX}"
+)
+
 find_path(LIBSNDFILE_INCLUDE_DIR
-	NAMES sndfile.h
-	PATHS ${LIBSNDFILE_PKGCONF_INCLUDE_DIRS}
+    NAMES sndfile.h
+    HINTS ${_LIBSNDFILE_HINTS}
 )
 
 # Library
 find_library(LIBSNDFILE_LIBRARY
-	NAMES sndfile libsndfile-1
-	PATHS ${LIBSNDFILE_PKGCONF_LIBRARY_DIRS}
+    NAMES sndfile
+    HINTS ${_LIBSNDFILE_HINTS}
 )
 
 find_package(PackageHandleStandardArgs)
@@ -35,3 +35,5 @@ if(LIBSNDFILE_FOUND)
 endif(LIBSNDFILE_FOUND)
 
 mark_as_advanced(LIBSNDFILE_LIBRARY LIBSNDFILE_LIBRARIES LIBSNDFILE_INCLUDE_DIR LIBSNDFILE_INCLUDE_DIRS)
+
+unset(_LIBSNDFILE_HINTS)

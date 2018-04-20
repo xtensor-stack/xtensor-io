@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software. #
 ############################################################################
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.8)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     project(xtensor-io-test)
@@ -72,24 +72,6 @@ endif()
 
 find_package(Threads)
 
-find_package(OIIO REQUIRED)
-message(STATUS "Found OpenImageIO: ${OIIO_LIBRARIES}")
-message(STATUS "Found OpenImageIO Headers: ${OIIO_INCLUDE_DIRS}")
-
-find_package(ZLIB REQUIRED)
-message(STATUS "Found zlib: ${ZLIB_LIBRARIES}")
-
-find_package(SndFile REQUIRED)
-message(STATUS "Found SndFile: ${LIBSNDFILE_LIBRARIES}")
-
-
-find_package(ZLIB)
-
-include_directories(${OIIO_INCLUDE_DIRS})
-include_directories(${LIBSNDFILE_INCLUDE_DIRS})
-include_directories(${ZLIB_INCLUDE_DIRS})
-include_directories(${GTEST_INCLUDE_DIRS})
-
 set(XTENSOR_IO_TESTS
     main.cpp
     test_xnpz.cpp
@@ -120,19 +102,56 @@ if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     add_dependencies(${XTENSOR_IO_TARGET} gtest_main)
 endif()
 
+if(DEFINED CMAKE_INSTALL_PREFIX)
+  set_target_properties(${XTENSOR_IO_TARGET}
+    PROPERTIES
+      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/lib64"
+      BUILD_WITH_INSTALL_RPATH ON
+  )
+endif()
+
 target_link_libraries(${XTENSOR_IO_TARGET}
   PUBLIC
-    ${ZLIB_LIBRARIES}
-    ${OIIO_LIBRARIES}
-    ${LIBSNDFILE_LIBRARIES}
+    xtensor-io
     ${CMAKE_DL_LIBS}
     ${GTEST_BOTH_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
-  PRIVATE
-    xtensor-io
 )
 
 add_custom_target(xtest
     COMMAND test_xtensor_io
     DEPENDS ${XTENSOR_IO_TARGET})
 
+# Get all propreties that cmake supports
+execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
+
+# Convert command output into a CMake list
+STRING(REGEX REPLACE ";" "\\\\;" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
+STRING(REGEX REPLACE "\n" ";" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
+
+function(print_properties)
+    message ("CMAKE_PROPERTY_LIST = ${CMAKE_PROPERTY_LIST}")
+endfunction(print_properties)
+
+function(print_target_properties tgt)
+    if(NOT TARGET ${tgt})
+      message("There is no target named '${tgt}'")
+      return()
+    endif()
+
+    foreach (prop ${CMAKE_PROPERTY_LIST})
+        string(REPLACE "<CONFIG>" "${CMAKE_BUILD_TYPE}" prop ${prop})
+    # Fix https://stackoverflow.com/questions/32197663/how-can-i-remove-the-the-location-property-may-not-be-read-from-target-error-i
+    if(prop STREQUAL "LOCATION" OR prop MATCHES "^LOCATION_" OR prop MATCHES "_LOCATION$")
+        continue()
+    endif()
+        # message ("Checking ${prop}")
+        get_property(propval TARGET ${tgt} PROPERTY ${prop} SET)
+        if (propval)
+            get_target_property(propval ${tgt} ${prop})
+            message ("${tgt} ${prop} = ${propval}")
+        endif()
+    endforeach(prop)
+endfunction(print_target_properties)
+
+print_target_properties(${XTENSOR_IO_TARGET})
