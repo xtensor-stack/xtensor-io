@@ -36,6 +36,35 @@ The package will also pull all the dependencies (OpenImageIO, libsndfile and zli
 
     conda install -c QuantStack xtensor-io
 
+The easiest way to make use of xtensor-io in your code is by using cmake for your project.
+In order for cmake to pick up the xtensor-io dependency, just utilize the interface target and link 
+the xtensor-io library to your target.
+
+.. code:: cmake
+
+  add_executable(my_exec my_exec.cpp)
+  target_link_libraries(my_exec
+    PUBLIC
+      xtensor-io
+  )
+
+This should be enough to add the correct directories to the include_directories and link the required libraries.
+However, depending on your system setup there might be problmes upon executing, as the dynamic library is not picked
+up correctly. So if you run into errors that read something like "Library could not be opened ... ", then set the 
+``RPATH``, the runtime library search path, to the ``conda`` library path of your environment. We utilize the 
+``CMAKE_INSTALL_PREFIX`` for this purpose, so if you call cmake like this ``cmake .. -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX``
+and add the following to your ``CMakeLists.txt``.
+
+.. code:: cmake
+
+  set_target_properties(my_exec
+    PROPERTIES
+      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
+      BUILD_WITH_INSTALL_RPATH ON
+  )
+
+
+
 .. image:: cmake.svg
 
 From source with cmake
