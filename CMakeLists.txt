@@ -46,9 +46,6 @@ find_package(xtl REQUIRED)
 
 message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 
-# Find OpenImageIO
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
-
 # Build
 # =====
 
@@ -63,6 +60,9 @@ OPTION(BUILD_TESTS "xtensor-io test suite" OFF)
 OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
+# Find OpenImageIO
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
+
 find_package(OIIO REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(SndFile REQUIRED)
@@ -73,6 +73,7 @@ include_directories(${ZLIB_INCLUDE_DIRS})
 include_directories(${GTEST_INCLUDE_DIRS})
 
 add_library(xtensor-io INTERFACE)
+
 target_include_directories(xtensor-io
   INTERFACE
     $<BUILD_INTERFACE:${XTENSOR_IO_INCLUDE_DIR}>
@@ -80,9 +81,10 @@ target_include_directories(xtensor-io
     $<BUILD_INTERFACE:${OIIO_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${LIBSNDFILE_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>
-    # INSTALLATIOn
+    # INSTALLATION
     $<INSTALL_INTERFACE:include>
 )
+
 target_link_libraries(xtensor-io
   INTERFACE
     xtl
@@ -106,8 +108,6 @@ endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-# install(FILES ${XTENSOR_IO_HEADERS}
-#         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xtensor-io)
 install(TARGETS xtensor-io
         EXPORT ${PROJECT_NAME}-targets)
 
