@@ -8,7 +8,6 @@
 Reading and writing image, sound and npz file formats to and from xtensor data structures. <br>
 [Try it live in the browser!](https://mybinder.org/v2/gh/QuantStack/xtensor-io/master?filepath=notebooks/demo.ipynb)
 
-
 ## Introduction
 
 **xtensor-io is an early developer preview, and is not suitable for general usage yet. Features and implementation are subject to change.**
@@ -48,6 +47,19 @@ cmake ..
 make
 sudo make install
 ```
+
+## Trying it online
+
+To try out xtensor-io interactively in your web browser, just click on the binder
+link:
+
+[![Binder](binder-logo.svg)](https://mybinder.org/v2/gh/QuantStack/xtensor-io/0.3.0?filepath=notebooks/demo.ipynb)
+
+## Documentation
+
+To get started with using `xtensor-io`, check out the full documentation
+
+http://xtensor-io.readthedocs.io/
 
 ## Usage
 
