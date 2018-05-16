@@ -67,7 +67,7 @@ namespace xt
                                             static_cast<std::size_t>(spec.width),
                                             static_cast<std::size_t>(spec.nchannels)});
 
-        in->read_image(OIIO::BaseTypeFromC<T>::value, image.raw_data());
+        in->read_image(OIIO::BaseTypeFromC<T>::value, image.data());
 
         return image;
     }
@@ -159,16 +159,16 @@ namespace xt
             {
                 using real_t = real_promote_type_t<value_type>;
                 auto && normalized = eval((real_t(1.0) / (mM[1] - mM[0])) * (ex - mM[0]));
-                out->write_image(OIIO::BaseTypeFromC<real_t>::value, normalized.raw_data());
+                out->write_image(OIIO::BaseTypeFromC<real_t>::value, normalized.data());
             }
             else
             {
-                out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
+                out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.data());
             }
         }
         else
         {
-            out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.raw_data());
+            out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.data());
         }
     }
 }

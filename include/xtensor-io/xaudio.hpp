@@ -15,6 +15,7 @@
 #include <sndfile.hh>
 
 #include <xtensor/xarray.hpp>
+#include <xtensor/xtensor.hpp>
 #include <xtensor/xeval.hpp>
 
 #include "xtensor_io_config.hpp"
@@ -49,7 +50,7 @@ namespace xt
             static_cast<std::size_t>(file.frames()),
             static_cast<std::size_t>(file.channels())
         });
-        file.read(result.raw_data(), static_cast<sf_count_t>(result.size()));
+        file.read(result.data(), static_cast<sf_count_t>(result.size()));
         return std::make_tuple(file.samplerate(), std::move(result));
     }
 
@@ -74,7 +75,7 @@ namespace xt
         {
             throw std::runtime_error(std::string("dump_audio: ") + file.strError());
         }
-        file.write(de.raw_data(), static_cast<sf_count_t>(de.size()));
+        file.write(de.data(), static_cast<sf_count_t>(de.size()));
     }
 }
 
