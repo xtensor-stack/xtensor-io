@@ -1,4 +1,4 @@
-# ![xtensor-io](http://quantstack.net/assets/images/xtensor-io.svg)
+# ![xtensor-io](docs/source/xtensor-io.svg)
 
 [![Travis](https://travis-ci.org/QuantStack/xtensor-io.svg?branch=master)](https://travis-ci.org/QuantStack/xtensor-io)
 [![ReadTheDocs](https://readthedocs.org/projects/xtensor-io/badge/?version=stable)](http://xtensor-io.readthedocs.io/en/stable/)
