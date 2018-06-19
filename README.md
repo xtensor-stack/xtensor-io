@@ -65,10 +65,10 @@ http://xtensor-io.readthedocs.io/
 
 ```cpp
 // loads png image into xarray with shape HEIGHT x WIDTH x CHANNELS
-auto arr = xt::load_image("test.png");
+auto img_arr = xt::load_image("test.png");
 
 // write xarray out to JPEG image
-xt::dump_image("dumptest.jpg", arr + 5);
+xt::dump_image("dumptest.jpg", img_arr + 5);
 
 // load npz file containing multiple arrays
 auto npy_map = xt::load_npz("test.npz");
@@ -78,7 +78,7 @@ auto arr_1 = npy_map["arr_1"].cast<unsigned long>();
 
 // open a wav file
 auto audio = xt::load_audio("files/xtensor.wav");
-auto& arr = std::get<1>(audio); // audio contents (like scipy.io.wavfile results)
+auto& audio_arr = std::get<1>(audio); // audio contents (like scipy.io.wavfile results)
 
 // save a sine wave sound
 int freq = 2000;
@@ -86,7 +86,7 @@ int sampling_freq = 44100;
 double duration = 1.0;
 
 auto t = xt::arange(0.0, duration, 1.0 / sampling_freq);
-auto y = xt::sin(2.0 * numeric_constants<double>::PI * freq * t);
+auto y = xt::sin(2.0 * xt::numeric_constants<double>::PI * freq * t);
 
 xt::dump_audio("files/sine.wav", y, sampling_freq);
 ```
