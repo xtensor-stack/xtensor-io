@@ -28,7 +28,7 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
 conda install xtensor-io -c QuantStack -c conda-forge
 ```
 
-- `xtensor-io` depends on `xtensor` `^0.16.2`.
+- `xtensor-io` depends on `xtensor` `^0.17.0`.
 
 - `OpenImageIO`, `libsndfile` and `zlib` are optional dependencies to `xtensor-io`
 
