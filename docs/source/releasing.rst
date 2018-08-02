@@ -28,3 +28,9 @@ xtensor-io has been packaged for the conda package manager. Once the new tag has
 - Update the hash of the source tarball.
 - Check for the versions of the dependencies.
 - Optionally, rerender the conda-forge feedstock.
+
+Updating the stable branch
+--------------------------
+
+Once the conda-forge package has been updated, update the ``stable`` branch to
+the newly added tag.
