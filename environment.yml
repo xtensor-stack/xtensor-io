@@ -10,4 +10,5 @@ dependencies:
   - xtensor-io ==0.5.0
   - xeus-cling ==0.4.5
   - xwidgets ==0.12.2
+  - openimageio ==1.8.9
   - notebook
