@@ -4,11 +4,9 @@ channels:
   - conda-forge
 dependencies:
   - xtensor
-  - boost ==1.66.0
-  - boost-cpp ==1.66.0
   - widgetsnbextension
-  - xtensor-io ==0.5.0
-  - xeus-cling ==0.4.5
-  - xwidgets ==0.12.2
+  - xtensor-io ==0.5.1
+  - xeus-cling ==0.4.7
+  - xwidgets ==0.13.1
   - openimageio ==1.8.9
   - notebook
