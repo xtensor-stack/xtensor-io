@@ -5,7 +5,7 @@ channels:
 dependencies:
   - xtensor
   - widgetsnbextension
-  - xtensor-io ==0.5.1
+  - xtensor-io ==0.6.0
   - xeus-cling ==0.4.7
   - xwidgets ==0.13.1
   - openimageio ==1.8.9
