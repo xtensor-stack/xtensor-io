@@ -75,14 +75,16 @@ find_package(Threads)
 set(XTENSOR_IO_TESTS
     main.cpp
     test_xnpz.cpp
+    test_xhighfive.cpp
     test_ximage.cpp
     test_xaudio.cpp
 )
 
 set(XTENSOR_IO_TARGET test_xtensor_io)
 
-# Add files for npy tests
+# Add files for tests
 set(XTENSOR_IO_FILES
+    archive.h5
     compressed.npz
     uncompressed.npz
     test.png

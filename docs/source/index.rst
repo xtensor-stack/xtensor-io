@@ -44,6 +44,7 @@ This software is licensed under the BSD-3-Clause license. See the LICENSE file f
    :maxdepth: 2
 
    basic_usage
+   xhighfive
 
 .. toctree::
    :caption: API REFERENCE
