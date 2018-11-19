@@ -141,7 +141,7 @@ endif()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 
-find_package_handle_standard_args(OpenImageIO
+find_package_handle_standard_args(OIIO
     REQUIRED_VARS
         OIIO_LIBRARIES
         OIIO_INCLUDE_DIRS
