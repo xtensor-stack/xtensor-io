@@ -63,25 +63,13 @@ OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 # Find OpenImageIO
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
 
-find_package(OIIO REQUIRED)
-find_package(ZLIB REQUIRED)
-find_package(SndFile REQUIRED)
-
-include_directories(${OIIO_INCLUDE_DIRS})
-include_directories(${LIBSNDFILE_INCLUDE_DIRS})
-include_directories(${ZLIB_INCLUDE_DIRS})
-include_directories(${GTEST_INCLUDE_DIRS})
-
 add_library(xtensor-io INTERFACE)
+
+include_directories(${GTEST_INCLUDE_DIRS})
 
 target_include_directories(xtensor-io
   INTERFACE
     $<BUILD_INTERFACE:${XTENSOR_IO_INCLUDE_DIR}>
-    # LIBRARIES
-    $<BUILD_INTERFACE:${OIIO_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${LIBSNDFILE_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>
-    # INSTALLATION
     $<INSTALL_INTERFACE:include>
 )
 
@@ -89,10 +77,60 @@ target_link_libraries(xtensor-io
   INTERFACE
     xtl
     xtensor
-    ${OIIO_LIBRARIES}
-    ${ZLIB_LIBRARIES}
-    ${LIBSNDFILE_LIBRARIES}
 )
+
+# We now check for each library seperately if they are installed. If not we
+# print a warning and carry on!
+
+message(STATUS "Trying to find OpenImageIO for ximage support")
+find_package(OIIO)
+if (${OIIO_FOUND})
+  message(STATUS "OpenImageIO found, image file support enabled")
+  include_directories(${OIIO_INCLUDE_DIRS})
+  target_include_directories(xtensor-io
+    INTERFACE
+      $<BUILD_INTERFACE:${OIIO_INCLUDE_DIRS}>
+  )
+  target_link_libraries(xtensor-io
+    INTERFACE
+      ${OIIO_LIBRARIES}
+  )
+else()
+  message(WARNING "OpenImageIO not found - install OpenImageIO for image support")
+endif()
+
+message(STATUS "Trying to find SndFile for xaudio support")
+find_package(SndFile)
+if (${LIBSNDFILE_FOUND})
+  message(STATUS "SndFile found, audio file support enabled")
+  include_directories(${LIBSNDFILE_INCLUDE_DIRS})
+  target_include_directories(xtensor-io
+    INTERFACE
+      $<BUILD_INTERFACE:${LIBSNDFILE_INCLUDE_DIRS}>
+  )
+  target_link_libraries(xtensor-io
+    INTERFACE
+      ${LIBSNDFILE_LIBRARIES}
+  )
+else()
+  message(WARNING "SndFile (libsndfile) not found - install libsndfile for audio support")
+endif()
+
+find_package(ZLIB)
+if (${ZLIB_FOUND})
+  message(STATUS "ZLIB found, npz file support enabled")
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  target_include_directories(xtensor-io
+    INTERFACE
+    $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>
+  )
+  target_link_libraries(xtensor-io
+    INTERFACE
+      ${ZLIB_LIBRARIES}
+  )
+else()
+  message(WARNING "ZLIB not found - install zlib for xnpz file support")
+endif()
 
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
