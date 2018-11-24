@@ -51,3 +51,24 @@ Example : Reading images, audio and NPZ files
 
         return 0;
     }
+
+Example : Reading and writing HDF5 files
+----------------------------------------
+
+.. code-block:: cpp
+
+    #include <xtensor/xio.hpp>
+    #include <xtensor-io/xhighfive.hpp>
+
+    int main()
+    {
+        xt::xtensor<double,2> A = xt::ones<double>({10,5});
+
+        xt::dump_hdf5("example.h5", "/path/to/data", A);
+
+        A = xt::load_hdf5<xt::xtensor<double,2>>("example.h5", "/path/to/data");
+
+        std::cout << A << std::endl;
+
+        return 0;
+    }

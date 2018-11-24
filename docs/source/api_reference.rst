@@ -43,3 +43,46 @@ Defined in ``xtensor-io/xaudio.hpp``
 .. doxygenfunction:: xt::dump_audio
    :project: xtensor-io
 
+HDF5 files
+----------
+
+Defined in ``xtensor-io/xhighfive.hpp``
+
+.. doxygenfunction:: xt::dump_hdf5
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::load_hdf5
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::dump(HighFive::File&, const std::string&, const xt::xarray<T>&, xt::dump_mode)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::dump(HighFive::File&, const std::string&, const xt::xtensor<T, rank>&, xt::dump_mode)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::dump(HighFive::File&, const std::string&, const std::vector<T>&, xt::dump_mode)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::dump(HighFive::File&, const std::string&, const T&, xt::dump_mode)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::dump(HighFive::File&, const std::string&, const T&, const std::vector<std::size_t>&)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::load(const HighFive::File&, const std::string&, const std::vector<std::size_t>&)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::load(const HighFive::File&, const std::string&)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::extensions::exist(const HighFive::File&, const std::string&)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::extensions::create_group(const HighFive::File&, const std::string&)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::extensions::size(const HighFive::File&, const std::string&)
+   :project: xtensor-io
+
+.. doxygenfunction:: xt::extensions::shape(const HighFive::File&, const std::string&)
+   :project: xtensor-io

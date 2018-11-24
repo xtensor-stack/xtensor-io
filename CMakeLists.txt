@@ -50,9 +50,11 @@ message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 # =====
 
 set(XTENSOR_IO_HEADERS
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor-io.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xaudio.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xhighfive.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
 )
 
@@ -116,6 +118,7 @@ else()
   message(WARNING "SndFile (libsndfile) not found - install libsndfile for audio support")
 endif()
 
+message(STATUS "Trying to find ZLIB for npz file support")
 find_package(ZLIB)
 if (${ZLIB_FOUND})
   message(STATUS "ZLIB found, npz file support enabled")
@@ -130,6 +133,25 @@ if (${ZLIB_FOUND})
   )
 else()
   message(WARNING "ZLIB not found - install zlib for xnpz file support")
+endif()
+
+message(STATUS "Trying to find HighFive for npz file support")
+find_package(HighFive)
+find_package(HDF5)
+if (${HighFive_FOUND} AND ${HDF5_FOUND})
+  message(STATUS "HighFive and HDF5 found, HDF5 file support enabled")
+  find_package(HDF5 REQUIRED)
+  get_target_property(HighFive_INCLUDE_DIRECTORIES_EXTRACTED HighFive INTERFACE_INCLUDE_DIRECTORIES)
+  target_include_directories(xtensor-io
+    INTERFACE
+      ${HighFive_INCLUDE_DIRECTORIES_EXTRACTED}
+  )
+  target_link_libraries(xtensor-io
+    INTERFACE
+      ${HDF5_LIBRARIES}
+  )
+else()
+  message(WARNING "HighFive and/or HDF5 not found - install HighFive and HDF5 for HDF5 file support")
 endif()
 
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
