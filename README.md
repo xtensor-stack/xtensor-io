@@ -12,13 +12,14 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
 
 **xtensor-io is an early developer preview, and is not suitable for general usage yet. Features and implementation are subject to change.**
 
-`xtensor-io` offers API of to read and write various file formats into `xtensor` data structures:
+`xtensor-io` offers an API to read and write various file formats into `xtensor` data structures:
 
  - images,
  - audio files,
- - NumPy's compressed storage format (NPZ).
+ - NumPy's compressed storage format (NPZ),
+ - HDF5 files.
 
-`xtensor-io` wraps the [OpenImageIO](https://github.com/OpenImageIO/oiio), [libsndfile](https://github.com/erikd/libsndfile) and [zlib](https://github.com/madler/zlib) libraries.
+`xtensor-io` wraps the [OpenImageIO](https://github.com/OpenImageIO/oiio), [libsndfile](https://github.com/erikd/libsndfile), [zlib](https://github.com/madler/zlib), and [HighFive](https://github.com/BlueBrain/HighFive) libraries.
 
 ## Installation
 
@@ -30,11 +31,12 @@ conda install xtensor-io -c QuantStack -c conda-forge
 
 - `xtensor-io` depends on `xtensor` `^0.17.0`.
 
-- `OpenImageIO`, `libsndfile` and `zlib` are optional dependencies to `xtensor-io`
+- `OpenImageIO`, `libsndfile`, `zlib`, and `HighFive` are optional dependencies to `xtensor-io`
 
   - `OpenImageIO` is required to read and write image files.
   - `libsndfile` is required to read and write sound files.
   - `zlib` is required to load NPZ files.
+  - `HighFive` (and the `HDF5` library) is required to read and write HDF5 files. 
 
 All three libraries are available for the conda package manager.
 
