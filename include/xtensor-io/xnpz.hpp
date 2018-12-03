@@ -49,7 +49,7 @@ namespace xt
      * @return returns a map with the stored arrays.
      *         Array names are the keys.
      */
-    auto load_npz(std::string filename)
+    inline auto load_npz(std::string filename)
     {
         std::ifstream stream(filename, std::ifstream::binary);
 
@@ -277,7 +277,7 @@ namespace xt
             }
         };
 
-        void parse_zip_footer(std::istream& stream,
+        inline void parse_zip_footer(std::istream& stream,
                               uint16_t& nrecs,
                               std::streamsize& global_header_size,
                               std::streamoff& global_header_offset)
