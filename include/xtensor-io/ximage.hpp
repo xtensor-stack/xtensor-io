@@ -48,13 +48,7 @@ namespace xt
     template <class T = unsigned char>
     xarray<T> load_image(std::string filename)
     {
-        auto close_file  =  [](OIIO::ImageInput * file)
-                            {
-                                file->close();
-                                OIIO::ImageInput::destroy(file);
-                            };
-
-        std::unique_ptr<OIIO::ImageInput, decltype(close_file)> in(OIIO::ImageInput::open(filename), close_file);
+        auto in(OIIO::ImageInput::open(filename));
         if (!in)
         {
             throw std::runtime_error("load_image(): Error reading image '" + filename + "'.");
@@ -68,6 +62,8 @@ namespace xt
                                             static_cast<std::size_t>(spec.nchannels)});
 
         in->read_image(OIIO::BaseTypeFromC<T>::value, image.data());
+
+        in->close(); 
 
         return image;
     }
@@ -124,13 +120,7 @@ namespace xt
         XTENSOR_PRECONDITION(shape.size() == 2 || shape.size() == 3,
             "dump_image(): data must have 2 or 3 dimensions (channels must be last).");
 
-        auto close_file  =  [](OIIO::ImageOutput * file)
-                            {
-                                file->close();
-                                OIIO::ImageOutput::destroy(file);
-                            };
-
-        std::unique_ptr<OIIO::ImageOutput, decltype(close_file)> out(OIIO::ImageOutput::create(filename), close_file);
+        auto out(OIIO::ImageOutput::create(filename)); 
         if (!out)
         {
             throw std::runtime_error("dump_image(): Error opening file '" + filename + "' to write image.");
@@ -170,6 +160,7 @@ namespace xt
         {
             out->write_image(OIIO::BaseTypeFromC<value_type>::value, ex.data());
         }
+        out->close();
     }
 }
 
