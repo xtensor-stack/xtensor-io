@@ -41,7 +41,7 @@ install:
         export CXX=clang++ CC=clang;
         conda install libcxx clangdev -c QuantStack -c conda-forge
       fi
-    - conda install cmake openimageio libsndfile boost zlib highfive xtensor=0.18.3 -c QuantStack -c conda-forge
+    - conda install cmake openimageio libsndfile boost zlib highfive xtensor=0.19.0 -c QuantStack -c conda-forge
     - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
     - export LINKFLAGS="${LDFLAGS}"
     - mkdir build

@@ -29,7 +29,7 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
 conda install xtensor-io -c QuantStack -c conda-forge
 ```
 
-- `xtensor-io` depends on `xtensor` `^0.17.0`.
+- `xtensor-io` depends on `xtensor` `^0.19.0`.
 
 - `OpenImageIO`, `libsndfile`, `zlib`, and `HighFive` are optional dependencies to `xtensor-io`
 
@@ -55,7 +55,7 @@ sudo make install
 To try out xtensor-io interactively in your web browser, just click on the binder
 link:
 
-[![Binder](binder-logo.svg)](https://mybinder.org/v2/gh/QuantStack/xtensor-io/0.3.0?filepath=notebooks/demo.ipynb)
+[![Binder](binder-logo.svg)](https://mybinder.org/v2/gh/QuantStack/xtensor-io/stable?filepath=notebooks/demo.ipynb)
 
 ## Documentation
 
