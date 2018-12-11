@@ -65,7 +65,7 @@ namespace xt
 
 		auto load_one = xt::load_audio("files/xtensor.wav");
 		auto& arr_one = std::get<1>(load_one);
-		EXPECT_THROW(xt::dump_audio("/out.wav", arr_one, std::get<0>(load_one)),
+		EXPECT_THROW(xt::dump_audio("/nonexistingdir/out.wav", arr_one, std::get<0>(load_one)),
 					 std::runtime_error);
 	}
 }
