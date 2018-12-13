@@ -25,6 +25,18 @@
 
 namespace xt
 {
+    namespace detail
+    {
+        inline auto error(const HighFive::File& file, const std::string& path, std::string message)
+        {
+            message += "\n";
+            message += "path: '" + path + "'\n";
+            message += "filename: '" + file.getName() + "'\n";
+
+            return std::runtime_error(message);
+        }
+    }
+
     namespace extensions
     {
         /**
@@ -118,7 +130,7 @@ namespace xt
         {
             if (!exist(file, path))
             {
-                throw std::runtime_error("xt::extensions::size: Field does not exist ('"+path+"')");
+                throw detail::error(file, path, "xt::extensions::size: Field does not exist");
             }
 
             HighFive::DataSet dataset = file.getDataSet(path);
@@ -149,7 +161,7 @@ namespace xt
         {
             if (!exist(file, path))
             {
-                throw std::runtime_error("xt::extensions::shape: Field does not exist ('"+path+"')");
+                throw detail::error(file, path, "xt::extensions::shape: Field does not exist");
             }
 
             HighFive::DataSet dataset = file.getDataSet(path);
@@ -222,7 +234,7 @@ namespace xt
 
                     if (dims.size() != 0)
                     {
-                        throw std::runtime_error("xt::dump: Existing field not a scalar ('"+path+"')");
+                        throw detail::error(file, path, "xt::dump: Existing field not a scalar");
                     }
 
                     dataset.write(data);
@@ -254,7 +266,7 @@ namespace xt
 
                         if (dims.size() != idx.size())
                         {
-                            throw std::runtime_error("xt::dump: Rank of the index and the existing field do not match ('"+path+"')");
+                            throw detail::error(file, path, "xt::dump: Rank of the index and the existing field do not match");
                         }
 
                         for (std::size_t i = 0; i < dims.size(); ++i)
@@ -355,12 +367,12 @@ namespace xt
 
                     if (dims.size() > 1)
                     {
-                        throw std::runtime_error("xt::dump: Can only overwrite 1-d vectors ('"+path+"')");
+                        throw detail::error(file, path, "xt::dump: Can only overwrite 1-d vectors");
                     }
 
                     if (dims[0] != data.size())
                     {
-                        throw std::runtime_error("xt::dump: Inconsistent dimensions ('"+path+"')");
+                        throw detail::error(file, path, "xt::dump: Inconsistent dimensions");
                     }
 
                     dataset.write(data);
@@ -408,14 +420,14 @@ namespace xt
 
                     if (data.shape().size() != dims.size())
                     {
-                        throw std::runtime_error("xt::dump: Inconsistent rank ('"+path+"')");
+                        throw detail::error(file, path, "xt::dump: Inconsistent rank");
                     }
 
                     for (std::size_t i = 0; i < data.shape().size(); ++i)
                     {
                         if (data.shape()[i] != dims[i])
                         {
-                            throw std::runtime_error("xt::dump: Inconsistent dimensions ('"+path+"')");
+                            throw detail::error(file, path, "xt::dump: Inconsistent dimensions");
                         }
                     }
 
@@ -461,7 +473,7 @@ namespace xt
 
                 if (dims.size() != 0)
                 {
-                    throw std::runtime_error("xt::load: Field not a scalar ('"+path+"')");
+                    throw detail::error(file, path, "xt::load: Field not a scalar");
                 }
 
                 T data;
@@ -485,7 +497,7 @@ namespace xt
 
                 if (dims.size() != 1)
                 {
-                    throw std::runtime_error("xt::load: Field not rank 1 ('"+path+"')");
+                    throw detail::error(file, path, "xt::load: Field not rank 1");
                 }
 
                 std::vector<T> data;
