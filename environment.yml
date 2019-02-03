@@ -5,4 +5,5 @@ dependencies:
   - xtensor-io=0.7.0
   - xeus-cling=0.4.11
   - xwidgets=0.16.1
+  - ffmpeg=3.4.2  # openimageio is being added as a runtime requirement to xtensor-io
   - widgetsnbextension
