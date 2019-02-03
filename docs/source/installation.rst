@@ -34,11 +34,10 @@ The package will also pull all the dependencies (OpenImageIO, libsndfile and zli
 
 .. code::
 
-    conda install -c QuantStack xtensor-io
+    conda install xtensor-io -c conda-forge
 
 The easiest way to make use of xtensor-io in your code is by using cmake for your project.
-In order for cmake to pick up the xtensor-io dependency, just utilize the interface target and link 
-the xtensor-io library to your target.
+In order for cmake to pick up the xtensor-io dependency, just utilize the interface target and link the xtensor-io library to your target.
 
 .. code:: cmake
 

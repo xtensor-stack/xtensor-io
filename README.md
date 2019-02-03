@@ -26,7 +26,7 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
 `xtensor-io` is a header-only library. We provide a package for the conda package manager.
 
 ```bash
-conda install xtensor-io -c QuantStack -c conda-forge
+conda install xtensor-io -c conda-forge
 ```
 
 - `xtensor-io` depends on `xtensor` `^0.19.0`.
