@@ -5,10 +5,6 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
     - os: osx
       osx_image: xcode8
       compiler: clang
@@ -24,6 +20,7 @@ install:
       elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         MINCONDA_OS=$MINCONDA_OSX;
       fi
+    # Download and install conda
     - wget "http://repo.continuum.io/miniconda/Miniconda3-$MINCONDA_VERSION-$MINCONDA_OS.sh" -O miniconda.sh;
     - bash miniconda.sh -b -p $HOME/miniconda
     - export CONDA_PREFIX=$HOME/miniconda
@@ -32,21 +29,24 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - conda info -a
-    - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        export CC=$CONDA_PREFIX/bin/gcc
-        export CXX=$CONDA_PREFIX/bin/g++
-        conda install gcc-7 -c QuantStack -c conda-forge
-      elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         export CXX=clang++ CC=clang;
-        conda install libcxx clangdev -c QuantStack -c conda-forge
       fi
-    - conda install cmake openimageio libsndfile boost zlib highfive xtensor=0.19.0 -c QuantStack -c conda-forge
+    # Install host dependencies
+    - conda install openimageio libsndfile zlib highfive xtensor=0.19.2 -c conda-forge
+    # Install build dependencies
+    - conda install cmake -c conda-forge
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        conda install gxx_linux-64 libgcc -c conda-forge;
+      fi
+    # Activate root environment
+    - source activate root
+    # Build
     - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
     - export LINKFLAGS="${LDFLAGS}"
     - mkdir build
     - cd build
-    - cmake -DBUILD_TESTS=ON -DDOWNLOAD_GTEST=ON -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..;
+    - cmake -DDOWNLOAD_GTEST=ON -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..;
     - make -j2 test_xtensor_io
     - cd test
 script:

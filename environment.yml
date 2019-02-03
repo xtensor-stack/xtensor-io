@@ -1,12 +1,8 @@
 name: xtensor-io
 channels:
-  - QuantStack
   - conda-forge
 dependencies:
-  - xtensor
+  - xtensor-io=0.7.0
+  - xeus-cling=0.4.11
+  - xwidgets=0.16.1
   - widgetsnbextension
-  - xtensor-io ==0.7.0
-  - xeus-cling ==0.4.9
-  - xwidgets ==0.15.0
-  - openimageio ==1.8.9
-  - notebook
