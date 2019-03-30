@@ -147,7 +147,7 @@ namespace xt
 
             if(mM[0] != mM[1])
             {
-                using real_t = real_promote_type_t<value_type>;
+                using real_t = xtl::real_promote_type_t<value_type>;
                 auto && normalized = eval((real_t(1.0) / (mM[1] - mM[0])) * (ex - mM[0]));
                 out->write_image(OIIO::BaseTypeFromC<real_t>::value, normalized.data());
             }
