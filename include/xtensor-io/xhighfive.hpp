@@ -200,61 +200,33 @@ namespace xt
             }
         }
 
-        namespace scalar
+        namespace type
         {
-            template <class T, class E = void>
-            struct dump_impl
+            namespace scalar
             {
-                template <class C>
-                static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
+                template <class T, class E = void>
+                struct dump_impl
                 {
-                    extensions::create_group(file, path);
-
-                    HighFive::DataSet dataset = file.createDataSet<C>(path, HighFive::DataSpace::From(data));
-
-                    dataset.write(data);
-
-                    file.flush();
-
-                    return dataset;
-                }
-            };
-
-            template <class T, class E = void>
-            struct overwrite_impl
-            {
-                template <class C>
-                static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
-                {
-                    HighFive::DataSet dataset = file.getDataSet(path);
-
-                    auto dataspace = dataset.getSpace();
-
-                    auto dims = dataspace.getDimensions();
-
-                    if (dims.size() != 0)
+                    template <class C>
+                    static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
                     {
-                        throw detail::error(file, path, "xt::dump: Existing field not a scalar");
+                        extensions::create_group(file, path);
+
+                        HighFive::DataSet dataset = file.createDataSet<C>(path, HighFive::DataSpace::From(data));
+
+                        dataset.write(data);
+
+                        file.flush();
+
+                        return dataset;
                     }
+                };
 
-                    dataset.write(data);
-
-                    file.flush();
-
-                    return dataset;
-                }
-            };
-
-            template <class T, class E = void>
-            struct dump_extend_impl
-            {
-                template <class C>
-                static HighFive::DataSet run(HighFive::File& file, const std::string& path,
-                    const C& data, const std::vector<std::size_t>& idx)
+                template <class T, class E = void>
+                struct overwrite_impl
                 {
-                    std::vector<std::size_t> ones(idx.size(), 1);
-
-                    if (extensions::exist(file, path))
+                    template <class C>
+                    static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
                     {
                         HighFive::DataSet dataset = file.getDataSet(path);
 
@@ -262,22 +234,80 @@ namespace xt
 
                         auto dims = dataspace.getDimensions();
 
-                        auto shape = dims;
-
-                        if (dims.size() != idx.size())
+                        if (dims.size() != 0)
                         {
-                            throw detail::error(file, path, "xt::dump: Rank of the index and the existing field do not match");
+                            throw detail::error(file, path, "xt::dump: Existing field not a scalar");
                         }
 
-                        for (std::size_t i = 0; i < dims.size(); ++i)
+                        dataset.write(data);
+
+                        file.flush();
+
+                        return dataset;
+                    }
+                };
+
+                template <class T, class E = void>
+                struct dump_extend_impl
+                {
+                    template <class C>
+                    static HighFive::DataSet run(HighFive::File& file, const std::string& path,
+                        const C& data, const std::vector<std::size_t>& idx)
+                    {
+                        std::vector<std::size_t> ones(idx.size(), 1);
+
+                        if (extensions::exist(file, path))
                         {
-                            shape[i] = std::max(dims[i], idx[i]+1);
+                            HighFive::DataSet dataset = file.getDataSet(path);
+
+                            auto dataspace = dataset.getSpace();
+
+                            auto dims = dataspace.getDimensions();
+
+                            auto shape = dims;
+
+                            if (dims.size() != idx.size())
+                            {
+                                throw detail::error(file, path, "xt::dump: Rank of the index and the existing field do not match");
+                            }
+
+                            for (std::size_t i = 0; i < dims.size(); ++i)
+                            {
+                                shape[i] = std::max(dims[i], idx[i]+1);
+                            }
+
+                            if (shape != dims)
+                            {
+                                dataset.resize(shape);
+                            }
+
+                            dataset.select(idx, ones).write(data);
+
+                            file.flush();
+
+                            return dataset;
                         }
 
-                        if (shape != dims)
+                        extensions::create_group(file, path);
+
+                        auto shape = idx;
+
+                        const size_t unlim = HighFive::DataSpace::UNLIMITED;
+                        std::vector<std::size_t> unlim_shape(idx.size(), unlim);
+
+                        std::vector<hsize_t> chuncks(idx.size(), 10);
+
+                        for (auto& i: shape)
                         {
-                            dataset.resize(shape);
+                            i++;
                         }
+
+                        HighFive::DataSpace dataspace = HighFive::DataSpace(shape, unlim_shape);
+
+                        HighFive::DataSetCreateProps props;
+                        props.add(HighFive::Chunking(chuncks));
+
+                        HighFive::DataSet dataset = file.createDataSet(path, dataspace, HighFive::AtomicType<T>(), props);
 
                         dataset.select(idx, ones).write(data);
 
@@ -285,179 +315,152 @@ namespace xt
 
                         return dataset;
                     }
+                };
 
-                    extensions::create_group(file, path);
-
-                    auto shape = idx;
-
-                    const size_t unlim = HighFive::DataSpace::UNLIMITED;
-                    std::vector<std::size_t> unlim_shape(idx.size(), unlim);
-
-                    std::vector<hsize_t> chuncks(idx.size(), 10);
-
-                    for (auto& i: shape)
+                template <class T>
+                struct load_impl
+                {
+                    static auto run(const HighFive::File& file, const std::string& path, const std::vector<std::size_t>& idx)
                     {
-                        i++;
+                        std::vector<std::size_t> ones(idx.size(), 1);
+
+                        HighFive::DataSet dataset = file.getDataSet(path);
+
+                        T data;
+
+                        dataset.select(idx, ones).read(data);
+
+                        return data;
                     }
+                };
+            }
 
-                    HighFive::DataSpace dataspace = HighFive::DataSpace(shape, unlim_shape);
-
-                    HighFive::DataSetCreateProps props;
-                    props.add(HighFive::Chunking(chuncks));
-
-                    HighFive::DataSet dataset = file.createDataSet(path, dataspace, HighFive::AtomicType<T>(), props);
-
-                    dataset.select(idx, ones).write(data);
-
-                    file.flush();
-
-                    return dataset;
-                }
-            };
-
-            template <class T>
-            struct load_impl
+            namespace vector
             {
-                static auto run(const HighFive::File& file, const std::string& path, const std::vector<std::size_t>& idx)
+                template <class T, class E = void>
+                struct dump_impl
                 {
-                    std::vector<std::size_t> ones(idx.size(), 1);
-
-                    HighFive::DataSet dataset = file.getDataSet(path);
-
-                    T data;
-
-                    dataset.select(idx, ones).read(data);
-
-                    return data;
-                }
-            };
-        }
-
-        namespace vector
-        {
-            template <class T, class E = void>
-            struct dump_impl
-            {
-                template <class C>
-                static HighFive::DataSet run(HighFive::File& file, const std::string& path, const std::vector<C>& data)
-                {
-                    extensions::create_group(file, path);
-
-                    HighFive::DataSet dataset = file.createDataSet<T>(path, HighFive::DataSpace::From(data));
-
-                    dataset.write(data);
-
-                    file.flush();
-
-                    return dataset;
-                }
-            };
-
-            template <class T, class E = void>
-            struct overwrite_impl
-            {
-                template <class C>
-                static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
-                {
-                    HighFive::DataSet dataset = file.getDataSet(path);
-
-                    auto dataspace = dataset.getSpace();
-
-                    auto dims = dataspace.getDimensions();
-
-                    if (dims.size() > 1)
+                    template <class C>
+                    static HighFive::DataSet run(HighFive::File& file, const std::string& path, const std::vector<C>& data)
                     {
-                        throw detail::error(file, path, "xt::dump: Can only overwrite 1-d vectors");
+                        extensions::create_group(file, path);
+
+                        HighFive::DataSet dataset = file.createDataSet<T>(path, HighFive::DataSpace::From(data));
+
+                        dataset.write(data);
+
+                        file.flush();
+
+                        return dataset;
                     }
+                };
 
-                    if (dims[0] != data.size())
-                    {
-                        throw detail::error(file, path, "xt::dump: Inconsistent dimensions");
-                    }
-
-                    dataset.write(data);
-
-                    file.flush();
-
-                    return dataset;
-                }
-            };
-        }
-
-        namespace xtensor
-        {
-            template<class T>
-            struct dump_impl
-            {
-                template <class C>
-                static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
+                template <class T, class E = void>
+                struct overwrite_impl
                 {
-                    extensions::create_group(file, path);
-
-                    std::vector<std::size_t> dims(data.shape().cbegin(), data.shape().cend());
-
-                    HighFive::DataSet dataset = file.createDataSet<typename C::value_type>(path, HighFive::DataSpace(dims));
-
-                    dataset.write(data.begin());
-
-                    file.flush();
-
-                    return dataset;
-                }
-            };
-
-            template<class T>
-            struct overwrite_impl
-            {
-                template <class C>
-                static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
-                {
-                    HighFive::DataSet dataset = file.getDataSet(path);
-
-                    auto dataspace = dataset.getSpace();
-
-                    auto dims = dataspace.getDimensions();
-
-                    if (data.shape().size() != dims.size())
+                    template <class C>
+                    static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
                     {
-                        throw detail::error(file, path, "xt::dump: Inconsistent rank");
-                    }
+                        HighFive::DataSet dataset = file.getDataSet(path);
 
-                    for (std::size_t i = 0; i < data.shape().size(); ++i)
-                    {
-                        if (data.shape()[i] != dims[i])
+                        auto dataspace = dataset.getSpace();
+
+                        auto dims = dataspace.getDimensions();
+
+                        if (dims.size() > 1)
+                        {
+                            throw detail::error(file, path, "xt::dump: Can only overwrite 1-d vectors");
+                        }
+
+                        if (dims[0] != data.size())
                         {
                             throw detail::error(file, path, "xt::dump: Inconsistent dimensions");
                         }
+
+                        dataset.write(data);
+
+                        file.flush();
+
+                        return dataset;
                     }
+                };
+            }
 
-                    dataset.write(data.begin());
-
-                    file.flush();
-
-                    return dataset;
-                }
-            };
-
-            template <class T>
-            struct load_impl
+            namespace xtensor
             {
-                static auto run(const HighFive::File& file, const std::string& path)
+                template<class T>
+                struct dump_impl
                 {
-                    HighFive::DataSet dataset = file.getDataSet(path);
+                    template <class C>
+                    static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
+                    {
+                        extensions::create_group(file, path);
 
-                    auto dataspace = dataset.getSpace();
+                        std::vector<std::size_t> dims(data.shape().cbegin(), data.shape().cend());
 
-                    auto dims = dataspace.getDimensions();
+                        HighFive::DataSet dataset = file.createDataSet<typename C::value_type>(path, HighFive::DataSpace(dims));
 
-                    T data = T::from_shape(dims);
+                        dataset.write(data.begin());
 
-                    dataset.read(data.data());
+                        file.flush();
 
-                    return data;
-                }
-            };
-        }
+                        return dataset;
+                    }
+                };
+
+                template<class T>
+                struct overwrite_impl
+                {
+                    template <class C>
+                    static HighFive::DataSet run(HighFive::File& file, const std::string& path, const C& data)
+                    {
+                        HighFive::DataSet dataset = file.getDataSet(path);
+
+                        auto dataspace = dataset.getSpace();
+
+                        auto dims = dataspace.getDimensions();
+
+                        if (data.shape().size() != dims.size())
+                        {
+                            throw detail::error(file, path, "xt::dump: Inconsistent rank");
+                        }
+
+                        for (std::size_t i = 0; i < data.shape().size(); ++i)
+                        {
+                            if (data.shape()[i] != dims[i])
+                            {
+                                throw detail::error(file, path, "xt::dump: Inconsistent dimensions");
+                            }
+                        }
+
+                        dataset.write(data.begin());
+
+                        file.flush();
+
+                        return dataset;
+                    }
+                };
+
+                template <class T>
+                struct load_impl
+                {
+                    static auto run(const HighFive::File& file, const std::string& path)
+                    {
+                        HighFive::DataSet dataset = file.getDataSet(path);
+
+                        auto dataspace = dataset.getSpace();
+
+                        auto dims = dataspace.getDimensions();
+
+                        T data = T::from_shape(dims);
+
+                        dataset.read(data.data());
+
+                        return data;
+                    }
+                };
+            }
+        } // namespace type
 
         // scalar/string
         template <class T, class E = void>
@@ -513,7 +516,7 @@ namespace xt
         {
             static auto run(const HighFive::File& file, const std::string& path)
             {
-                return detail::xtensor::load_impl<xt::xarray<T>>::run(file, path);
+                return detail::type::xtensor::load_impl<xt::xarray<T>>::run(file, path);
             }
         };
 
@@ -522,7 +525,7 @@ namespace xt
         {
             static auto run(const HighFive::File& file, const std::string& path)
             {
-                return detail::xtensor::load_impl<xt::xtensor<T,rank>>::run(file, path);
+                return detail::type::xtensor::load_impl<xt::xtensor<T,rank>>::run(file, path);
             }
         };
     }
@@ -542,10 +545,10 @@ namespace xt
     {
         if ((dmode == xt::dump_mode::create) or (dmode == xt::dump_mode::overwrite and !extensions::exist(file, path)))
         {
-            return detail::xtensor::dump_impl<xt::xarray<T>>::run(file, path, data);
+            return detail::type::xtensor::dump_impl<xt::xarray<T>>::run(file, path, data);
         }
 
-        return detail::xtensor::overwrite_impl<xt::xarray<T>>::run(file, path, data);
+        return detail::type::xtensor::overwrite_impl<xt::xarray<T>>::run(file, path, data);
     }
 
     /**
@@ -563,10 +566,10 @@ namespace xt
     {
         if ((dmode == xt::dump_mode::create) or (dmode == xt::dump_mode::overwrite and !extensions::exist(file, path)))
         {
-            return detail::xtensor::dump_impl<xt::xtensor<T,rank>>::run(file, path, data);
+            return detail::type::xtensor::dump_impl<xt::xtensor<T,rank>>::run(file, path, data);
         }
 
-        return detail::xtensor::overwrite_impl<xt::xtensor<T,rank>>::run(file, path, data);
+        return detail::type::xtensor::overwrite_impl<xt::xtensor<T,rank>>::run(file, path, data);
     }
 
     /**
@@ -584,10 +587,10 @@ namespace xt
     {
         if ((dmode == xt::dump_mode::create) or (dmode == xt::dump_mode::overwrite and !extensions::exist(file, path)))
         {
-            return detail::vector::dump_impl<T>::run(file, path, data);
+            return detail::type::vector::dump_impl<T>::run(file, path, data);
         }
 
-        return detail::vector::overwrite_impl<T>::run(file, path, data);
+        return detail::type::vector::overwrite_impl<T>::run(file, path, data);
     }
 
     /**
@@ -605,10 +608,10 @@ namespace xt
     {
         if ((dmode == xt::dump_mode::create) or (dmode == xt::dump_mode::overwrite and !extensions::exist(file, path)))
         {
-            return detail::scalar::dump_impl<T>::run(file, path, data);
+            return detail::type::scalar::dump_impl<T>::run(file, path, data);
         }
 
-        return detail::scalar::overwrite_impl<T>::run(file, path, data);
+        return detail::type::scalar::overwrite_impl<T>::run(file, path, data);
     }
 
     /**
@@ -624,7 +627,7 @@ namespace xt
     template <class T>
     inline HighFive::DataSet dump(HighFive::File& file, const std::string& path, const T& data, const std::vector<std::size_t>& idx)
     {
-        return detail::scalar::dump_extend_impl<T>::run(file, path, data, idx);
+        return detail::type::scalar::dump_extend_impl<T>::run(file, path, data, idx);
     }
 
     /**
@@ -639,7 +642,7 @@ namespace xt
     template <class T>
     inline auto load(const HighFive::File& file, const std::string& path, const std::vector<std::size_t>& idx)
     {
-        return detail::scalar::load_impl<T>::run(file, path, idx);
+        return detail::type::scalar::load_impl<T>::run(file, path, idx);
     }
 
     /**
