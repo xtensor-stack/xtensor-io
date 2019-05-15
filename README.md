@@ -29,7 +29,7 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
 conda install xtensor-io -c conda-forge
 ```
 
-- `xtensor-io` depends on `xtensor` `^0.20.5`.
+- `xtensor-io` depends on `xtensor` `^0.20.6`.
 
 - `OpenImageIO`, `libsndfile`, `zlib`, and `HighFive` are optional dependencies to `xtensor-io`
 
