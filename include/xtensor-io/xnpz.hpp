@@ -111,7 +111,13 @@ namespace xt
             }
             else
             {
-                zstr::istream zstream(stream, compr_bytes);
+                if (compr_bytes == 0xffffffff)
+                {
+                    throw std::runtime_error("load_npz: ZIP64 is not implemented");
+                }
+
+                auto pos = stream.tellg();
+                zstr::istream zstream(stream);
 
                 if (!zstream)
                 {
@@ -120,6 +126,7 @@ namespace xt
 
                 arrays.insert(result_type::value_type(varname,
                                                       detail::load_npy_file(zstream)));
+                stream.seekg(pos + std::streamoff(compr_bytes));
             }
         }
         return arrays;
@@ -199,7 +206,13 @@ namespace xt
                 }
                 else
                 {
-                    zstr::istream zstream(stream, compr_bytes);
+                    if (compr_bytes == 0xffffffff)
+                    {
+                        throw std::runtime_error("load_npz: ZIP64 is not implemented");
+                    }
+
+                    auto pos = stream.tellg();
+                    zstr::istream zstream(stream);
 
                     if (!zstream)
                     {
@@ -207,6 +220,7 @@ namespace xt
                     }
 
                     detail::npy_file f = detail::load_npy_file(zstream);
+                    stream.seekg(pos + std::streamoff(compr_bytes));
                     return f.cast<T>();
                 }
             }
