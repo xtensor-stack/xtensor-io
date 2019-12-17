@@ -33,7 +33,7 @@ install:
         export CXX=clang++ CC=clang;
       fi
     # Install host dependencies
-    - conda install openimageio libsndfile zlib highfive xtensor=0.20.6 -c conda-forge
+    - conda install openimageio libsndfile zlib highfive xtensor=0.21.2 -c conda-forge
     - conda install ffmpeg=3.4.2 -c conda-forge  # openimageio is missing ffmpedg as a runtime requirement
     # Install build dependencies
     - conda install cmake -c conda-forge
