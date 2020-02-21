@@ -39,6 +39,28 @@ namespace xt
 {
     using namespace std::string_literals;
 
+    namespace detail
+    {
+#pragma pack(push, 2)
+        struct zip_local_header
+        {
+            char sig[4];
+            uint16_t version;
+            uint16_t gp_flags;
+            uint16_t compression_method;
+            uint16_t last_modification_time;
+            uint16_t last_modification_date;
+            uint32_t crc32;
+            uint32_t compressed_size;
+            uint32_t uncompressed_size;
+            uint16_t filename_len;
+            uint16_t extra_field_len;
+
+            auto signature() const { return std::string(sig, sizeof(sig)); }
+        };
+#pragma pack(pop)
+    }
+
     /**
      * Loads a npz file.
      * This function returns a map. The individual arrays are not casted to a
@@ -54,34 +76,31 @@ namespace xt
     {
         std::ifstream stream(filename, std::ifstream::binary);
 
-        if (!stream)
+        if (!stream.is_open())
         {
-            throw std::runtime_error("load_npz: Error! Unable to open file");
+            throw std::runtime_error("load_npz: failed to open file " + filename);
         }
 
         using result_type = std::map<std::string, detail::npy_file>;
         result_type arrays;
 
-        while (1)
+        for (alignas(uint32_t) detail::zip_local_header entry;;)
         {
-            char local_header[30];
-            stream.read(&local_header[0], 30);
-            if (!stream)
+            if (!stream.read(reinterpret_cast<char*>(&entry), sizeof(entry)))
             {
-                throw std::runtime_error("load_npz: failed to read enough characters.");
+                throw std::runtime_error("load_npz: unexpected end-of-file.");
             }
 
-            //if we've reached the global header, stop reading
-            if (local_header[2] != 0x03 || local_header[3] != 0x04)
+            //if we did not encounter a local header, stop reading
+            if (entry.signature() != "PK\x03\x04"s)
             {
                 break;
             }
 
             //read in the variable name
-            uint16_t name_len = *reinterpret_cast<uint16_t*>(&local_header[26]);
-            std::string varname(name_len, ' ');
-            stream.read(&varname[0], name_len);
-            if (!stream)
+            std::string varname;
+            varname.resize(entry.filename_len);
+            if (!stream.read(&varname[0], entry.filename_len))
             {
                 throw std::runtime_error("load_npz: failed to read variable name.");
             }
@@ -89,32 +108,24 @@ namespace xt
             //erase the lagging .npy
             varname.erase(varname.end() - 4, varname.end());
 
-            //read in the extra field
-            uint16_t extra_field_len = *reinterpret_cast<uint16_t*>(&local_header[28]);
-            if (extra_field_len > 0)
+            // do not test uncompressed_size which may be ZIP64 indicators
+            // move straight to the file content since npy knows its length
+            if (!stream.ignore(entry.extra_field_len))
             {
-                std::vector<char> buff(extra_field_len);
-                stream.read(&buff[0], extra_field_len);
-                if (!stream)
-                {
-                    throw std::runtime_error("load_npz: failed reading extra field.");
-                }
+                throw std::runtime_error("load_npz: failed reading extra field.");
             }
 
-            uint16_t compr_method = *reinterpret_cast<uint16_t*>(&local_header[0] + 8);
-            uint32_t compr_bytes = *reinterpret_cast<uint32_t*>(&local_header[0] + 18);
-            uint32_t uncompr_bytes = *reinterpret_cast<uint32_t*>(&local_header[0] + 22);
-
-            if (compr_method == 0)
+            switch (entry.compression_method)
             {
+            case 0:
                 arrays.insert(result_type::value_type(varname,
                                                       detail::load_npy_file(stream)));
-            }
-            else
+                break;
+            case 8:
             {
-                if (compr_bytes == 0xffffffff)
+                if (entry.compressed_size == 0xffffffff)
                 {
-                    throw std::runtime_error("load_npz: ZIP64 is not implemented");
+                    throw std::runtime_error("load_npz: ZIP64 is not implemented.");
                 }
 
                 auto pos = stream.tellg();
@@ -122,12 +133,21 @@ namespace xt
 
                 if (!zstream)
                 {
-                    throw std::runtime_error("load_npz: failed to open zstream");
+                    throw std::runtime_error("load_npz: failed to open zstream.");
                 }
 
                 arrays.insert(result_type::value_type(varname,
                                                       detail::load_npy_file(zstream)));
-                stream.seekg(pos + std::streamoff(compr_bytes));
+                if (!stream.seekg(pos + std::streamoff(entry.compressed_size)))
+                {
+                    throw std::runtime_error(
+                        "load_npz: unable to read the next variable.");
+                }
+
+                break;
+            }
+            default:
+                throw std::runtime_error("load_npz: unsupported compression method.");
             }
         }
         return arrays;
@@ -147,34 +167,28 @@ namespace xt
     {
         std::ifstream stream(filename, std::ifstream::binary);
 
-        if (!stream)
+        if (!stream.is_open())
         {
-            throw std::runtime_error("load_npz: Error! Unable to open file");
+            throw std::runtime_error("load_npz: failed to open file " + filename);
         }
 
-        using result_type = std::map<std::string, detail::npy_file>;
-        result_type arrays;
-
-        while (1)
+        for (alignas(uint32_t) detail::zip_local_header entry;;)
         {
-            char local_header[30];
-            stream.read(&local_header[0], 30);
-            if (!stream)
+            if (!stream.read(reinterpret_cast<char*>(&entry), sizeof(entry)))
             {
-                throw std::runtime_error("load_npz: failed to read enough characters.");
+                throw std::runtime_error("load_npz: unexpected end-of-file.");
             }
 
-            //if we've reached the global header, stop reading
-            if (local_header[2] != 0x03 || local_header[3] != 0x04)
+            //if we did not encounter a local header, stop reading
+            if (entry.signature() != "PK\x03\x04"s)
             {
                 break;
             }
 
             //read in the variable name
-            uint16_t name_len = *reinterpret_cast<uint16_t*>(&local_header[26]);
-            std::string varname(name_len, ' ');
-            stream.read(&varname[0], name_len);
-            if (!stream)
+            std::string varname;
+            varname.resize(entry.filename_len);
+            if (!stream.read(&varname[0], entry.filename_len))
             {
                 throw std::runtime_error("load_npz: failed to read variable name.");
             }
@@ -182,34 +196,25 @@ namespace xt
             //erase the lagging .npy
             varname.erase(varname.end() - 4, varname.end());
 
-            //read in the extra field
-            uint16_t extra_field_len = *reinterpret_cast<uint16_t*>(&local_header[28]);
-            if (extra_field_len > 0)
+            // do not test uncompressed_size which may be ZIP64 indicators
+            // move straight to the file content since npy knows its length
+            if (!stream.ignore(entry.extra_field_len))
             {
-                std::vector<char> buff(extra_field_len);
-                stream.read(&buff[0], extra_field_len);
-                if (!stream)
-                {
-                    throw std::runtime_error("load_npz: failed reading extra field.");
-                }
+                throw std::runtime_error("load_npz: failed reading extra field.");
             }
-
-            uint16_t compr_method = *reinterpret_cast<uint16_t*>(&local_header[0] + 8);
-            uint32_t compr_bytes = *reinterpret_cast<uint32_t*>(&local_header[0] + 18);
-            uint32_t uncompr_bytes = *reinterpret_cast<uint32_t*>(&local_header[0] + 22);
 
             if (varname == search_varname)
             {
-                if (compr_method == 0)
+                switch (entry.compression_method)
                 {
+                case 0:
                     detail::npy_file f = detail::load_npy_file(stream);
                     return f.cast<T>();
-                }
-                else
+                case 8:
                 {
-                    if (compr_bytes == 0xffffffff)
+                    if (entry.compressed_size == 0xffffffff)
                     {
-                        throw std::runtime_error("load_npz: ZIP64 is not implemented");
+                        throw std::runtime_error("load_npz: ZIP64 is not implemented.");
                     }
 
                     auto pos = stream.tellg();
@@ -217,17 +222,25 @@ namespace xt
 
                     if (!zstream)
                     {
-                        throw std::runtime_error("npz_load: failed to open zstream");
+                        throw std::runtime_error("npz_load: failed to open zstream.");
                     }
 
                     detail::npy_file f = detail::load_npy_file(zstream);
-                    stream.seekg(pos + std::streamoff(compr_bytes));
+                    if (!stream.seekg(pos + std::streamoff(entry.compressed_size)))
+                    {
+                        throw std::runtime_error(
+                            "load_npz: unable to read the next variable.");
+                    }
                     return f.cast<T>();
+                }
+                default:
+                    throw std::runtime_error("load_npz: unsupported compression method.");
                 }
             }
             else
             {
-                stream.seekg(static_cast<std::streamsize>(compr_bytes), std::ios_base::cur);
+                stream.seekg(static_cast<std::streamsize>(entry.compressed_size),
+                             std::ios_base::cur);
             }
         }
         throw std::runtime_error("Array "s + search_varname + " not found in file: "s + filename);
