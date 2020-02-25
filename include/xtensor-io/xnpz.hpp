@@ -59,6 +59,76 @@ namespace xt
             auto signature() const { return std::string(sig, sizeof(sig)); }
         };
 #pragma pack(pop)
+
+        struct extensible_data_field
+        {
+            uint16_t header_id;
+            uint16_t data_size;
+        };
+
+#pragma pack(push, 4)
+        struct zip64_extended_information
+        {
+            uint64_t original_size;
+            uint64_t compressed_size;
+            uint64_t relative_header_offset;  // optional
+            uint32_t disk_start_number;       // optional
+        };
+#pragma pack(pop)
+
+        uint64_t extract_zip64_compressed_size_within(std::istream& stream,
+                                                      std::streamsize nbytes)
+        {
+            for (extensible_data_field desc; nbytes > sizeof(desc);)
+            {
+                if (!stream.read(reinterpret_cast<char*>(&desc), sizeof(desc)))
+                    throw std::runtime_error(
+                        "load_npz: unexpected end-of-file in extensible data "
+                        "fields.");
+                nbytes -= static_cast<uint16_t>(sizeof(desc)) + desc.data_size;
+                if (desc.header_id == 0x0001)
+                {
+                    alignas(uint64_t) zip64_extended_information zip64;
+                    if (desc.data_size > sizeof(zip64) ||
+                        desc.data_size < sizeof(uint64_t) * 2)
+                        throw std::runtime_error("load_npz: zip64 extended "
+                                                 "information is malformed.");
+                    if (!stream.read(reinterpret_cast<char*>(&zip64),
+                                     desc.data_size))
+                        throw std::runtime_error(
+                            "load_npz: unexpected end-of-file in zip64 "
+                            "extended information.");
+                    if (!stream.ignore(nbytes))
+                        throw std::runtime_error(
+                            "load_npz: failed reading extra field.");
+                    return zip64.compressed_size;
+                }
+                else
+                {
+                    if (!stream.ignore(desc.data_size))
+                        throw std::runtime_error(
+                            "load_npz: failed reading extensible data field.");
+                }
+            }
+
+            throw std::runtime_error(
+                "load_npz: missing zip64 extended information.");
+        }
+
+        uint64_t extract_zip64_compressed_size(std::istream& stream,
+                                               zip_local_header const& entry)
+        {
+            if (entry.compressed_size == 0xffffffff)
+                return extract_zip64_compressed_size_within(
+                    stream, entry.extra_field_len);
+            else
+            {
+                if (!stream.ignore(entry.extra_field_len))
+                    throw std::runtime_error(
+                        "load_npz: failed reading extra field.");
+                return entry.compressed_size;
+            }
+        }
     }
 
     /**
@@ -108,26 +178,21 @@ namespace xt
             //erase the lagging .npy
             varname.erase(varname.end() - 4, varname.end());
 
-            // do not test uncompressed_size which may be ZIP64 indicators
-            // move straight to the file content since npy knows its length
-            if (!stream.ignore(entry.extra_field_len))
-            {
-                throw std::runtime_error("load_npz: failed reading extra field.");
-            }
-
             switch (entry.compression_method)
             {
             case 0:
+                //move straight to the file content since npy knows its length
+                if (!stream.ignore(entry.extra_field_len))
+                {
+                    throw std::runtime_error("load_npz: failed reading extra field.");
+                }
+
                 arrays.insert(result_type::value_type(varname,
                                                       detail::load_npy_file(stream)));
                 break;
             case 8:
             {
-                if (entry.compressed_size == 0xffffffff)
-                {
-                    throw std::runtime_error("load_npz: ZIP64 is not implemented.");
-                }
-
+                auto compressed_size = extract_zip64_compressed_size(stream, entry);
                 auto pos = stream.tellg();
                 zstr::istream zstream(stream);
 
@@ -138,7 +203,7 @@ namespace xt
 
                 arrays.insert(result_type::value_type(varname,
                                                       detail::load_npy_file(zstream)));
-                if (!stream.seekg(pos + std::streamoff(entry.compressed_size)))
+                if (!stream.seekg(pos + std::streamoff(compressed_size)))
                 {
                     throw std::runtime_error(
                         "load_npz: unable to read the next variable.");
@@ -196,27 +261,24 @@ namespace xt
             //erase the lagging .npy
             varname.erase(varname.end() - 4, varname.end());
 
-            // do not test uncompressed_size which may be ZIP64 indicators
-            // move straight to the file content since npy knows its length
-            if (!stream.ignore(entry.extra_field_len))
-            {
-                throw std::runtime_error("load_npz: failed reading extra field.");
-            }
-
             if (varname == search_varname)
             {
                 switch (entry.compression_method)
                 {
                 case 0:
-                    detail::npy_file f = detail::load_npy_file(stream);
-                    return f.cast<T>();
-                case 8:
                 {
-                    if (entry.compressed_size == 0xffffffff)
+                    //move straight to the file content since npy knows its length
+                    if (!stream.ignore(entry.extra_field_len))
                     {
-                        throw std::runtime_error("load_npz: ZIP64 is not implemented.");
+                        throw std::runtime_error("load_npz: failed reading extra field.");
                     }
 
+                    detail::npy_file f = detail::load_npy_file(stream);
+                    return f.cast<T>();
+                }
+                case 8:
+                {
+                    auto compressed_size = extract_zip64_compressed_size(stream, entry);
                     auto pos = stream.tellg();
                     zstr::istream zstream(stream);
 
@@ -226,7 +288,7 @@ namespace xt
                     }
 
                     detail::npy_file f = detail::load_npy_file(zstream);
-                    if (!stream.seekg(pos + std::streamoff(entry.compressed_size)))
+                    if (!stream.seekg(pos + std::streamoff(compressed_size)))
                     {
                         throw std::runtime_error(
                             "load_npz: unable to read the next variable.");

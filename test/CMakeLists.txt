@@ -86,6 +86,8 @@ set(XTENSOR_IO_FILES
     archive.h5
     compressed.npz
     uncompressed.npz
+    compressed64.npz
+    uncompressed64.npz
     test.png
     test.jpg
     test.gif
