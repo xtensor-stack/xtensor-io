@@ -36,6 +36,26 @@ namespace xt
         EXPECT_TRUE(xt::all(xt::equal(arr_0, xarr_0)));
     }
 
+    TEST(xnpz, load64)
+    {
+        auto npz_map = xt::load_npz("files/uncompressed64.npz");
+        auto d3 = npz_map["d3"].cast<int32_t>();
+        auto eye5 = npz_map["eye5"].cast<float>(false);
+        xt::xarray<int32_t> xarr_1 = {{{0, 1}, {2, 3}}, {{4, 5}, {6, 7}}};
+        EXPECT_TRUE(xt::all(xt::isclose(eye5, eye<float>(5))));
+        EXPECT_TRUE(xt::all(xt::equal(d3, xarr_1)));
+    }
+
+    TEST(xnpz, load64_compressed)
+    {
+        auto npz_map = xt::load_npz("files/compressed64.npz");
+        auto d3 = npz_map["d3"].cast<int32_t>();
+        auto eye5 = npz_map["eye5"].cast<float>(false);
+        xt::xarray<int32_t> xarr_1 = {{{0, 1}, {2, 3}}, {{4, 5}, {6, 7}}};
+        EXPECT_TRUE(xt::all(xt::isclose(eye5, eye<float>(5))));
+        EXPECT_TRUE(xt::all(xt::equal(d3, xarr_1)));
+    }
+
     bool compare_binary_files(std::string fn1, std::string fn2, std::size_t n_zipped_files)
     {
         std::ifstream stream1(fn1, std::ios::in | std::ios::binary);
