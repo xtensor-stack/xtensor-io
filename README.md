@@ -17,9 +17,10 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
  - images,
  - audio files,
  - NumPy's compressed storage format (NPZ),
- - HDF5 files.
+ - HDF5 files,
+ - Blosc.
 
-`xtensor-io` wraps the [OpenImageIO](https://github.com/OpenImageIO/oiio), [libsndfile](https://github.com/erikd/libsndfile), [zlib](https://github.com/madler/zlib), and [HighFive](https://github.com/BlueBrain/HighFive) libraries.
+`xtensor-io` wraps the [OpenImageIO](https://github.com/OpenImageIO/oiio), [libsndfile](https://github.com/erikd/libsndfile), [zlib](https://github.com/madler/zlib), [HighFive](https://github.com/BlueBrain/HighFive), and [blosc](https://github.com/Blosc/c-blosc) libraries.
 
 ## Installation
 
@@ -31,14 +32,15 @@ conda install xtensor-io -c conda-forge
 
 - `xtensor-io` depends on `xtensor` `^0.21.2`.
 
-- `OpenImageIO`, `libsndfile`, `zlib`, and `HighFive` are optional dependencies to `xtensor-io`
+- `OpenImageIO`, `libsndfile`, `zlib`, `HighFive`, and `blosc` are optional dependencies to `xtensor-io`
 
   - `OpenImageIO` is required to read and write image files.
   - `libsndfile` is required to read and write sound files.
   - `zlib` is required to load NPZ files.
-  - `HighFive` (and the `HDF5` library) is required to read and write HDF5 files. 
+  - `HighFive` (and the `HDF5` library) is required to read and write HDF5 files.
+  - `blosc` is required to read and write Blosc files.
 
-All three libraries are available for the conda package manager.
+All five libraries are available for the conda package manager.
 
 You can also install `xtensor-io` from source:
 

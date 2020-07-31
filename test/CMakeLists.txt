@@ -79,6 +79,7 @@ set(XTENSOR_IO_TESTS
     test_xhighfive.cpp
     test_ximage.cpp
     test_xaudio.cpp
+    test_xblosc.cpp
 )
 
 # Add files for tests
