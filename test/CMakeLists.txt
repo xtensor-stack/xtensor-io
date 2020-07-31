@@ -92,6 +92,7 @@ set(XTENSOR_IO_FILES
     test.png
     test.jpg
     test.gif
+    test.blosc
     big.jpg
     xtensor.wav
 )
