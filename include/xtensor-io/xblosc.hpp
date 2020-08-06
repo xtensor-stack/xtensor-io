@@ -77,6 +77,18 @@ namespace xt
     /**
      * Save xexpression to blosc format
      *
+     * @param stream An output stream to which to dump the data
+     * @param e the xexpression
+     */
+    template <typename E>
+    inline void dump_blosc(std::ofstream& stream, const xexpression<E>& e, int clevel=5, int doshuffle=1)
+    {
+        detail::dump_blosc_stream(stream, e, clevel, doshuffle);
+    }
+
+    /**
+     * Save xexpression to blosc format
+     *
      * @param filename The filename or path to dump the data
      * @param e the xexpression
      */
@@ -142,6 +154,28 @@ namespace xt
         }
         return load_blosc<T, L>(stream);
     }
+
+    class xblosc
+    {
+    public:
+        xblosc(int clevel=5, int doshuffle=1): m_clevel(clevel), m_doshuffle(doshuffle) {};
+
+        template <class EC, class I>
+        void load(I& input_handler, xarray<EC>& a)
+        {
+            a = load_blosc<EC>(input_handler);
+        }
+
+        template <class E, class O>
+        void dump(O& output_handler, xexpression<E>& e)
+        {
+            dump_blosc(output_handler, e, m_clevel, m_doshuffle);
+        }
+
+    private:
+        int m_clevel;
+        int m_doshuffle;
+    };
 }  // namespace xt
 
 #endif
