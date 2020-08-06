@@ -155,10 +155,22 @@ namespace xt
         return load_blosc<T, L>(stream);
     }
 
+    struct blosc_config
+    {
+        int clevel;
+        int doshuffle;
+    };
+
     class xblosc
     {
     public:
         xblosc(int clevel=5, int doshuffle=1): m_clevel(clevel), m_doshuffle(doshuffle) {};
+
+        void configure(blosc_config& config)
+        {
+            m_clevel = config.clevel;
+            m_doshuffle = config.doshuffle;
+        }
 
         template <class EC, class I>
         void load(I& input_handler, xarray<EC>& a)

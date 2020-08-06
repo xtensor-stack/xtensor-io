@@ -51,5 +51,6 @@ install:
     - cd build
     - cmake -DBUILD_TESTS=ON ..
     - make -j2 test_xtensor_io
+    - cd test
 script:
-    - make xtest
+    - ./test_xtensor_io
