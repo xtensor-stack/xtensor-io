@@ -138,7 +138,7 @@ namespace xt
         std::cout << "in load_blosc " << uncompressed_buffer << std::endl;
         std::size_t size = uncompressed_size / sizeof(T);
         std::vector<std::size_t> shape = {size};
-        auto array = adapt(uncompressed_buffer, size, acquire_ownership(), shape);
+        auto array = adapt(std::move(uncompressed_buffer), size, acquire_ownership(), shape);
         std::cout << "in load_blosc " << array.data() << std::endl;
         return array;
     }
