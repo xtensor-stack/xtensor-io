@@ -155,6 +155,23 @@ else()
   message(WARNING "HighFive and/or HDF5 not found - install HighFive and HDF5 for HDF5 file support")
 endif()
 
+message(STATUS "Trying to find Blosc for Blosc file support")
+find_package(Blosc)
+if (${Blosc_FOUND})
+  message(STATUS "Blosc found, Blosc file support enabled")
+  include_directories(${Blosc_INCLUDE_DIRS})
+  target_include_directories(xtensor-io
+    INTERFACE
+    $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
+  )
+  target_link_libraries(xtensor-io
+    INTERFACE
+      ${Blosc_LIBRARIES}
+  )
+else()
+  message(WARNING "Blosc not found - install blosc for Blosc file support")
+endif()
+
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
 endif()
