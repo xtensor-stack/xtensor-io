@@ -22,28 +22,28 @@ namespace xt
     namespace detail
     {
         template <typename T>
-        inline T* load_blosc_file(std::istream& stream, std::size_t& uncompressed_size)
+        inline std::vector<T> load_blosc_file(std::istream& stream)
         {
             stream.seekg(0, stream.end);
             auto compressed_size = static_cast<std::size_t>(stream.tellg());
             stream.seekg(0, stream.beg);
-            std::allocator<char> char_allocator;
-            char* compressed_buffer = char_allocator.allocate(compressed_size);
-            stream.read(compressed_buffer, (std::streamsize)compressed_size);
-            int res = blosc_cbuffer_validate(compressed_buffer, compressed_size, &uncompressed_size);
+            std::vector<char> compressed_buffer(compressed_size);
+            stream.read(compressed_buffer.data(), (std::streamsize)compressed_size);
+            std::size_t uncompressed_size = 0;
+            int res = blosc_cbuffer_validate(compressed_buffer.data(), compressed_size, &uncompressed_size);
             if (res == -1)
             {
                 throw std::runtime_error("unsupported file format version");
             }
-            std::allocator<T> t_allocator;
-            T* uncompressed_buffer = t_allocator.allocate(uncompressed_size / sizeof(T) + 1);
-            std::cout << "in load_blosc_file " << uncompressed_buffer << std::endl;
-            res = blosc_decompress(compressed_buffer, uncompressed_buffer, uncompressed_size);
+            size_t ubuf_size = uncompressed_size / sizeof(T);
+            if (uncompressed_size % sizeof(T) != size_t(0))
+                ubuf_size += size_t(1);
+            std::vector<T> uncompressed_buffer(ubuf_size);
+            res = blosc_decompress(compressed_buffer.data(), uncompressed_buffer.data(), uncompressed_size);
             if (res <= 0)
             {
                 throw std::runtime_error("unsupported file format version");
             }
-            char_allocator.deallocate(compressed_buffer, compressed_size);
             return uncompressed_buffer;
         }
 
@@ -133,13 +133,9 @@ namespace xt
     template <typename T, layout_type L = layout_type::dynamic>
     inline auto load_blosc(std::istream& stream)
     {
-        std::size_t uncompressed_size;
-        T* uncompressed_buffer = detail::load_blosc_file<T>(stream, uncompressed_size);
-        std::cout << "in load_blosc " << uncompressed_buffer << std::endl;
-        std::size_t size = uncompressed_size / sizeof(T);
-        std::vector<std::size_t> shape = {size};
-        auto array = adapt(std::move(uncompressed_buffer), size, acquire_ownership(), shape);
-        std::cout << "in load_blosc " << array.data() << std::endl;
+        std::vector<T> uncompressed_buffer = detail::load_blosc_file<T>(stream);
+        std::vector<std::size_t> shape = {uncompressed_buffer.size()};
+        auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
     }
 
