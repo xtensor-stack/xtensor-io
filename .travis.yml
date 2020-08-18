@@ -35,7 +35,7 @@ install:
     # Install mamba
     - conda install mamba -c conda-forge
     # Install host dependencies
-    - mamba install openimageio=2.1.10 libsndfile=1.0.28 zlib=1.2.11 highfive=2.1.1 blosc gtest xtensor=0.21.2 -c conda-forge
+    - mamba install openimageio=2.1.10 libsndfile=1.0.28 zlib=1.2.11 highfive=2.1.1 blosc xtensor=0.21.2 -c conda-forge
     - mamba install ffmpeg=4.1.3 -c conda-forge  # openimageio is missing ffmpedg as a runtime requirement
     # Install build dependencies
     - mamba install cmake -c conda-forge
@@ -49,7 +49,7 @@ install:
     - export LINKFLAGS="${LDFLAGS}"
     - mkdir build
     - cd build
-    - cmake -DBUILD_TESTS=ON ..
+    - cmake -DDOWNLOAD_GTEST=ON -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..;
     - make -j2 test_xtensor_io
     - cd test
 script:

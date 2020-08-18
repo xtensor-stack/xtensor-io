@@ -21,25 +21,29 @@ namespace xt
 {
     namespace detail
     {
-        char* load_blosc_file(std::istream& stream, std::size_t& uncompressed_size)
+        template <typename T>
+        inline T* load_blosc_file(std::istream& stream, std::size_t& uncompressed_size)
         {
             stream.seekg(0, stream.end);
-            std::size_t compressed_size = (std::size_t)stream.tellg();
+            auto compressed_size = static_cast<std::size_t>(stream.tellg());
             stream.seekg(0, stream.beg);
-            char* compressed_buffer = new char[compressed_size];
+            std::allocator<char> char_allocator;
+            char* compressed_buffer = char_allocator.allocate(compressed_size);
             stream.read(compressed_buffer, (std::streamsize)compressed_size);
             int res = blosc_cbuffer_validate(compressed_buffer, compressed_size, &uncompressed_size);
             if (res == -1)
             {
                 throw std::runtime_error("unsupported file format version");
             }
-            char* uncompressed_buffer = new char[uncompressed_size];
+            std::allocator<T> t_allocator;
+            T* uncompressed_buffer = t_allocator.allocate(uncompressed_size / sizeof(T) + 1);
+            std::cout << "in load_blosc_file " << uncompressed_buffer << std::endl;
             res = blosc_decompress(compressed_buffer, uncompressed_buffer, uncompressed_size);
             if (res <= 0)
             {
                 throw std::runtime_error("unsupported file format version");
             }
-            delete[] compressed_buffer;
+            char_allocator.deallocate(compressed_buffer, compressed_size);
             return uncompressed_buffer;
         }
 
@@ -53,7 +57,8 @@ namespace xt
             std::size_t uncompressed_size = compute_size(shape) * sizeof(value_type);
             const char* uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
             std::size_t max_compressed_size = uncompressed_size + BLOSC_MAX_OVERHEAD;
-            char* compressed_buffer = new char[max_compressed_size];
+            std::allocator<char> char_allocator;
+            char* compressed_buffer = char_allocator.allocate(max_compressed_size);
             if (!blosc_initialized)
             {
                 blosc_init();
@@ -70,7 +75,7 @@ namespace xt
             }
             stream.write(compressed_buffer,
                          std::streamsize(true_compressed_size));
-            delete[] compressed_buffer;
+            char_allocator.deallocate(compressed_buffer, max_compressed_size);
         }
     }  // namespace detail
 
@@ -129,12 +134,15 @@ namespace xt
     inline auto load_blosc(std::istream& stream)
     {
         std::size_t uncompressed_size;
-        T* uncompressed_buffer = reinterpret_cast<T*>(detail::load_blosc_file(stream, uncompressed_size));
+        T* uncompressed_buffer = detail::load_blosc_file<T>(stream, uncompressed_size);
+        std::cout << "in load_blosc " << uncompressed_buffer << std::endl;
         std::size_t size = uncompressed_size / sizeof(T);
         std::vector<std::size_t> shape = {size};
-        auto array = adapt(uncompressed_buffer, size, no_ownership(), shape);
+        auto array = adapt(uncompressed_buffer, size, acquire_ownership(), shape);
+        std::cout << "in load_blosc " << array.data() << std::endl;
         return array;
     }
+
     /**
      * Loads a blosc file
      *
@@ -164,30 +172,49 @@ namespace xt
     class xblosc
     {
     public:
-        xblosc(int clevel=5, int doshuffle=1): m_clevel(clevel), m_doshuffle(doshuffle) {};
+        explicit xblosc(const blosc_config& config);
+        explicit xblosc(int clevel=5, int doshuffle=1);
 
-        void configure(blosc_config& config)
-        {
-            m_clevel = config.clevel;
-            m_doshuffle = config.doshuffle;
-        }
+        void configure(const blosc_config& config);
 
         template <class EC, class I>
-        void load(I& input_handler, xarray<EC>& a)
-        {
-            a = load_blosc<EC>(input_handler);
-        }
+        void load(I& input_handler, xarray<EC>& a) const;
 
         template <class E, class O>
-        void dump(O& output_handler, xexpression<E>& e)
-        {
-            dump_blosc(output_handler, e, m_clevel, m_doshuffle);
-        }
+        void dump(O& output_handler, xexpression<E>& e) const;
 
     private:
-        int m_clevel;
-        int m_doshuffle;
+        blosc_config m_config;
     };
+
+    xblosc::xblosc(const blosc_config& config): m_config(config)
+    {
+    }
+
+    xblosc::xblosc(int clevel, int doshuffle)
+    {
+        blosc_config config;
+        config.clevel = clevel;
+        config.doshuffle = doshuffle;
+        configure(config);
+    }
+
+    void xblosc::configure(const blosc_config& config)
+    {
+        m_config = config;
+    }
+
+    template <class EC, class I>
+    void xblosc::load(I& input_handler, xarray<EC>& a) const
+    {
+        a = load_blosc<EC>(input_handler);
+    }
+
+    template <class E, class O>
+    void xblosc::dump(O& output_handler, xexpression<E>& e) const
+    {
+        dump_blosc(output_handler, e, m_config.clevel, m_config.doshuffle);
+    }
 }  // namespace xt
 
 #endif

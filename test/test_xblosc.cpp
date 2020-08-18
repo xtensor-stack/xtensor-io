@@ -29,8 +29,11 @@ namespace xt
         //     f.write(c)
         using dtype = double;
         auto a0 = load_blosc<dtype>("files/test.blosc");
+        std::cout << "in test " << a0.data() << std::endl;
         xarray<dtype> a1 = {3, 2, 1, 0};
-        EXPECT_TRUE(xt::all(xt::equal(a0, a1)));
+        //EXPECT_TRUE(xt::all(xt::equal(a0, a1)));
+        for (int i = 0; i < 4; i++)
+            assert(a0[i] == a1[i]);
     }
 
     TEST(xblosc, save_load)
