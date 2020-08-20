@@ -86,7 +86,7 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_blosc(std::ofstream& stream, const xexpression<E>& e, int clevel=5, int doshuffle=1)
+    inline void dump_blosc(std::ostream& stream, const xexpression<E>& e, int clevel=5, int doshuffle=1)
     {
         detail::dump_blosc_stream(stream, e, clevel, doshuffle);
     }
@@ -159,57 +159,28 @@ namespace xt
         return load_blosc<T, L>(stream);
     }
 
-    struct blosc_config
+    struct xblosc_config
     {
         int clevel;
         int doshuffle;
+
+        xblosc_config()
+            : clevel(5)
+            , doshuffle(1)
+        {
+        }
     };
 
-    class xblosc
+    template <class E>
+    auto load_file(std::istream& stream, const xblosc_config&)
     {
-    public:
-        explicit xblosc(const blosc_config& config);
-        explicit xblosc(int clevel=5, int doshuffle=1);
-
-        void configure(const blosc_config& config);
-
-        template <class EC, class I>
-        void load(I& input_handler, xarray<EC>& a) const;
-
-        template <class E, class O>
-        void dump(O& output_handler, xexpression<E>& e) const;
-
-    private:
-        blosc_config m_config;
-    };
-
-    xblosc::xblosc(const blosc_config& config): m_config(config)
-    {
+        return load_blosc<typename E::value_type>(stream);
     }
 
-    xblosc::xblosc(int clevel, int doshuffle)
+    template <class E>
+    void dump_file(std::ostream& stream, const xexpression<E> &e, const xblosc_config& config)
     {
-        blosc_config config;
-        config.clevel = clevel;
-        config.doshuffle = doshuffle;
-        configure(config);
-    }
-
-    void xblosc::configure(const blosc_config& config)
-    {
-        m_config = config;
-    }
-
-    template <class EC, class I>
-    void xblosc::load(I& input_handler, xarray<EC>& a) const
-    {
-        a = load_blosc<EC>(input_handler);
-    }
-
-    template <class E, class O>
-    void xblosc::dump(O& output_handler, xexpression<E>& e) const
-    {
-        dump_blosc(output_handler, e, m_config.clevel, m_config.doshuffle);
+        dump_blosc(stream, e, config.clevel, config.doshuffle);
     }
 }  // namespace xt
 
