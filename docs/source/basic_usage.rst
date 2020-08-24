@@ -72,3 +72,19 @@ Example : Reading and writing HDF5 files
 
         return 0;
     }
+
+Example : Reading a geospatial raster file with GDAL
+----------------------------------------------------
+
+.. code-block:: cpp
+
+    #include <xtensor/xio.hpp>
+    #include <xtensor-io/xgdal.hpp>
+
+    int main()
+    {
+        // Load every band within an example image.
+        // The returned order is band sequential (or [band, row, column]).
+        xt::xtensor<int, 3> image = xt::load_gdal<int>("/path/to/data.ext");
+        std::cout << image << std::endl;
+    }
