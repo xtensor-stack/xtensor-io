@@ -172,6 +172,22 @@ else()
   message(WARNING "Blosc not found - install blosc for Blosc file support")
 endif()
 
+message(STATUS "Trying to find GDAL for geospatial raster file support")
+find_package(GDAL)
+if(${GDAL_FOUND})
+  message(STATUS "GDAL ${GDAL_VERSION} found, geospatial raster file support enabled")
+  target_include_directories(xtensor-io
+    INTERFACE
+      ${GDAL_INCLUDE_DIRS}
+  )
+  target_link_libraries(xtensor-io
+    INTERFACE
+      ${GDAL_LIBRARIES}
+  )
+else()
+  message(WARNING "GDAL not found - install GDAL for geospatial raster file support")
+endif()
+
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
 endif()
