@@ -75,6 +75,7 @@ find_package(Threads)
 
 set(XTENSOR_IO_TESTS
     main.cpp
+    test_xgdal.cpp
     test_xnpz.cpp
     test_xhighfive.cpp
     test_ximage.cpp
