@@ -1,5 +1,7 @@
 /***************************************************************************
-* TODO: need copyright guidance                                            *
+* Copyright (c) Wolf Vollprecht, Sylvain Corlay and Johan Mabille          *
+* Copyright (c) QuantStack                                                 *
+* Copyright (c) Andrew Hardin                                              *
 *                                                                          *
 * Distributed under the terms of the BSD 3-Clause License.                 *
 *                                                                          *
