@@ -15,9 +15,11 @@
 #include <map>
 
 #include <xtensor/xtensor.hpp>
+#include "xtensor-io.hpp"
 
 // We rely exclusively on the stable C interface to GDAL.
 #include <gdal.h>
+#include <cpl_string.h>
 
 namespace xt
 {
@@ -122,21 +124,35 @@ namespace xt
         }
 
         /**
+         * Utility structure that stores the basic raster shape {band, rows, columns}.
+         */
+        template<typename T>
+        struct raster_shape
+        {
+            T band_count;
+            T ny;
+            T nx;
+
+            template<typename U>
+            raster_shape<U> cast() const {
+                return { static_cast<U>(band_count), static_cast<U>(ny), static_cast<U>(nx) };
+            }
+        };
+
+        /**
          * Convert standard raster dimensions into an xt shape.
          * @param item the layout that should be converted into a shape.
-         * @param band_count number of bands.
-         * @param nx width of the raster.
-         * @param ny height of the raster.
+         * @param shape the raster dimensions.
          * @return an xt shape.
          */
-        std::array<size_t, 3> layout_as_shape(layout item, size_t band_count, size_t nx, size_t ny)
+        std::array<size_t, 3> layout_as_shape(layout item, raster_shape<size_t> shape)
         {
             std::map<component, size_t> dimmap
-                    {
-                            {component::band,   band_count},
-                            {component::row,    ny},
-                            {component::column, nx}
-                    };
+                {
+                    {component::band,   shape.band_count},
+                    {component::row,    shape.ny},
+                    {component::column, shape.nx}
+                };
             return {
                     dimmap[item[0]],
                     dimmap[item[1]],
@@ -145,17 +161,65 @@ namespace xt
         }
 
         /**
+         * Convert an xtensor shape into a raster shape (mapping the shape{...} into [bands, rows, columns]).
+         * @tparam T the output type
+         * @tparam U the native shape type
+         * @param item the layout of the input shape.
+         * @param shape the shape of the xtensor
+         * @param out the raster shape
+         * @return true if the conversion was supported.
+         */
+        template<typename T, typename U>
+        bool shape_as_raster_shape(layout item, U shape, raster_shape<T>& out)
+        {
+            auto size = shape.size();
+            if(size == 2)
+            {
+                // This is a convenience hook that lets us support 2D shapes.
+                // The layout still contains a band, but we ignore it and just look
+                // at whether columns or rows come first.
+                out = {
+                    T(1),
+                    T(shape[0]),
+                    T(shape[1])
+                };
+                if(item[0] == component::column || item[1] == component::column)
+                {
+                    std::swap(out.nx, out.ny);
+                }
+                return true;
+            }
+            if(size == 3)
+            {
+                std::map<component, T> dimmap;
+                for(size_t i = 0; i < 3; i++)
+                {
+                    dimmap[item[i]] = T(shape[i]);
+                }
+                out = {
+                    dimmap[component::band],
+                    dimmap[component::row],
+                    dimmap[component::column]
+                };
+                return true;
+            }
+
+            // Not 2 or 3 dimensions - no idea how to map that into raster dimensions.
+            return false;
+        }
+
+        /**
          * Take the standard raster dimensions and convert them into byte level strides for GDALRasterIO().
          * @param item the layout to be converted into spacing.
-         * @param band_count number of bands.
-         * @param nx width of the raster.
-         * @param ny height of the raster.
+         * @param dim the dimensions of the raster.
          * @param pixel_byte_count number of bytes in one pixel.
          * @return spacing in bytes.
          */
         static space
-        layout_as_space(layout item, GSpacing band_count, GSpacing nx, GSpacing ny, GSpacing pixel_byte_count)
+        layout_as_space(layout item, raster_shape<GSpacing> dim, GSpacing pixel_byte_count)
         {
+            // Unpack to reduce verbosity.
+            GSpacing nx = dim.nx, ny = dim.ny, band_count = dim.band_count;
 
             // All 6 cases are enumerated.
             // Perhaps there's a cleaner way to write this method?
@@ -253,6 +317,58 @@ namespace xt
         std::function<void(const std::string &)> error_handler;
     };
 
+    /**
+     * Options for dumping a GDAL dataset.
+     */
+    struct dump_gdal_options
+    {
+        /**
+         * Write a band sequential xarray using the GeoTIFF driver.
+         */
+        dump_gdal_options()
+            : mode(dump_mode::create),
+              driver_name("GTiff"),
+              creation_options(),
+              interleave(layout_band_sequential()),
+              return_opened_dataset(false),
+              error_handler([](const std::string& msg)
+                            { throw std::runtime_error("dump_gdal(): " + msg); })
+        {}
+
+        /**
+         * Whether the file should be created or overwritten.
+         */
+        dump_mode mode;
+
+        /**
+         * The name of the GDAL driver to use (e.g. GTiff).
+         */
+        std::string driver_name;
+
+        /**
+         * Options passed to to GDAL when the dataset is created (e.g. COMPRESS=JPEG).
+         */
+        std::vector<std::string> creation_options;
+
+        /**
+         * The layout of the xarray that's dumped to disk (e.g. the given xarray is [band, row, column]).
+         */
+        layout interleave;
+
+        /**
+         * Whether or not the dump method should return the opened dataset.
+         * If true, the open dataset will be returned - the user must later call GDALClose().
+         * @remark this is useful for writing metadata to the dataset after the pixels have been written.
+         */
+        bool return_opened_dataset;
+
+        /**
+         * The error handler used to report errors (e.g. failed to open dataset).
+         * By default, a std::runtime_error is thrown when an error is encountered.
+         */
+        std::function<void(const std::string &)> error_handler;
+    };
+
 
     /**
      * Load pixels from a GDAL dataset.
@@ -297,13 +413,12 @@ namespace xt
         }
 
         // Pull dataset dimensions.
-        // Need both signed (for GDAL) and unsigned (for XT).
-        int band_count = static_cast<int>(bands.size());
-        int nx = GDALGetRasterXSize(dataset);
-        int ny = GDALGetRasterYSize(dataset);
-        auto band_count_u = bands.size();
-        auto nx_u = static_cast<size_t>(nx);
-        auto ny_u = static_cast<size_t>(ny);
+        detail::raster_shape<int> gdal_dim
+        {
+            static_cast<int>(bands.size()),
+            GDALGetRasterYSize(dataset),
+            GDALGetRasterXSize(dataset)
+        };
 
         // Setup the shape and pixel spacing based on the user provided layout.
         if (!detail::valid_layout(options.interleave))
@@ -311,27 +426,26 @@ namespace xt
             options.error_handler("the given interleave option has duplicate entries");
             return {};
         }
-        auto shape = detail::layout_as_shape(options.interleave, band_count_u, nx_u, ny_u);
-        auto spacing = detail::layout_as_space(options.interleave, band_count, nx, ny, sizeof(T));
+        auto shape = detail::layout_as_shape(options.interleave, gdal_dim.cast<size_t>());
+        auto spacing = detail::layout_as_space(options.interleave, gdal_dim.cast<GSpacing>(), sizeof(T));
         xt::xtensor<T, 3> ans(shape);
 
         // Read from the dataset. Again, there are some hurdles related
         // to the arbitrary layout order.
         auto error = GDALDatasetRasterIOEx(
-                dataset,
-                GDALRWFlag::GF_Read,
-                0, 0,
-                nx, ny,
-                ans.data(),
-                nx, ny,
-                detail::to_gdal_type<T>::value,
-                band_count,
-                bands.data(),
-                spacing.pixel,
-                spacing.line,
-                spacing.band,
-                nullptr
-        );
+            dataset,
+            GDALRWFlag::GF_Read,
+            0, 0,
+            gdal_dim.nx, gdal_dim.ny,
+            ans.data(),
+            gdal_dim.nx, gdal_dim.ny,
+            detail::to_gdal_type<T>::value,
+            gdal_dim.band_count,
+            bands.data(),
+            spacing.pixel,
+            spacing.line,
+            spacing.band,
+            nullptr);
         if (error != CPLErr::CE_None)
         {
             options.error_handler("failed to read from dataset");
@@ -339,6 +453,91 @@ namespace xt
         }
         return ans;
     }
+
+    /**
+     * Dump a 2D or 3D xexpression to a GDALDataset.
+     * @param e data to dump; must evaluate to a 2D or 3D shape.
+     * @param path where to save the data.
+     * @param options options to use when dumping.
+     * @return nullptr by default, or, an open dataset if dump_gdal_options.return_opened_dataset (user must close).
+     */
+    template<typename T>
+    GDALDatasetH dump_gdal(const xexpression<T> &e, const std::string& path, dump_gdal_options options = {})
+    {
+        // Get the requested driver.
+        auto driver = GDALGetDriverByName(options.driver_name.c_str());
+        if(driver == nullptr)
+        {
+            options.error_handler("failed to find driver '" + options.driver_name + "'");
+            return nullptr;
+        }
+
+        // Evaluate the expression and convert its shape into a raster shape (bands, rows, and columns).
+        // Convert its shape into raster dimensions.
+        auto&& de = xt::eval(e.derived_cast());
+        auto shape = de.shape();
+        detail::raster_shape<int> gdal_dim{};
+        if (!detail::valid_layout(options.interleave))
+        {
+            options.error_handler("the given interleave option has duplicate entries");
+            return nullptr;
+        }
+        if(!detail::shape_as_raster_shape(options.interleave, shape, gdal_dim))
+        {
+            options.error_handler("failed to convert the shape into a count of the number of bands, rows, and columns");
+            return nullptr;
+        }
+
+        // Take the creation options and munge them into something that GDAL accepts.
+        // This is a C structure that'll need to be manually destroyed.
+        char** create_options_c = nullptr;
+        for(auto &i : options.creation_options)
+        {
+            create_options_c = CSLAddString(create_options_c, i.c_str());
+        }
+
+        // Convert the expressions value into a GDALDataType.
+        // If this fails during compilation, there isn't a (known) conversion.
+        using value_type = typename std::decay_t<decltype(de)>::value_type;
+        GDALDataType raster_type = detail::to_gdal_type<value_type>::value;
+
+        // Create the dataset.
+        auto dataset = GDALCreate(driver, path.c_str(), gdal_dim.nx, gdal_dim.ny, gdal_dim.band_count, raster_type, create_options_c);
+        CSLDestroy(create_options_c);
+        if(dataset == nullptr)
+        {
+            options.error_handler("failed to create a " + options.driver_name + " dataset at '" + path + "'");
+            return nullptr;
+        }
+
+        // Embark on RasterIO.
+        auto spacing = detail::layout_as_space(options.interleave, gdal_dim.cast<GSpacing>(), sizeof(value_type));
+        auto error = GDALDatasetRasterIOEx(dataset, GDALRWFlag::GF_Write,
+                                           0, 0,
+                                           gdal_dim.nx, gdal_dim.ny,
+                                           const_cast<value_type*>(de.data()), // pinky promise not to modify.
+                                           gdal_dim.nx, gdal_dim.ny,
+                                           raster_type,
+                                           gdal_dim.band_count,
+                                           nullptr,
+                                           spacing.pixel, spacing.line, spacing.band,
+                                           nullptr);
+
+        // Close the dataset (if not requested to stay open).
+        // Then check the error and (maybe) throw if the rasterio failed.
+        if(!options.return_opened_dataset)
+        {
+            GDALClose(dataset);
+            dataset = nullptr;
+        }
+        if(error != CPLErr::CE_None)
+        {
+            options.error_handler("rasterio failed on '" + path + "'");
+            return nullptr;
+        }
+        return dataset;
+    }
+
 }  // namespace xt
 
 
