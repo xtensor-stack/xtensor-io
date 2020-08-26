@@ -101,3 +101,10 @@ Defined in ``xtensor-io/xgdal.hpp``
 .. doxygenstruct:: xt::load_gdal_options
    :project: xtensor-io
    :members:
+
+.. doxygenfunction:: dump_gdal(const xexpression<T> &e, const std::string& path, dump_gdal_options options = {})
+   :project: xtensor-io
+
+.. doxygenstruct:: xt::dump_gdal_options
+   :project: xtensor-io
+   :members:

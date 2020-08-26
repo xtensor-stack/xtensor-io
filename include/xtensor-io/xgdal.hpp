@@ -311,7 +311,7 @@ namespace xt
         std::vector<int> bands_to_load;
 
         /**
-         * The error handler used to report errors (e.g. file missing or a read fails).
+         * The error handler used to report errors (like file missing or a read fails).
          * By default, a std::runtime_error is thrown when an error is encountered
          */
         std::function<void(const std::string &)> error_handler;
@@ -341,17 +341,17 @@ namespace xt
         dump_mode mode;
 
         /**
-         * The name of the GDAL driver to use (e.g. GTiff).
+         * The name of the GDAL driver to use (like GTiff).
          */
         std::string driver_name;
 
         /**
-         * Options passed to to GDAL when the dataset is created (e.g. COMPRESS=JPEG).
+         * Options passed to to GDAL when the dataset is created (like COMPRESS=JPEG).
          */
         std::vector<std::string> creation_options;
 
         /**
-         * The layout of the xarray that's dumped to disk (e.g. the given xarray is [band, row, column]).
+         * The layout of the xarray that's dumped to disk (such as [band, row, column]).
          */
         layout interleave;
 
@@ -363,7 +363,7 @@ namespace xt
         bool return_opened_dataset;
 
         /**
-         * The error handler used to report errors (e.g. failed to open dataset).
+         * The error handler used to report errors (like failed to open dataset).
          * By default, a std::runtime_error is thrown when an error is encountered.
          */
         std::function<void(const std::string &)> error_handler;
