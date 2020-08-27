@@ -172,9 +172,9 @@ namespace xt
     };
 
     template <class E>
-    auto load_file(std::istream& stream, const xblosc_config&)
+    void load_file(std::istream& stream, xexpression<E>& e, const xblosc_config&)
     {
-        return load_blosc<typename E::value_type>(stream);
+        e.derived_cast() = load_blosc<typename E::value_type>(stream);
     }
 
     template <class E>
