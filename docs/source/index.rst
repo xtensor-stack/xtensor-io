@@ -16,6 +16,7 @@ xtensor-io offers bindings to popular open source libraries for reading and writ
 - Images with OpenImageIO (many supported formats, among others: jpg, png, gif, tiff, bmp ...)
 - Sound files with libsndfile (supports wav, ogg files)
 - NumPy compressed file format (``npz``). Note: support for uncompressed NumPy files (``npy``) is available in core xtensor.
+- Geospatial rasters with GDAL (many supported formats_)
 
 Enabling xtensor-io in your C++ libraries
 -----------------------------------------
@@ -59,3 +60,4 @@ This software is licensed under the BSD-3-Clause license. See the LICENSE file f
 
 .. _`numpy to xtensor cheat sheet`: http://xtensor.readthedocs.io/en/latest/numpy.html
 .. _xtensor: https://github.com/QuantStack/xtensor
+.. _formats: https://gdal.org/drivers/raster/index.html

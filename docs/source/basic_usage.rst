@@ -72,3 +72,28 @@ Example : Reading and writing HDF5 files
 
         return 0;
     }
+
+Example : Reading and writing a file with GDAL
+----------------------------------------------------------------
+
+.. code-block:: cpp
+
+    #include <xtensor/xio.hpp>
+    #include <xtensor-io/xgdal.hpp>
+
+    int main()
+    {
+        // Load every band within an example image.
+        // The returned order is band sequential (or [band, row, column]).
+        xt::xtensor<int, 3> image = xt::load_gdal<int>("/path/to/data.ext");
+        std::cout << image << std::endl;
+
+        // Write the data to disk.
+        xt::dump_gdal(image, "/path/to/output.ext");
+
+        // Fancy options exist for both reading and writing.
+        // Just as an example, we'll write a GeoTiff with deflate compression.
+        xt::dump_gdal_options opt;
+        opt.creation_options.emplace_back("COMPRESS=DEFLATE");
+        xt::dump_gdal(image, "/path/to/output.ext", opt);
+    }

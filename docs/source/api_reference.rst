@@ -86,3 +86,25 @@ Defined in ``xtensor-io/xhighfive.hpp``
 
 .. doxygenfunction:: xt::extensions::shape(const HighFive::File&, const std::string&)
    :project: xtensor-io
+
+GDAL files
+----------
+
+Defined in ``xtensor-io/xgdal.hpp``
+
+.. doxygenfunction:: load_gdal(const std::string &file_path, load_gdal_options options = {})
+   :project: xtensor-io
+
+.. doxygenfunction:: load_gdal(GDALDatasetH dataset, load_gdal_options options = {})
+   :project: xtensor-io
+
+.. doxygenstruct:: xt::load_gdal_options
+   :project: xtensor-io
+   :members:
+
+.. doxygenfunction:: dump_gdal(const xexpression<T> &e, const std::string& path, dump_gdal_options options = {})
+   :project: xtensor-io
+
+.. doxygenstruct:: xt::dump_gdal_options
+   :project: xtensor-io
+   :members:

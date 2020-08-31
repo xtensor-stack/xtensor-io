@@ -50,3 +50,7 @@ docs/build/
 
 # Generated header
 include/xtensor-io/xtensor_io_config.hpp
+
+# CLion IDE
+.idea/
+cmake-build-*
