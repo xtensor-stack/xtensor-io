@@ -27,8 +27,7 @@ namespace xt
         // with gzip.open('test.gz', 'wb') as f:
         //     f.write(b)
         using dtype = double;
-        std::vector<std::size_t> shape = {4};
-        auto a0 = load_gzip<dtype>("files/test.gz", shape);
+        auto a0 = load_gzip<dtype>("files/test.gz");
         xarray<dtype> a1 = {3, 2, 1, 0};
         EXPECT_TRUE(xt::all(xt::equal(a0, a1)));
     }
@@ -36,10 +35,9 @@ namespace xt
     TEST(xgzip, save_load)
     {
         using dtype = double;
-        xarray<dtype> a1 = {{0, 1}, {2, 3}};
+        xarray<dtype> a1 = {0, 1, 2, 3};
         dump_gzip("a1.gz", a1);
-        std::vector<std::size_t> shape = {2, 2};
-        auto a2 = load_gzip<dtype>("a1.gz", shape);
+        auto a2 = load_gzip<dtype>("a1.gz");
         EXPECT_TRUE(xt::all(xt::equal(a1, a2)));
     }
 }

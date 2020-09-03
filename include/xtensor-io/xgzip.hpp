@@ -17,7 +17,7 @@
 #include "xtensor/xadapt.hpp"
 
 #define GZIP_CHUNK 0x4000
-#define GZIP_windowBits 15
+#define GZIP_WINDOWBITS 15
 #define GZIP_ENCODING 16
 #define ENABLE_ZLIB_GZIP 32
 
@@ -26,20 +26,18 @@ namespace xt
     namespace detail
     {
         template <typename T>
-        inline std::vector<T> load_gzip_file(std::istream& stream, const std::vector<std::size_t>& shape)
+        inline std::vector<T> load_gzip_file(std::istream& stream)
         {
-            std::size_t size = compute_size(shape);
-            std::vector<T> uncompressed_buffer(size);
-            char* data = reinterpret_cast<char*>(uncompressed_buffer.data());
+            std::vector<T> uncompressed_buffer;
             z_stream zs = {0};
             unsigned char in[GZIP_CHUNK];
-            unsigned char out[GZIP_CHUNK];
+            T out[GZIP_CHUNK / sizeof(T)];
             zs.zalloc = Z_NULL;
             zs.zfree = Z_NULL;
             zs.opaque = Z_NULL;
             zs.next_in = in;
             zs.avail_in = 0;
-            inflateInit2(&zs, GZIP_windowBits | ENABLE_ZLIB_GZIP);
+            inflateInit2(&zs, GZIP_WINDOWBITS | ENABLE_ZLIB_GZIP);
             while (true) {
                 int bytes_read;
                 int zlib_status;
@@ -52,7 +50,7 @@ namespace xt
                 {
                     unsigned have;
                     zs.avail_out = GZIP_CHUNK;
-                    zs.next_out = out;
+                    zs.next_out = (Bytef*)out;
                     zlib_status = inflate(&zs, Z_NO_FLUSH);
                     switch (zlib_status)
                     {
@@ -65,8 +63,7 @@ namespace xt
                             return uncompressed_buffer;
                     }
                     have = GZIP_CHUNK - zs.avail_out;
-                    memcpy(data, out, have);
-                    data += have;
+                    uncompressed_buffer.insert(std::end(uncompressed_buffer), out, out + have / sizeof(T));
                 }
                 while (zs.avail_out == 0);
                 if (stream.eof())
@@ -92,7 +89,7 @@ namespace xt
             zs.zalloc = Z_NULL;
             zs.zfree = Z_NULL;
             zs.opaque = Z_NULL;
-            deflateInit2(&zs, level, Z_DEFLATED, GZIP_windowBits | GZIP_ENCODING, 8, Z_DEFAULT_STRATEGY);
+            deflateInit2(&zs, level, Z_DEFLATED, GZIP_WINDOWBITS | GZIP_ENCODING, 8, Z_DEFAULT_STRATEGY);
             zs.avail_in = uncompressed_size;
             zs.next_in = (Bytef*)uncompressed_buffer;
             do
@@ -156,16 +153,16 @@ namespace xt
      * Loads a GZIP file
      *
      * @param stream An input stream from which to load the file
-     * @param shape The shape of the returned xarray
      * @tparam T select the type of the GZIP file
      * @tparam L select layout_type::column_major if you stored data in
      *           Fortran format
      * @return xarray with contents from GZIP file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_gzip(std::istream& stream, const std::vector<std::size_t>& shape)
+    inline auto load_gzip(std::istream& stream)
     {
-        std::vector<T> uncompressed_buffer = detail::load_gzip_file<T>(stream, shape);
+        std::vector<T> uncompressed_buffer = detail::load_gzip_file<T>(stream);
+        std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
     }
@@ -174,21 +171,20 @@ namespace xt
      * Loads a GZIP file
      *
      * @param filename The filename or path to the file
-     * @param shape The shape of the returned xarray
      * @tparam T select the type of the GZIP file
      * @tparam L select layout_type::column_major if you stored data in
      *           Fortran format
      * @return xarray with contents from GZIP file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_gzip(const std::string& filename, const std::vector<std::size_t>& shape)
+    inline auto load_gzip(const std::string& filename)
     {
         std::ifstream stream(filename, std::ifstream::binary);
         if (!stream.is_open())
         {
             std::runtime_error("load_gzip: failed to open file " + filename);
         }
-        return load_gzip<T, L>(stream, shape);
+        return load_gzip<T, L>(stream);
     }
 
     struct xgzip_config
@@ -202,9 +198,9 @@ namespace xt
     };
 
     template <class E>
-    void load_file(std::istream& stream, xexpression<E>& e, const xgzip_config&, const std::vector<std::size_t>& shape)
+    void load_file(std::istream& stream, xexpression<E>& e, const xgzip_config&)
     {
-        e.derived_cast() = load_gzip<typename E::value_type>(stream, shape);
+        e.derived_cast() = load_gzip<typename E::value_type>(stream);
     }
 
     template <class E>
