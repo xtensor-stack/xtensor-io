@@ -82,6 +82,7 @@ set(XTENSOR_IO_TESTS
     test_xaudio.cpp
     test_xblosc.cpp
     test_xgzip.cpp
+    test_xio_binary.cpp
 )
 
 # Add files for tests
