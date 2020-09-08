@@ -81,6 +81,7 @@ set(XTENSOR_IO_TESTS
     test_ximage.cpp
     test_xaudio.cpp
     test_xblosc.cpp
+    test_xgzip.cpp
 )
 
 # Add files for tests
@@ -94,6 +95,7 @@ set(XTENSOR_IO_FILES
     test.jpg
     test.gif
     test.blosc
+    test.gz
     big.jpg
     xtensor.wav
 )
