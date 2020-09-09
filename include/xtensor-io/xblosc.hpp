@@ -161,11 +161,15 @@ namespace xt
 
     struct xblosc_config
     {
+        const char* name;
+        const char* version;
         int clevel;
         int doshuffle;
 
         xblosc_config()
-            : clevel(5)
+            : name("blosc")
+            , version(BLOSC_VERSION_STRING)
+            , clevel(5)
             , doshuffle(1)
         {
         }
