@@ -125,6 +125,14 @@ namespace xt
 
     struct xio_binary_config
     {
+        const char* name;
+        const char* version;
+
+        xio_binary_config()
+            : name("binary")
+            , version("1.0")
+        {
+        }
     };
 
     template <class E>

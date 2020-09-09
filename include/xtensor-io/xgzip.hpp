@@ -189,10 +189,14 @@ namespace xt
 
     struct xgzip_config
     {
+        const char* name;
+        const char* version;
         int level;
 
         xgzip_config()
-            : level(1)
+            : name("gzip")
+            , version(ZLIB_VERSION)
+            , level(1)
         {
         }
     };
