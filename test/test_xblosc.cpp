@@ -29,7 +29,6 @@ namespace xt
         //     f.write(c)
         using dtype = double;
         auto a0 = load_blosc<dtype>("files/test.blosc");
-        std::cout << a0.shape()[0] << std::endl;
         xarray<dtype> a1 = {3, 2, 1, 0};
         EXPECT_TRUE(xt::all(xt::equal(a0, a1)));
     }

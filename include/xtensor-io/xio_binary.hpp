@@ -130,7 +130,17 @@ namespace xt
     template <class E>
     void load_file(std::istream& stream, xexpression<E>& e, const xio_binary_config&)
     {
-        e.derived_cast() = load_bin<typename E::value_type>(stream);
+        E& ex = e.derived_cast();
+        auto shape = ex.shape();
+        ex = load_bin<typename E::value_type>(stream);
+        if (!shape.empty())
+        {
+            if (compute_size(shape) != ex.size())
+            {
+                XTENSOR_THROW(std::runtime_error, "load_file: size mismatch");
+            }
+            ex.reshape(shape);
+        }
     }
 
     template <class E>
