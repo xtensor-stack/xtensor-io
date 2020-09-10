@@ -199,6 +199,12 @@ namespace xt
             , level(1)
         {
         }
+
+        template <class T>
+        void write(T& j) const
+        {
+            j["level"] = level;
+        }
     };
 
     template <class E>

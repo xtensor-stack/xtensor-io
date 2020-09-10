@@ -173,6 +173,13 @@ namespace xt
             , doshuffle(1)
         {
         }
+
+        template <class T>
+        void write(T& j) const
+        {
+            j["clevel"] = clevel;
+            j["shuffle"] = doshuffle;
+        }
     };
 
     template <class E>

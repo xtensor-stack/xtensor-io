@@ -133,6 +133,11 @@ namespace xt
             , version("1.0")
         {
         }
+
+        template <class T>
+        void write(T& j) const
+        {
+        }
     };
 
     template <class E>
