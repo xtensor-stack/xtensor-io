@@ -135,7 +135,7 @@ namespace xt
         }
 
         template <class T>
-        void write(T& j) const
+        void write_to(T& j) const
         {
         }
     };
