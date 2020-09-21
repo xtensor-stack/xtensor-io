@@ -19,12 +19,12 @@ namespace xt
     namespace detail
     {
         template <typename T>
-        inline std::vector<T> load_bin_file(std::istream& stream)
+        inline xt::svector<T> load_bin_file(std::istream& stream)
         {
             stream.seekg(0, stream.end);
             auto uncompressed_size = static_cast<std::size_t>(stream.tellg());
             stream.seekg(0, stream.beg);
-            std::vector<T> uncompressed_buffer(uncompressed_size / sizeof(T));
+            xt::svector<T> uncompressed_buffer(uncompressed_size / sizeof(T));
             stream.read(reinterpret_cast<char*>(uncompressed_buffer.data()), (std::streamsize)uncompressed_size);
             return uncompressed_buffer;
         }
@@ -97,7 +97,7 @@ namespace xt
     template <typename T, layout_type L = layout_type::dynamic>
     inline auto load_bin(std::istream& stream)
     {
-        std::vector<T> uncompressed_buffer = detail::load_bin_file<T>(stream);
+        xt::svector<T> uncompressed_buffer = detail::load_bin_file<T>(stream);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
@@ -131,6 +131,11 @@ namespace xt
         xio_binary_config()
             : name("binary")
             , version("1.0")
+        {
+        }
+
+        template <class T>
+        void write_to(T& j) const
         {
         }
     };

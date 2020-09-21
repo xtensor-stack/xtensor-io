@@ -22,12 +22,12 @@ namespace xt
     namespace detail
     {
         template <typename T>
-        inline std::vector<T> load_blosc_file(std::istream& stream)
+        inline xt::svector<T> load_blosc_file(std::istream& stream)
         {
             stream.seekg(0, stream.end);
             auto compressed_size = static_cast<std::size_t>(stream.tellg());
             stream.seekg(0, stream.beg);
-            std::vector<char> compressed_buffer(compressed_size);
+            xt::svector<char> compressed_buffer(compressed_size);
             stream.read(compressed_buffer.data(), (std::streamsize)compressed_size);
             std::size_t uncompressed_size = 0;
             int res = blosc_cbuffer_validate(compressed_buffer.data(), compressed_size, &uncompressed_size);
@@ -38,7 +38,7 @@ namespace xt
             size_t ubuf_size = uncompressed_size / sizeof(T);
             if (uncompressed_size % sizeof(T) != size_t(0))
                 ubuf_size += size_t(1);
-            std::vector<T> uncompressed_buffer(ubuf_size);
+            xt::svector<T> uncompressed_buffer(ubuf_size);
             res = blosc_decompress(compressed_buffer.data(), uncompressed_buffer.data(), uncompressed_size);
             if (res <= 0)
             {
@@ -133,7 +133,7 @@ namespace xt
     template <typename T, layout_type L = layout_type::dynamic>
     inline auto load_blosc(std::istream& stream)
     {
-        std::vector<T> uncompressed_buffer = detail::load_blosc_file<T>(stream);
+        xt::svector<T> uncompressed_buffer = detail::load_blosc_file<T>(stream);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
@@ -172,6 +172,13 @@ namespace xt
             , clevel(5)
             , doshuffle(1)
         {
+        }
+
+        template <class T>
+        void write_to(T& j) const
+        {
+            j["clevel"] = clevel;
+            j["shuffle"] = doshuffle;
         }
     };
 

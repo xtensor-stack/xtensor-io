@@ -26,9 +26,9 @@ namespace xt
     namespace detail
     {
         template <typename T>
-        inline std::vector<T> load_gzip_file(std::istream& stream)
+        inline xt::svector<T> load_gzip_file(std::istream& stream)
         {
-            std::vector<T> uncompressed_buffer;
+            xt::svector<T> uncompressed_buffer;
             z_stream zs = {0};
             unsigned char in[GZIP_CHUNK];
             T out[GZIP_CHUNK / sizeof(T)];
@@ -63,7 +63,13 @@ namespace xt
                             return uncompressed_buffer;
                     }
                     have = GZIP_CHUNK - zs.avail_out;
-                    uncompressed_buffer.insert(std::end(uncompressed_buffer), out, out + have / sizeof(T));
+                    // not possible to insert in a xt::svector currently
+                    //uncompressed_buffer.insert(std::end(uncompressed_buffer), out, out + have / sizeof(T));
+                    // so just loop for now
+                    for (int i = 0; i < have / sizeof(T); i++)
+                    {
+                        uncompressed_buffer.push_back(out[i]);
+                    }
                 }
                 while (zs.avail_out == 0);
                 if (stream.eof())
@@ -161,7 +167,7 @@ namespace xt
     template <typename T, layout_type L = layout_type::dynamic>
     inline auto load_gzip(std::istream& stream)
     {
-        std::vector<T> uncompressed_buffer = detail::load_gzip_file<T>(stream);
+        xt::svector<T> uncompressed_buffer = detail::load_gzip_file<T>(stream);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
@@ -198,6 +204,12 @@ namespace xt
             , version(ZLIB_VERSION)
             , level(1)
         {
+        }
+
+        template <class T>
+        void write_to(T& j) const
+        {
+            j["level"] = level;
         }
     };
 
