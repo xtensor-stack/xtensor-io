@@ -29,15 +29,14 @@ namespace xt
         }
 
         template <class T>
-        void swap_endianness(const char* in_buffer, char* out_buffer, std::size_t size, T = T())
+        void swap_endianness(xt::svector<T>& buffer)
         {
-            for (std::size_t i = 0; i < size; i++)
+            char* buf = reinterpret_cast<char*>(buffer.data());
+            char* end  = buf + buffer.size() * sizeof(T);
+            while(buf != end)
             {
-                T tmp = *reinterpret_cast<const T*>(&(in_buffer[i * sizeof(T)]));
-                for (std::size_t j = 0; j < sizeof(T); j++)
-                {
-                    out_buffer[i * sizeof(T) + j] = reinterpret_cast<char*>(&tmp)[(i + 1) * sizeof(T) - j - 1];
-                }
+                std::reverse(buf, buf + sizeof(T));
+                buf += sizeof(T);
             }
         }
 
@@ -47,13 +46,12 @@ namespace xt
             stream.seekg(0, stream.end);
             auto uncompressed_size = static_cast<std::size_t>(stream.tellg());
             stream.seekg(0, stream.beg);
-            std::size_t size = uncompressed_size / sizeof(T);
-            xt::svector<T> uncompressed_buffer(size);
+            xt::svector<T> uncompressed_buffer(uncompressed_size / sizeof(T));
             char* buffer = reinterpret_cast<char*>(uncompressed_buffer.data());
             stream.read(buffer, (std::streamsize)uncompressed_size);
             if ((sizeof(T) > 1) && (as_big_endian != is_big_endian()))
             {
-                swap_endianness<T>(buffer, buffer, size);
+                swap_endianness(uncompressed_buffer);
             }
             return uncompressed_buffer;
         }
@@ -70,11 +68,11 @@ namespace xt
             const char* uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
             if ((sizeof(value_type) > 1) && (as_big_endian != is_big_endian()))
             {
-                char* swapped_buffer = new char[size * sizeof(value_type)];
-                swap_endianness<value_type>(uncompressed_buffer, swapped_buffer, size);
-                stream.write(swapped_buffer, std::streamsize(uncompressed_size));
+                xt::svector<value_type> swapped_buffer(size);
+                std::copy(eval_ex.data(), eval_ex.data() + size, swapped_buffer.begin());
+                swap_endianness(swapped_buffer);
+                stream.write(reinterpret_cast<const char*>(swapped_buffer.data()), std::streamsize(uncompressed_size));
                 stream.flush();
-                delete[] swapped_buffer;
             }
             else
             {
