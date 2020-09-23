@@ -13,33 +13,12 @@
 #include <fstream>
 
 #include "xtensor/xadapt.hpp"
+#include "xtensor-io.hpp"
 
 namespace xt
 {
     namespace detail
     {
-        bool is_big_endian(void)
-        {
-            union {
-                uint32_t i;
-                char c[4];
-            } bint = {0x01020304};
-
-            return bint.c[0] == 1;
-        }
-
-        template <class T>
-        void swap_endianness(xt::svector<T>& buffer)
-        {
-            char* buf = reinterpret_cast<char*>(buffer.data());
-            char* end  = buf + buffer.size() * sizeof(T);
-            while(buf != end)
-            {
-                std::reverse(buf, buf + sizeof(T));
-                buf += sizeof(T);
-            }
-        }
-
         template <typename T>
         inline xt::svector<T> load_bin_file(std::istream& stream, bool as_big_endian)
         {
@@ -65,20 +44,21 @@ namespace xt
             auto shape = eval_ex.shape();
             std::size_t size = compute_size(shape);
             std::size_t uncompressed_size = size * sizeof(value_type);
-            const char* uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
+            const char* uncompressed_buffer;
+            xt::svector<value_type> swapped_buffer;
             if ((sizeof(value_type) > 1) && (as_big_endian != is_big_endian()))
             {
-                xt::svector<value_type> swapped_buffer(size);
+                swapped_buffer.resize(size);
                 std::copy(eval_ex.data(), eval_ex.data() + size, swapped_buffer.begin());
                 swap_endianness(swapped_buffer);
-                stream.write(reinterpret_cast<const char*>(swapped_buffer.data()), std::streamsize(uncompressed_size));
-                stream.flush();
+                uncompressed_buffer = reinterpret_cast<const char*>(swapped_buffer.data());
             }
             else
             {
-                stream.write(uncompressed_buffer, std::streamsize(uncompressed_size));
-                stream.flush();
+                uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
             }
+            stream.write(uncompressed_buffer, std::streamsize(uncompressed_size));
+            stream.flush();
         }
     }  // namespace detail
 
@@ -89,7 +69,7 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_bin(std::ostream& stream, const xexpression<E>& e, bool as_big_endian)
+    inline void dump_bin(std::ostream& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian())
     {
         detail::dump_bin_stream(stream, e, as_big_endian);
     }
@@ -101,7 +81,7 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_bin(const std::string& filename, const xexpression<E>& e, bool as_big_endian)
+    inline void dump_bin(const std::string& filename, const xexpression<E>& e, bool as_big_endian=is_big_endian())
     {
         std::ofstream stream(filename, std::ofstream::binary);
         if (!stream.is_open())
@@ -117,7 +97,7 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline std::string dump_bin(const xexpression<E>& e, bool as_big_endian)
+    inline std::string dump_bin(const xexpression<E>& e, bool as_big_endian=is_big_endian())
     {
         std::stringstream stream;
         detail::dump_bin_stream(stream, e, as_big_endian);
@@ -134,7 +114,7 @@ namespace xt
      * @return xarray with contents from binary file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_bin(std::istream& stream, bool as_big_endian)
+    inline auto load_bin(std::istream& stream, bool as_big_endian=is_big_endian())
     {
         xt::svector<T> uncompressed_buffer = detail::load_bin_file<T>(stream, as_big_endian);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
@@ -152,7 +132,7 @@ namespace xt
      * @return xarray with contents from binary file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_bin(const std::string& filename, bool as_big_endian)
+    inline auto load_bin(const std::string& filename, bool as_big_endian=is_big_endian())
     {
         std::ifstream stream(filename, std::ifstream::binary);
         if (!stream.is_open())
@@ -171,7 +151,7 @@ namespace xt
         xio_binary_config()
             : name("binary")
             , version("1.0")
-            , big_endian(false)
+            , big_endian(is_big_endian())
         {
         }
 

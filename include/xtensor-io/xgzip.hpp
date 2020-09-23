@@ -15,6 +15,7 @@
 #include "zlib.h"
 
 #include "xtensor/xadapt.hpp"
+#include "xtensor-io.hpp"
 
 #define GZIP_CHUNK 0x4000
 #define GZIP_WINDOWBITS 15
@@ -26,7 +27,7 @@ namespace xt
     namespace detail
     {
         template <typename T>
-        inline xt::svector<T> load_gzip_file(std::istream& stream)
+        inline xt::svector<T> load_gzip_file(std::istream& stream, bool as_big_endian)
         {
             xt::svector<T> uncompressed_buffer;
             z_stream zs = {0};
@@ -78,18 +79,35 @@ namespace xt
                     break;
                 }
             }
+            if ((sizeof(T) > 1) && (as_big_endian != is_big_endian()))
+            {
+                swap_endianness(uncompressed_buffer);
+            }
             return uncompressed_buffer;
         }
 
         template <class O, class E>
-        inline void dump_gzip_stream(O& stream, const xexpression<E>& e, int level)
+        inline void dump_gzip_stream(O& stream, const xexpression<E>& e, bool as_big_endian, int level)
         {
             using value_type = typename E::value_type;
             const E& ex = e.derived_cast();
             auto&& eval_ex = eval(ex);
             auto shape = eval_ex.shape();
-            std::size_t uncompressed_size = compute_size(shape) * sizeof(value_type);
-            const char* uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
+            std::size_t size = compute_size(shape);
+            std::size_t uncompressed_size = size * sizeof(value_type);
+            const char* uncompressed_buffer;
+            xt::svector<value_type> swapped_buffer;
+            if ((sizeof(value_type) > 1) && (as_big_endian != is_big_endian()))
+            {
+                swapped_buffer.resize(size);
+                std::copy(eval_ex.data(), eval_ex.data() + size, swapped_buffer.begin());
+                swap_endianness(swapped_buffer);
+                uncompressed_buffer = reinterpret_cast<const char*>(swapped_buffer.data());
+            }
+            else
+            {
+                uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
+            }
             unsigned char out[GZIP_CHUNK];
             z_stream zs;
             zs.zalloc = Z_NULL;
@@ -120,9 +138,9 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_gzip(std::ostream& stream, const xexpression<E>& e, int level=1)
+    inline void dump_gzip(std::ostream& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
     {
-        detail::dump_gzip_stream(stream, e, level);
+        detail::dump_gzip_stream(stream, e, as_big_endian, level);
     }
 
     /**
@@ -132,14 +150,14 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_gzip(const std::string& filename, const xexpression<E>& e, int level=1)
+    inline void dump_gzip(const std::string& filename, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
     {
         std::ofstream stream(filename, std::ofstream::binary);
         if (!stream.is_open())
         {
             std::runtime_error("IO Error: failed to open file");
         }
-        detail::dump_gzip_stream(stream, e, level);
+        detail::dump_gzip_stream(stream, e, as_big_endian, level);
     }
 
     /**
@@ -148,10 +166,10 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline std::string dump_gzip(const xexpression<E>& e, int level=1)
+    inline std::string dump_gzip(const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
     {
         std::stringstream stream;
-        detail::dump_gzip_stream(stream, e, level);
+        detail::dump_gzip_stream(stream, e, as_big_endian, level);
         return stream.str();
     }
 
@@ -165,9 +183,9 @@ namespace xt
      * @return xarray with contents from GZIP file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_gzip(std::istream& stream)
+    inline auto load_gzip(std::istream& stream, bool as_big_endian=is_big_endian())
     {
-        xt::svector<T> uncompressed_buffer = detail::load_gzip_file<T>(stream);
+        xt::svector<T> uncompressed_buffer = detail::load_gzip_file<T>(stream, as_big_endian);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
@@ -183,25 +201,27 @@ namespace xt
      * @return xarray with contents from GZIP file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_gzip(const std::string& filename)
+    inline auto load_gzip(const std::string& filename, bool as_big_endian=is_big_endian())
     {
         std::ifstream stream(filename, std::ifstream::binary);
         if (!stream.is_open())
         {
             std::runtime_error("load_gzip: failed to open file " + filename);
         }
-        return load_gzip<T, L>(stream);
+        return load_gzip<T, L>(stream, as_big_endian);
     }
 
     struct xgzip_config
     {
         const char* name;
         const char* version;
+        bool big_endian;
         int level;
 
         xgzip_config()
             : name("gzip")
             , version(ZLIB_VERSION)
+            , big_endian(is_big_endian())
             , level(1)
         {
         }
@@ -214,11 +234,11 @@ namespace xt
     };
 
     template <class E>
-    void load_file(std::istream& stream, xexpression<E>& e, const xgzip_config&)
+    void load_file(std::istream& stream, xexpression<E>& e, const xgzip_config& config)
     {
         E& ex = e.derived_cast();
         auto shape = ex.shape();
-        ex = load_gzip<typename E::value_type>(stream);
+        ex = load_gzip<typename E::value_type>(stream, config.big_endian);
         if (!shape.empty())
         {
             if (compute_size(shape) != ex.size())
@@ -232,7 +252,7 @@ namespace xt
     template <class E>
     void dump_file(std::ostream& stream, const xexpression<E> &e, const xgzip_config& config)
     {
-        dump_gzip(stream, e, config.level);
+        dump_gzip(stream, e, config.big_endian, config.level);
     }
 }  // namespace xt
 
