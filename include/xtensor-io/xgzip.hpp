@@ -231,6 +231,12 @@ namespace xt
         {
             j["level"] = level;
         }
+
+        template <class T>
+        void read_from(T& j)
+        {
+            level = j["level"];
+        }
     };
 
     template <class E>
