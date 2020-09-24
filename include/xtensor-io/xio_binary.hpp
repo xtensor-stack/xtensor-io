@@ -159,6 +159,11 @@ namespace xt
         void write_to(T& j) const
         {
         }
+
+        template <class T>
+        void read_from(T& j)
+        {
+        }
     };
 
     template <class E>

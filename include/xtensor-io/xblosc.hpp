@@ -200,6 +200,13 @@ namespace xt
             j["clevel"] = clevel;
             j["shuffle"] = doshuffle;
         }
+
+        template <class T>
+        void read_from(T& j)
+        {
+            clevel = j["clevel"];
+            doshuffle = j["shuffle"];
+        }
     };
 
     template <class E>
