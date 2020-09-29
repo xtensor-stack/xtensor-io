@@ -81,7 +81,7 @@ set(XTENSOR_IO_TESTS
     test_ximage.cpp
     test_xaudio.cpp
     test_xio_blosc.cpp
-    test_xgzip.cpp
+    test_xio_gzip.cpp
     test_xio_binary.cpp
 )
 
