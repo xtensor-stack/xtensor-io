@@ -12,7 +12,7 @@
 #include <exception>
 
 #include "gtest/gtest.h"
-#include "xtensor-io/xblosc.hpp"
+#include "xtensor-io/xio_blosc.hpp"
 
 namespace xt
 {
