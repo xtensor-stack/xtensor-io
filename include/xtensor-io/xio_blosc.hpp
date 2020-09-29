@@ -20,36 +20,20 @@ namespace xt
 {
     namespace detail
     {
-        class xio_blosc
+        void init_blosc()
         {
-        public:
-            static void initialize()
+            static bool initialized = false;
+            if (!initialized)
             {
-                if (!instance().m_initialized)
-                {
-                    blosc_init();
-                    instance().m_initialized = true;
-                }
+                blosc_init();
+                initialized = true;
             }
-
-        private:
-            xio_blosc()
-            {
-                m_initialized = false;
-            }
-
-            static xio_blosc& instance()
-            {
-                static xio_blosc instance;
-                return instance;
-            }
-            bool m_initialized;
-        };
+        }
 
         template <typename T>
         inline xt::svector<T> load_blosc_file(std::istream& stream, bool as_big_endian)
         {
-            xio_blosc::initialize();
+            init_blosc();
             stream.seekg(0, stream.end);
             auto compressed_size = static_cast<std::size_t>(stream.tellg());
             stream.seekg(0, stream.beg);
@@ -80,7 +64,7 @@ namespace xt
         template <class O, class E>
         inline void dump_blosc_stream(O& stream, const xexpression<E>& e, bool as_big_endian, int clevel, int shuffle, const char* cname, std::size_t blocksize)
         {
-            xio_blosc::initialize();
+            init_blosc();
             using value_type = typename E::value_type;
             const E& ex = e.derived_cast();
             auto&& eval_ex = eval(ex);
