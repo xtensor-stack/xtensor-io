@@ -211,14 +211,14 @@ namespace xt
         return load_gzip<T, L>(stream, as_big_endian);
     }
 
-    struct xgzip_config
+    struct xio_gzip_config
     {
         const char* name;
         const char* version;
         bool big_endian;
         int level;
 
-        xgzip_config()
+        xio_gzip_config()
             : name("gzip")
             , version(ZLIB_VERSION)
             , big_endian(is_big_endian())
@@ -240,7 +240,7 @@ namespace xt
     };
 
     template <class E>
-    void load_file(std::istream& stream, xexpression<E>& e, const xgzip_config& config)
+    void load_file(std::istream& stream, xexpression<E>& e, const xio_gzip_config& config)
     {
         E& ex = e.derived_cast();
         auto shape = ex.shape();
@@ -256,7 +256,7 @@ namespace xt
     }
 
     template <class E>
-    void dump_file(std::ostream& stream, const xexpression<E> &e, const xgzip_config& config)
+    void dump_file(std::ostream& stream, const xexpression<E> &e, const xio_gzip_config& config)
     {
         dump_gzip(stream, e, config.big_endian, config.level);
     }

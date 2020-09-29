@@ -12,7 +12,7 @@
 #include <exception>
 
 #include "gtest/gtest.h"
-#include "xtensor-io/xgzip.hpp"
+#include "xtensor-io/xio_gzip.hpp"
 
 namespace xt
 {
