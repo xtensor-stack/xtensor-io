@@ -80,7 +80,7 @@ set(XTENSOR_IO_TESTS
     test_xhighfive.cpp
     test_ximage.cpp
     test_xaudio.cpp
-    test_xblosc.cpp
+    test_xio_blosc.cpp
     test_xgzip.cpp
     test_xio_binary.cpp
 )
