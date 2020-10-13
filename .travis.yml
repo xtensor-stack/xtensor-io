@@ -50,7 +50,9 @@ install:
     - mkdir build
     - cd build
     - cmake -DDOWNLOAD_GTEST=ON -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..;
-    - make -j2 test_xtensor_io
+    - make -j2 test_xtensor_io_lib
+    - make -j2 test_xtensor_io_ho
     - cd test
 script:
-    - ./test_xtensor_io
+    - ./test_xtensor_io_lib
+    - ./test_xtensor_io_ho

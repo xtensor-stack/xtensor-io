@@ -85,6 +85,11 @@ set(XTENSOR_IO_TESTS
     test_xio_binary.cpp
 )
 
+set(XTENSOR_IO_HO_TESTS
+    main.cpp
+    test_xchunk_store_manager.cpp
+)
+
 # Add files for tests
 set(XTENSOR_IO_FILES
     archive.h5
@@ -106,20 +111,20 @@ foreach(filename IN LISTS XTENSOR_IO_FILES)
         ${CMAKE_CURRENT_BINARY_DIR}/files/${filename} COPYONLY)
 endforeach()
 
-add_executable(test_xtensor_io ${XTENSOR_IO_TESTS} ${XTENSOR_IO_HEADERS})
+add_executable(test_xtensor_io_lib ${XTENSOR_IO_TESTS} ${XTENSOR_IO_HEADERS})
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
-    add_dependencies(test_xtensor_io gtest_main)
+    add_dependencies(test_xtensor_io_lib gtest_main)
 endif()
 
 if(DEFINED CMAKE_INSTALL_PREFIX)
-  set_target_properties(test_xtensor_io
+  set_target_properties(test_xtensor_io_lib
     PROPERTIES
       INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
       BUILD_WITH_INSTALL_RPATH ON
   )
 endif()
 
-target_link_libraries(test_xtensor_io
+target_link_libraries(test_xtensor_io_lib
   PUBLIC
     xtensor-io
     ${CMAKE_DL_LIBS}
@@ -127,8 +132,21 @@ target_link_libraries(test_xtensor_io
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-target_include_directories(test_xtensor_io PRIVATE ${XTENSOR_IO_INCLUDE_DIR})
+target_include_directories(test_xtensor_io_lib PRIVATE ${XTENSOR_IO_INCLUDE_DIR})
+
+add_executable(test_xtensor_io_ho ${XTENSOR_IO_HO_TESTS} ${XTENSOR_IO_HEADERS})
+target_include_directories(test_xtensor_io_ho PRIVATE ${XTENSOR_IO_INCLUDE_DIR})
+target_link_libraries(test_xtensor_io_ho
+  PUBLIC
+    xtensor-io
+    ${CMAKE_DL_LIBS}
+    ${GTEST_BOTH_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+)
 
 add_custom_target(xtest
-    COMMAND test_xtensor_io
-    DEPENDS test_xtensor_io)
+    COMMAND test_xtensor_io_lib
+    COMMAND test_xtensor_io_ho
+    DEPENDS test_xtensor_io_lib test_xtensor_io_ho
+)
+

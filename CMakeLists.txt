@@ -51,11 +51,14 @@ message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 # =====
 
 set(XTENSOR_IO_HEADERS
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor-io.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xaudio.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xchunk_store_manager.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xdisk_io_handler.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xfile_array.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xhighfive.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor-io.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
 )
 
