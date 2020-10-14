@@ -107,9 +107,8 @@ namespace xt
         }
     }  // namespace detail
 
-    /**
+    /*
      * Save xexpression to blosc format
-     *
      * @param stream An output stream to which to dump the data
      * @param e the xexpression
      */
@@ -119,9 +118,8 @@ namespace xt
         detail::dump_blosc_stream(stream, e, as_big_endian, clevel, shuffle, cname, blocksize);
     }
 
-    /**
+    /*
      * Save xexpression to blosc format
-     *
      * @param filename The filename or path to dump the data
      * @param e the xexpression
      */
@@ -136,9 +134,8 @@ namespace xt
         detail::dump_blosc_stream(stream, e, as_big_endian, clevel, shuffle, cname, blocksize);
     }
 
-    /**
+    /*
      * Save xexpression to blosc format in a string
-     *
      * @param e the xexpression
      */
     template <typename E>
@@ -149,13 +146,11 @@ namespace xt
         return stream.str();
     }
 
-    /**
+    /*
      * Loads a blosc file
-     *
      * @param stream An input stream from which to load the file
      * @tparam T select the type of the blosc file
-     * @tparam L select layout_type::column_major if you stored data in
-     *           Fortran format
+     * @tparam L select layout_type::column_major if you stored data in Fortran format
      * @return xarray with contents from blosc file
      */
     template <typename T, layout_type L = layout_type::dynamic>
@@ -167,15 +162,14 @@ namespace xt
         return array;
     }
 
-    /**
+    /*
      * Loads a blosc file
-     *
      * @param filename The filename or path to the file
      * @tparam T select the type of the blosc file
-     * @tparam L select layout_type::column_major if you stored data in
-     *           Fortran format
+     * @tparam L select layout_type::column_major if you stored data in Fortran format
      * @return xarray with contents from blosc file
      */
+    
     template <typename T, layout_type L = layout_type::dynamic>
     inline auto load_blosc(const std::string& filename, bool as_big_endian=is_big_endian())
     {
