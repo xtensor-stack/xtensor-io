@@ -195,6 +195,22 @@ else()
   message(WARNING "GDAL not found - install GDAL for geospatial raster file support")
 endif()
 
+find_package(storage_client)
+message(STATUS "Trying to find Google Cloud Storage for GCS IO handler support")
+if(${storage_client_FOUND})
+  message(STATUS "storage_client ${storage_client_VERSION} found, GCS IO handler support enabled")
+  target_include_directories(xtensor-io
+    INTERFACE
+      ${storage_client_INCLUDE_DIRS}
+  )
+  target_link_libraries(xtensor-io
+    INTERFACE
+      storage_client
+  )
+else()
+  message(WARNING "Google Cloud Storage not found - install google-cloud-cpp for GCS IO handler support")
+endif()
+
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
 endif()
