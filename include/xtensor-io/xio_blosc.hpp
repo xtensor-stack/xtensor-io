@@ -34,11 +34,8 @@ namespace xt
         inline xt::svector<T> load_blosc_file(std::istream& stream, bool as_big_endian)
         {
             init_blosc();
-            stream.seekg(0, stream.end);
-            auto compressed_size = static_cast<std::size_t>(stream.tellg());
-            stream.seekg(0, stream.beg);
-            xt::svector<char> compressed_buffer(compressed_size);
-            stream.read(compressed_buffer.data(), (std::streamsize)compressed_size);
+            std::string compressed_buffer{std::istreambuf_iterator<char>{stream}, {}};
+            auto compressed_size = compressed_buffer.size();
             std::size_t uncompressed_size = 0;
             int res = blosc_cbuffer_validate(compressed_buffer.data(), compressed_size, &uncompressed_size);
             if (res == -1)
@@ -237,7 +234,7 @@ namespace xt
         {
             if (compute_size(shape) != ex.size())
             {
-                XTENSOR_THROW(std::runtime_error, "Blosc: expected size (" + std::string(compute_size(shape)) + ") and actual size (" + std::string(ex.size()) + ") mismatch");
+                XTENSOR_THROW(std::runtime_error, "Blosc: expected size (" + std::to_string(compute_size(shape)) + ") and actual size (" + std::to_string(ex.size()) + ") mismatch");
             }
             ex.reshape(shape);
         }

@@ -83,6 +83,7 @@ set(XTENSOR_IO_TESTS
     test_xio_blosc.cpp
     test_xio_gzip.cpp
     test_xio_binary.cpp
+    test_xio_gcs_handler.cpp
 )
 
 set(XTENSOR_IO_HO_TESTS

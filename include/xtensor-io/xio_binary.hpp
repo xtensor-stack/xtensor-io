@@ -22,12 +22,10 @@ namespace xt
         template <typename T>
         inline xt::svector<T> load_bin_file(std::istream& stream, bool as_big_endian)
         {
-            stream.seekg(0, stream.end);
-            auto uncompressed_size = static_cast<std::size_t>(stream.tellg());
-            stream.seekg(0, stream.beg);
-            xt::svector<T> uncompressed_buffer(uncompressed_size / sizeof(T));
-            char* buffer = reinterpret_cast<char*>(uncompressed_buffer.data());
-            stream.read(buffer, (std::streamsize)uncompressed_size);
+            std::string buffer{std::istreambuf_iterator<char>{stream}, {}};
+            std::size_t uncompressed_size = buffer.size() / sizeof(T);
+            xt::svector<T> uncompressed_buffer(uncompressed_size);
+            std::copy((const T*)(buffer.data()), (const T*)(buffer.data()) + uncompressed_size, uncompressed_buffer.begin());
             if ((sizeof(T) > 1) && (as_big_endian != is_big_endian()))
             {
                 swap_endianness(uncompressed_buffer);
