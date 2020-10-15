@@ -4,9 +4,9 @@
 #include <vector>
 #include <array>
 
-#include "xarray.hpp"
-#include "xcsv.hpp"
-#include "xio.hpp"
+#include "xtensor/xarray.hpp"
+#include "xtensor/xchunked_array.hpp"
+#include "xfile_array.hpp"
 
 namespace xt
 {
@@ -137,6 +137,45 @@ namespace xt
         std::size_t m_unload_index;
         IP m_index_path;
     };
+
+    template <class T, class IOH, class IP = xindex_path, class EXT = empty_extension, class S>
+    xchunked_array<xchunk_store_manager<xfile_array<T, IOH>, IP>, EXT>
+    chunked_file_array(S&& shape, S&& chunk_shape, const std::string& path, std::size_t pool_size = 1);
+
+    template <class IOH, class IP = xindex_path, class EXT = empty_extension, class E, class S>
+    xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH>, IP>, EXT>
+    chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size = 1);
+
+    template <class IOH, class IP = xindex_path, class EXT = empty_extension, class E>
+    xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH>, IP>, EXT>
+    chunked_file_array(const xexpression<E>& e, const std::string& path, std::size_t pool_size = 1);
+
+    template <class T, class IOH, class IP, class EXT, class S>
+    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH>, IP>, EXT>
+    chunked_file_array(S&& shape, S&& chunk_shape, const std::string& path, std::size_t pool_size)
+    {
+        using chunk_storage = xchunk_store_manager<xfile_array<T, IOH>, IP>;
+        chunk_storage chunks(shape, chunk_shape, path, pool_size);
+        return xchunked_array<chunk_storage, EXT>(std::move(chunks), std::forward<S>(shape), std::forward<S>(chunk_shape));
+    }
+
+    template <class IOH, class IP, class EXT, class E, class S>
+    inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH>, IP>, EXT>
+    chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size)
+    {
+        using chunk_storage = xchunk_store_manager<xfile_array<typename E::value_type, IOH>, IP>;
+        chunk_storage chunks(e.derived_cast().shape(), chunk_shape, path, pool_size);
+        return xchunked_array<chunk_storage, EXT>(e, chunk_storage(), std::forward<S>(chunk_shape));
+    }
+
+    template <class IOH, class IP, class EXT, class E>
+    inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH>, IP>, EXT>
+    chunked_file_array(const xexpression<E>& e, const std::string& path, std::size_t pool_size)
+    {
+        using chunk_storage = xchunk_store_manager<xfile_array<typename E::value_type, IOH>, IP>;
+        chunk_storage chunks(e.derived_cast().shape(), detail::chunk_helper<E>::chunk_shape(e), path, pool_size);
+        return xchunked_array<chunk_storage, EXT>(e, chunk_storage());
+    }
 
     /******************************
      * xindex_path implementation *
