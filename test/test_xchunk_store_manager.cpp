@@ -14,7 +14,7 @@
 //#include "xtensor-io/xchunked_array.hpp"
 //#include "xtensor-io/xchunk_store_manager.hpp"
 //#include "xtensor-io/xfile_array.hpp"
-//#include "xtensor-io/xdisk_io_handler.hpp"
+//#include "xtensor-io/xio_disk_handler.hpp"
 
 namespace xt
 {
@@ -118,7 +118,7 @@ namespace xt
         std::vector<size_t> chunk_shape = {2, 2};
         std::string chunk_dir = "files";
         std::size_t pool_size = 2;
-        xchunked_array<xchunk_store_manager<xfile_array<double, xdisk_io_handler<xcsv_config>>>> a1(shape, chunk_shape, chunk_dir, pool_size);
+        xchunked_array<xchunk_store_manager<xfile_array<double, xio_disk_handler<xcsv_config>>>> a1(shape, chunk_shape, chunk_dir, pool_size);
         std::vector<size_t> idx = {1, 2};
         double v1 = 3.4;
         double v2 = 5.6;
@@ -156,7 +156,7 @@ namespace xt
     TEST(xfile_array, indexed_access)
     {
         std::vector<size_t> shape = {2, 2, 2};
-        xfile_array<double, xdisk_io_handler<xcsv_config>> a;
+        xfile_array<double, xio_disk_handler<xcsv_config>> a;
         a.ignore_empty_path(true);
         a.resize(shape);
         double val = 3.;
@@ -169,7 +169,7 @@ namespace xt
     TEST(xfile_array, assign_expression)
     {
         double v1 = 3.;
-        auto a1 = xfile_array<double, xdisk_io_handler<xcsv_config>>(broadcast(v1, {2, 2}), "a1");
+        auto a1 = xfile_array<double, xio_disk_handler<xcsv_config>>(broadcast(v1, {2, 2}), "a1");
         a1.ignore_empty_path(true);
         for (const auto& v: a1)
         {
@@ -177,7 +177,7 @@ namespace xt
         }
 
         double v2 = 2. * v1;
-        auto a2 = xfile_array<double, xdisk_io_handler<xcsv_config>>(a1 + a1, "a2");
+        auto a2 = xfile_array<double, xio_disk_handler<xcsv_config>>(a1 + a1, "a2");
         a2.ignore_empty_path(true);
         for (const auto& v: a2)
         {
