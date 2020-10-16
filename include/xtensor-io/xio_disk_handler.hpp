@@ -1,5 +1,5 @@
-#ifndef XTENSOR_IO_DISK_IO_HANDLER_HPP
-#define XTENSOR_IO_DISK_IO_HANDLER_HPP
+#ifndef XTENSOR_IO_DISK_HANDLER_HPP
+#define XTENSOR_IO_DISK_HANDLER_HPP
 
 #include <xtensor/xarray.hpp>
 #include <xtensor/xexpression.hpp>
@@ -7,7 +7,7 @@
 namespace xt
 {
     template <class C>
-    class xdisk_io_handler
+    class xio_disk_handler
     {
     public:
 
@@ -26,7 +26,7 @@ namespace xt
 
     template <class C>
     template <class E>
-    inline void xdisk_io_handler<C>::write(const xexpression<E>& expression, const std::string& path) const
+    inline void xio_disk_handler<C>::write(const xexpression<E>& expression, const std::string& path) const
     {
         std::ofstream out_file(path, std::ofstream::binary);
         if (out_file.is_open())
@@ -41,7 +41,7 @@ namespace xt
 
     template <class C>
     template <class ET>
-    inline void xdisk_io_handler<C>::read(ET& array, const std::string& path, bool throw_on_fail) const
+    inline void xio_disk_handler<C>::read(ET& array, const std::string& path, bool throw_on_fail) const
     {
         std::ifstream in_file(path, std::ifstream::binary);
         if (in_file.is_open())
@@ -63,7 +63,7 @@ namespace xt
     }
 
     template <class C>
-    inline void xdisk_io_handler<C>::configure_format(const C& format_config)
+    inline void xio_disk_handler<C>::configure_format(const C& format_config)
     {
         m_format_config = format_config;
     }
