@@ -216,10 +216,15 @@ namespace xt
                                                               const std::string& directory,
                                                               std::size_t pool_size)
         : m_shape(shape)
-        , m_chunk_pool(pool_size)
-        , m_index_pool(pool_size)
         , m_unload_index(0u)
     {
+        if (pool_size == -1)
+        {
+            // as many "physical" chunks in the pool as there are "logical" chunks
+            pool_size = size();
+        }
+        m_chunk_pool.resize(pool_size);
+        m_index_pool.resize(pool_size);
         // resize the pool chunks
         for (auto& chunk: m_chunk_pool)
         {
