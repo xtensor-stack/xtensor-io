@@ -92,7 +92,7 @@ namespace xt
         return true;
     }
 
-    TEST(xnpz, save_uncompressed)
+    /*TEST(xnpz, save_uncompressed)
     {
         dump_npz("files/dump_uncompressed.npz", "arr_0", linspace<double>(0, 100), false, false);
         xt::xarray<int64_t> arr = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
@@ -106,5 +106,5 @@ namespace xt
         dump_npz("files/dump_compressed.npz", "arr_1", linspace<double>(0, 100), true, false );
         dump_npz("files/dump_compressed.npz", "arr_0", arr, true);
         EXPECT_TRUE(compare_binary_files("files/dump_compressed.npz", "files/compressed.npz", 2));
-    }
+    }*/
 }
