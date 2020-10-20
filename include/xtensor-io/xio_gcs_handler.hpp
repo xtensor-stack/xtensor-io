@@ -17,7 +17,7 @@ namespace xt
         xio_gcs_handler();
 
         template <class E>
-        void write(const xexpression<E>& expression, const std::string& path, uint8_t dirty) const;
+        void write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty) const;
 
         template <class ET>
         void read(ET& array, const std::string& path, bool throw_on_fail = false) const;
@@ -37,7 +37,7 @@ namespace xt
 
     template <class C>
     template <class E>
-    inline void xio_gcs_handler<C>::write(const xexpression<E>& expression, const std::string& path, uint8_t dirty) const
+    inline void xio_gcs_handler<C>::write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty) const
     {
         if (m_format_config.will_dump(dirty))
         {

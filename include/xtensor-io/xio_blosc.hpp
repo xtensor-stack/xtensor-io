@@ -224,13 +224,9 @@ namespace xt
             blocksize = j["blocksize"];
         }
 
-        bool will_dump(uint8_t dirty)
+        bool will_dump(xfile_dirty dirty)
         {
-            if ((dirty & XFILE_ARRAY_DATA_DIRTY) != XFILE_ARRAY_NOT_DIRTY)
-            {
-                return true;
-            }
-            return false;
+            return dirty.data_dirty;
         }
     };
 
