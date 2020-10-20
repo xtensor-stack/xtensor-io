@@ -44,6 +44,23 @@ install:
       fi
     # Activate root environment
     - source activate root
+    # Install development versions
+    - mkdir dev_tmp
+    - cd dev_tmp
+    # xtensor
+    - wget https://github.com/xtensor-stack/xtensor/archive/master.tar.gz -O xtensor.tar.gz -q
+    - mkdir xtensor
+    - tar zxf xtensor.tar.gz -C xtensor --strip-components 1
+    # xtl
+    - wget https://github.com/xtensor-stack/xtl/archive/master.tar.gz -O xtl.tar.gz -q
+    - mkdir xtl
+    - tar zxf xtl.tar.gz -C xtl --strip-components 1
+    # move to conda environment
+    - rm -rf $CONDA_PREFIX/include/xtensor
+    - rm -rf $CONDA_PREFIX/include/xtl
+    - mv xtensor/include/xtensor $CONDA_PREFIX/include/
+    - mv xtl/include/xtl $CONDA_PREFIX/include/
+    - cd ..
     # Build
     - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
     - export LINKFLAGS="${LDFLAGS}"
