@@ -16,6 +16,7 @@
 
 #include "xtensor/xadapt.hpp"
 #include "xtensor-io.hpp"
+#include "xfile_array.hpp"
 
 #define GZIP_CHUNK 0x4000
 #define GZIP_WINDOWBITS 15
@@ -236,6 +237,15 @@ namespace xt
         void read_from(T& j)
         {
             level = j["level"];
+        }
+
+        bool will_dump(uint8_t dirty)
+        {
+            if ((dirty & XFILE_ARRAY_DATA_DIRTY) != XFILE_ARRAY_NOT_DIRTY)
+            {
+                return true;
+            }
+            return false;
         }
     };
 

@@ -8,6 +8,11 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xnoalias.hpp>
 
+#define XFILE_ARRAY_NOT_DIRTY   0
+#define XFILE_ARRAY_ALL_DIRTY   0xFF
+#define XFILE_ARRAY_DATA_DIRTY  1
+#define XFILE_ARRAY_SHAPE_DIRTY (1 << 1)
+
 namespace xt
 {
 
@@ -19,7 +24,7 @@ namespace xt
         using self_type = xfile_value_reference<T>;
         using const_reference = const T&;
 
-        xfile_value_reference(T& value, bool& dirty);
+        xfile_value_reference(T& value, uint8_t& dirty);
         ~xfile_value_reference() = default;
 
         xfile_value_reference(const xfile_value_reference&) = default;
@@ -48,7 +53,7 @@ namespace xt
     private:
 
         T& m_value;
-        bool& m_dirty;
+        uint8_t& m_dirty;
     };
 }
 
@@ -207,7 +212,7 @@ namespace xt
         bool enable_io(const std::string& path) const;
 
         E m_storage;
-        bool m_dirty;
+        uint8_t m_dirty;
         IOH m_io_handler;
         std::string m_path;
         bool m_ignore_empty_path;
@@ -225,7 +230,7 @@ namespace xt
      ****************************************/
 
     template <class T>
-    inline xfile_value_reference<T>::xfile_value_reference(T& value, bool& dirty)
+    inline xfile_value_reference<T>::xfile_value_reference(T& value, uint8_t& dirty)
         : m_value(value), m_dirty(dirty)
     {
     }
@@ -237,7 +242,7 @@ namespace xt
         if (v != m_value)
         {
             m_value = v;
-            m_dirty = true;
+            m_dirty |= XFILE_ARRAY_DATA_DIRTY;
         }
         return *this;
     }
@@ -249,7 +254,7 @@ namespace xt
         if (v != T(0))
         {
             m_value += v;
-            m_dirty = true;
+            m_dirty |= XFILE_ARRAY_DATA_DIRTY;
         }
         return *this;
     }
@@ -261,7 +266,7 @@ namespace xt
         if (v != T(0))
         {
             m_value -= v;
-            m_dirty = true;
+            m_dirty |= XFILE_ARRAY_DATA_DIRTY;
         }
         return *this;
     }
@@ -273,7 +278,7 @@ namespace xt
         if (v != T(1))
         {
             m_value *= v;
-            m_dirty = true;
+            m_dirty |= XFILE_ARRAY_DATA_DIRTY;
         }
         return *this;
     }
@@ -285,7 +290,7 @@ namespace xt
         if (v != T(1))
         {
             m_value /= v;
-            m_dirty = true;
+            m_dirty |= XFILE_ARRAY_DATA_DIRTY;
         }
         return *this;
     }
@@ -349,7 +354,7 @@ namespace xt
     template <class OE>
     inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e)
         : m_storage(e)
-        , m_dirty(true)
+        , m_dirty(XFILE_ARRAY_ALL_DIRTY)
         , m_io_handler()
         , m_path(detail::file_helper<E>::path(e))
         , m_ignore_empty_path(false)
@@ -360,7 +365,7 @@ namespace xt
     template <class OE>
     inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e, const std::string& path)
         : m_storage(e)
-        , m_dirty(true)
+        , m_dirty(XFILE_ARRAY_ALL_DIRTY)
         , m_io_handler()
         , m_path(path)
         , m_ignore_empty_path(false)
@@ -403,6 +408,7 @@ namespace xt
     inline void xfile_array_container<E, IOH>::resize(S&& shape, bool force)
     {
         m_storage.resize(std::forward<S>(shape), force);
+        m_dirty |= XFILE_ARRAY_SHAPE_DIRTY;
     }
 
     template <class E, class IOH>
@@ -410,6 +416,7 @@ namespace xt
     inline void xfile_array_container<E, IOH>::resize(S&& shape, layout_type l)
     {
         m_storage.resize(std::forward<S>(shape), l);
+        m_dirty |= XFILE_ARRAY_SHAPE_DIRTY;
     }
 
     template <class E, class IOH>
@@ -417,6 +424,7 @@ namespace xt
     inline void xfile_array_container<E, IOH>::resize(S&& shape, const strides_type& strides)
     {
         m_storage.resize(std::forward<S>(shape), strides);
+        m_dirty |= XFILE_ARRAY_SHAPE_DIRTY;
     }
 
     template <class E, class IOH>
@@ -424,6 +432,7 @@ namespace xt
     inline auto xfile_array_container<E, IOH>::reshape(S&& shape, layout_type layout) & -> self_type&
     {
         m_storage.reshape(std::forward<S>(shape), layout);
+        m_dirty |= XFILE_ARRAY_SHAPE_DIRTY;
         return *this;
     }
 
@@ -432,6 +441,7 @@ namespace xt
     inline auto xfile_array_container<E, IOH>::reshape(std::initializer_list<T> shape, layout_type layout) & -> self_type&
     {
         m_storage.reshape(shape, layout);
+        m_dirty |= XFILE_ARRAY_SHAPE_DIRTY;
         return *this;
     }
 
@@ -538,7 +548,7 @@ namespace xt
     inline void xfile_array_container<E, IOH>::store_simd(size_type i, const simd& e)
     {
         m_storage.store_simd(i, e);
-        m_dirty = true;
+        m_dirty = XFILE_ARRAY_ALL_DIRTY;
     }
 
     template <class E, class IOH>
@@ -593,13 +603,13 @@ namespace xt
     template <class E, class IOH>
     inline void xfile_array_container<E, IOH>::flush()
     {
-        if (m_dirty)
+        if (m_dirty != XFILE_ARRAY_NOT_DIRTY)
         {
             if (enable_io(m_path))
             {
-                m_io_handler.write(m_storage, m_path);
+                m_io_handler.write(m_storage, m_path, m_dirty);
             }
-            m_dirty = false;
+            m_dirty = XFILE_ARRAY_NOT_DIRTY;
         }
     }
 }
