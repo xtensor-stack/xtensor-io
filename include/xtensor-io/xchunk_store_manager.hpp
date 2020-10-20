@@ -218,7 +218,7 @@ namespace xt
         : m_shape(shape)
         , m_unload_index(0u)
     {
-        if (pool_size == -1)
+        if (pool_size == 0)
         {
             // as many "physical" chunks in the pool as there are "logical" chunks
             pool_size = size();
