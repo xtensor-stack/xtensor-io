@@ -10,11 +10,11 @@
 #include "gtest/gtest.h"
 
 #include <xtensor/xbroadcast.hpp>
-#include <xtensor/xcsv.hpp>
-//#include "xtensor-io/xchunked_array.hpp"
-//#include "xtensor-io/xchunk_store_manager.hpp"
-//#include "xtensor-io/xfile_array.hpp"
-//#include "xtensor-io/xio_disk_handler.hpp"
+#include "xtensor/xchunked_array.hpp"
+#include "xtensor-io/xchunk_store_manager.hpp"
+#include "xtensor-io/xfile_array.hpp"
+#include "xtensor-io/xio_binary.hpp"
+#include "xtensor-io/xio_disk_handler.hpp"
 
 namespace xt
 {
@@ -111,14 +111,14 @@ namespace xt
             EXPECT_EQ(v, 3);
         }
     }
-
+*/
     TEST(xchunked_array, disk_array)
     {
         std::vector<size_t> shape = {4, 4};
         std::vector<size_t> chunk_shape = {2, 2};
         std::string chunk_dir = "files";
         std::size_t pool_size = 2;
-        xchunked_array<xchunk_store_manager<xfile_array<double, xio_disk_handler<xcsv_config>>>> a1(shape, chunk_shape, chunk_dir, pool_size);
+        auto a1 = chunked_file_array<double, xio_disk_handler<xio_binary_config>>(shape, chunk_shape, chunk_dir, pool_size);
         std::vector<size_t> idx = {1, 2};
         double v1 = 3.4;
         double v2 = 5.6;
@@ -134,29 +134,29 @@ namespace xt
         xt::xarray<double> ref;
         xt::xarray<double> data;
         in_file.open(chunk_dir + "/1.0");
-        data = xt::load_csv<double>(in_file);
+        data = xt::load_bin<double>(in_file);
         ref = {{0, v1}, {0, 0}};
-        EXPECT_EQ(data, ref);
+        EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
 
         a1.chunks().flush();
         in_file.open(chunk_dir + "/0.1");
-        data = xt::load_csv<double>(in_file);
+        data = xt::load_bin<double>(in_file);
         ref = {{0, 0}, {v2, 0}};
-        EXPECT_EQ(data, ref);
+        EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
 
         in_file.open(chunk_dir + "/0.0");
-        data = xt::load_csv<double>(in_file);
+        data = xt::load_bin<double>(in_file);
         ref = {{v3, 0}, {0, 0}};
-        EXPECT_EQ(data, ref);
+        EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
     }
 
     TEST(xfile_array, indexed_access)
     {
         std::vector<size_t> shape = {2, 2, 2};
-        xfile_array<double, xio_disk_handler<xcsv_config>> a;
+        xfile_array<double, xio_disk_handler<xio_binary_config>> a;
         a.ignore_empty_path(true);
         a.resize(shape);
         double val = 3.;
@@ -169,7 +169,7 @@ namespace xt
     TEST(xfile_array, assign_expression)
     {
         double v1 = 3.;
-        auto a1 = xfile_array<double, xio_disk_handler<xcsv_config>>(broadcast(v1, {2, 2}), "a1");
+        auto a1 = xfile_array<double, xio_disk_handler<xio_binary_config>>(broadcast(v1, {2, 2}), "a1");
         a1.ignore_empty_path(true);
         for (const auto& v: a1)
         {
@@ -177,7 +177,7 @@ namespace xt
         }
 
         double v2 = 2. * v1;
-        auto a2 = xfile_array<double, xio_disk_handler<xcsv_config>>(a1 + a1, "a2");
+        auto a2 = xfile_array<double, xio_disk_handler<xio_binary_config>>(a1 + a1, "a2");
         a2.ignore_empty_path(true);
         for (const auto& v: a2)
         {
@@ -189,15 +189,36 @@ namespace xt
 
         std::ifstream in_file;
         in_file.open("a1");
-        auto data = load_csv<double>(in_file);
+        auto data = load_bin<double>(in_file);
         xarray<double> ref = {{v1, v1}, {v1, v1}};
-        EXPECT_EQ(data, ref);
+        EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
 
         in_file.open("a2");
-        data = load_csv<double>(in_file);
+        data = load_bin<double>(in_file);
         ref = {{v2, v2}, {v2, v2}};
-        EXPECT_EQ(data, ref);
+        EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
-    }*/
+    }
+
+    TEST(xfile_array, flush)
+    {
+        std::vector<std::size_t> shape = {2, 2};
+        auto a1 = xfile_array<double, xio_disk_handler<xio_binary_config>>(broadcast(5., shape), "a1");
+        auto a2 = xfile_array<double, xio_disk_handler<xio_binary_config>>();
+        // point a2 to a1's file
+        a2.set_path("a1");
+        // they should have the same size
+        EXPECT_EQ(a2.size(), compute_size(shape));
+        // resize a2
+        std::vector<std::size_t> new_shape = {3, 3};
+        a2.resize(new_shape);
+        // should not be flushed, as binary format only stores data (not shape)
+        a2.flush();
+        auto a3 = xfile_array<double, xio_disk_handler<xio_binary_config>>();
+        // point a3 to a1's file (which is also a2's file)
+        a3.set_path("a1");
+        // shape should not have been changed
+        EXPECT_EQ(a3.size(), compute_size(shape));
+    }
 }

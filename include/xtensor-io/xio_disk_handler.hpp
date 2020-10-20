@@ -12,7 +12,7 @@ namespace xt
     public:
 
         template <class E>
-        void write(const xexpression<E>& expression, const std::string& path, uint8_t dirty) const;
+        void write(const xexpression<E>& expression, const std::string& path, uint8_t dirty);
 
         template <class ET>
         void read(ET& array, const std::string& path, bool throw_on_fail = false) const;
@@ -26,7 +26,7 @@ namespace xt
 
     template <class C>
     template <class E>
-    inline void xio_disk_handler<C>::write(const xexpression<E>& expression, const std::string& path, uint8_t dirty) const
+    inline void xio_disk_handler<C>::write(const xexpression<E>& expression, const std::string& path, uint8_t dirty)
     {
         if (m_format_config.will_dump(dirty))
         {
