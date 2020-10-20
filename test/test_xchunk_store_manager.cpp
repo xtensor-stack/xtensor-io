@@ -11,105 +11,21 @@
 
 #include <xtensor/xbroadcast.hpp>
 #include <xtensor/xcsv.hpp>
-//#include "xtensor-io/xchunked_array.hpp"
-//#include "xtensor-io/xchunk_store_manager.hpp"
-//#include "xtensor-io/xfile_array.hpp"
-//#include "xtensor-io/xio_disk_handler.hpp"
+#include "xtensor-io/xchunk_store_manager.hpp"
+#include "xtensor-io/xfile_array.hpp"
+#include "xtensor-io/xio_disk_handler.hpp"
 
 namespace xt
 {
-/*    using in_memory_chunked_array = xchunked_array<xarray<xarray<double>>>;
+    namespace fs = ghc::filesystem;
 
-    TEST(xchunked_array, indexed_access)
+    template <class S>
+    inline auto make_test_chunked_array(const S& shape,
+                                        const S& chunk_shape,
+                                        const std::string& chunk_dir,
+                                        size_t pool_size)
     {
-        std::vector<size_t> shape = {10, 10, 10};
-        std::vector<size_t> chunk_shape = {2, 3, 4};
-        in_memory_chunked_array a(shape, chunk_shape);
-
-        std::vector<size_t> idx = {3, 9, 8};
-        double val;
-
-        val = 1.;
-        a[idx] = val;
-        ASSERT_EQ(a[idx], val);
-        ASSERT_EQ(a(3, 9, 8), val);
-
-        val = 2.;
-        a(3, 9, 8) = val;
-        ASSERT_EQ(a(3, 9, 8), val);
-        ASSERT_EQ(a[idx], val);
-
-        val = 3.;
-        for (auto& it: a)
-            it = val;
-        for (auto it: a)
-            ASSERT_EQ(it, val);
-    }
-
-    TEST(xchunked_array, assign_expression)
-    {
-#ifdef _MSC_FULL_VER
-        std::cout << "MSC_FULL_VER = " << _MSC_FULL_VER << std::endl;
-#endif
-        std::vector<size_t> shape1 = {2, 2, 2};
-        std::vector<size_t> chunk_shape1 = {2, 3, 4};
-        in_memory_chunked_array a1(shape1, chunk_shape1);
-        double val;
-
-        val = 3.;
-        a1 = broadcast(val, a1.shape());
-        for (const auto& v: a1)
-        {
-            EXPECT_EQ(v, val);
-        }
-
-        std::vector<size_t> shape2 = {32, 10, 10};
-        in_memory_chunked_array a2(shape2, chunk_shape1);
-
-        a2 = broadcast(val, a2.shape());
-        for (const auto& v: a2)
-        {
-            EXPECT_EQ(v, val);
-        }
-
-        a2 += a2;
-        for (const auto& v: a2)
-        {
-            EXPECT_EQ(v, 2. * val);
-        }
-
-        xarray<double> a3
-          {{1., 2., 3.},
-           {4., 5., 6.},
-           {7., 8., 9.}};
-
-        EXPECT_EQ(is_chunked(a3), false);
-
-        std::vector<size_t> chunk_shape4 = {2, 2};
-        auto a4 = in_memory_chunked_array(a3, chunk_shape4);
-
-        EXPECT_EQ(is_chunked(a4), true);
-
-        double i = 1.;
-        for (const auto& v: a4)
-        {
-            EXPECT_EQ(v, i);
-            i += 1.;
-        }
-
-        auto a5 = in_memory_chunked_array(a4);
-        EXPECT_EQ(is_chunked(a5), true);
-        for (const auto& v: a5.chunk_shape())
-        {
-            EXPECT_EQ(v, 2);
-        }
-
-        auto a6 = in_memory_chunked_array(a3);
-        EXPECT_EQ(is_chunked(a6), true);
-        for (const auto& v: a6.chunk_shape())
-        {
-            EXPECT_EQ(v, 3);
-        }
+        return chunked_file_array<double, xio_disk_handler<xcsv_config>>(shape, chunk_shape, chunk_dir, pool_size);
     }
 
     TEST(xchunked_array, disk_array)
@@ -118,7 +34,7 @@ namespace xt
         std::vector<size_t> chunk_shape = {2, 2};
         std::string chunk_dir = "files";
         std::size_t pool_size = 2;
-        xchunked_array<xchunk_store_manager<xfile_array<double, xio_disk_handler<xcsv_config>>>> a1(shape, chunk_shape, chunk_dir, pool_size);
+        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir, pool_size);
         std::vector<size_t> idx = {1, 2};
         double v1 = 3.4;
         double v2 = 5.6;
@@ -126,9 +42,9 @@ namespace xt
         a1(2, 1) = v1;
         a1[idx] = v2;
         a1(0, 0) = v3; // this should unload chunk 1.0
-        ASSERT_EQ(a1(2, 1), v1);
-        ASSERT_EQ(a1[idx], v2);
-        ASSERT_EQ(a1(0, 0), v3);
+        EXPECT_EQ(a1(2, 1), v1);
+        EXPECT_EQ(a1[idx], v2);
+        EXPECT_EQ(a1(0, 0), v3);
 
         std::ifstream in_file;
         xt::xarray<double> ref;
@@ -153,51 +69,35 @@ namespace xt
         in_file.close();
     }
 
-    TEST(xfile_array, indexed_access)
+    TEST(xchunked_array, assign_disk_array)
     {
-        std::vector<size_t> shape = {2, 2, 2};
-        xfile_array<double, xio_disk_handler<xcsv_config>> a;
-        a.ignore_empty_path(true);
-        a.resize(shape);
-        double val = 3.;
-        for (auto it: a)
-            it = val;
-        for (auto it: a)
-            ASSERT_EQ(it, val);
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        std::size_t pool_size = 2;
+        std::string chunk_dir1 = "files1";
+        std::string chunk_dir2 = "files2";
+        fs::create_directory(chunk_dir1);
+        fs::create_directory(chunk_dir2);
+
+        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir1, pool_size);
+        double v1[16u];
+        double sv1 = 1.;
+        std::generate(v1, v1+16u, [&sv1]() { return sv1++ + 0.5; });
+        std::copy(v1, v1+16u, a1.begin());
+        a1.chunks().flush();
+
+        auto a2 = make_test_chunked_array(shape, chunk_shape, chunk_dir2, pool_size);
+        double v2[16u];
+        double sv2 = 1.;
+        std::generate(v2, v2+16u, [&sv2]() { return sv2++ + 0.5; });
+        std::copy(v2, v2+16u, a2.begin());
+
+        a2 = a1;
+        a2.chunks().flush();
+
+        for (ptrdiff_t i = 0; i < 16; ++i)
+        {
+            EXPECT_EQ(a2.begin()[i], v1[i]);
+        }
     }
-
-    TEST(xfile_array, assign_expression)
-    {
-        double v1 = 3.;
-        auto a1 = xfile_array<double, xio_disk_handler<xcsv_config>>(broadcast(v1, {2, 2}), "a1");
-        a1.ignore_empty_path(true);
-        for (const auto& v: a1)
-        {
-            EXPECT_EQ(v, v1);
-        }
-
-        double v2 = 2. * v1;
-        auto a2 = xfile_array<double, xio_disk_handler<xcsv_config>>(a1 + a1, "a2");
-        a2.ignore_empty_path(true);
-        for (const auto& v: a2)
-        {
-            EXPECT_EQ(v, v2);
-        }
-
-        a1.flush();
-        a2.flush();
-
-        std::ifstream in_file;
-        in_file.open("a1");
-        auto data = load_csv<double>(in_file);
-        xarray<double> ref = {{v1, v1}, {v1, v1}};
-        EXPECT_EQ(data, ref);
-        in_file.close();
-
-        in_file.open("a2");
-        data = load_csv<double>(in_file);
-        ref = {{v2, v2}, {v2, v2}};
-        EXPECT_EQ(data, ref);
-        in_file.close();
-    }*/
 }

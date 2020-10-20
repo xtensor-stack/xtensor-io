@@ -89,6 +89,7 @@ set(XTENSOR_IO_TESTS
 set(XTENSOR_IO_HO_TESTS
     main.cpp
     test_xchunk_store_manager.cpp
+    test_xfile_array.cpp
 )
 
 # Add files for tests
