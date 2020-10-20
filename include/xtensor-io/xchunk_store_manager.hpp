@@ -4,12 +4,16 @@
 #include <vector>
 #include <array>
 
+#include "ghc/filesystem.hpp"
+
 #include "xtensor/xarray.hpp"
 #include "xtensor/xchunked_array.hpp"
 #include "xfile_array.hpp"
 
 namespace xt
 {
+    template <class EC, class IP>
+    class xchunk_store_manager;
 
     /***************************
      * xindex_path declaration *
@@ -18,20 +22,36 @@ namespace xt
     class xindex_path
     {
     public:
+        
+        std::string get_directory() const;
         void set_directory(const std::string& directory);
+
         template <class I>
-        void index_to_path(I, I, std::string&);
+        void index_to_path(I, I, std::string&) const;
 
     private:
+
         std::string m_directory;
+    };
+
+    /*********************************
+     * xchunked_assigner declaration *
+     *********************************/
+
+    template <class T, class EC, class IP>
+    class xchunked_assigner<T, xchunk_store_manager<EC, IP>>
+    {
+    public:
+
+        using temporary_type = T;
+
+        template <class E, class DST>
+        void build_and_assign_temporary(const xexpression<E>& e, DST& dst);
     };
 
     /************************************
      * xchunk_store_manager declaration *
      ************************************/
-
-    template <class EC, class IP>
-    class xchunk_store_manager;
 
     template <class EC, class IP>
     struct xcontainer_inner_types<xchunk_store_manager<EC, IP>>
@@ -73,7 +93,11 @@ namespace xt
         using shape_type = typename iterable_base::inner_shape_type;
 
         template <class S>
-        xchunk_store_manager(S&& shape, S&& chunk_shape, const std::string& directory, std::size_t pool_size, layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+        xchunk_store_manager(S&& shape,
+                             S&& chunk_shape,
+                             const std::string& directory,
+                             std::size_t pool_size,
+                             layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
         ~xchunk_store_manager() = default;
 
         xchunk_store_manager(const xchunk_store_manager&) = default;
@@ -109,7 +133,9 @@ namespace xt
         template <class S>
         void resize(S&& shape);
 
-        std::size_t size();
+        size_type size() const;
+        const std::string& get_directory() const;
+        bool get_pool_size() const;
 
         IP& get_index_path();
         void flush();
@@ -122,6 +148,9 @@ namespace xt
 
         template <class I>
         const_reference map_file_array(I first, I last) const;
+
+        std::string get_temporary_directory() const;
+        void reset_to_directory(const std::string& directory);
 
     private:
 
@@ -140,15 +169,79 @@ namespace xt
 
     template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class S>
     xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
-    chunked_file_array(S&& shape, S&& chunk_shape, const std::string& path, std::size_t pool_size = 1, layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+    chunked_file_array(S&& shape,
+                       S&& chunk_shape,
+                       const std::string& path,
+                       std::size_t pool_size = 1,
+                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
     template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class E, class S>
     xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
-    chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size = 1, layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+    chunked_file_array(const xexpression<E>& e,
+                       S&& chunk_shape,
+                       const std::string& path,
+                       std::size_t pool_size = 1,
+                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
     template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class E>
     xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
-    chunked_file_array(const xexpression<E>& e, const std::string& path, std::size_t pool_size = 1, layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+    chunked_file_array(const xexpression<E>& e,
+                       const std::string& path,
+                       std::size_t pool_size = 1,
+                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+
+    /******************************
+     * xindex_path implementation *
+     ******************************/
+
+    inline std::string xindex_path::get_directory() const
+    {
+        return m_directory;
+    }
+
+    inline void xindex_path::set_directory(const std::string& directory)
+    {
+        m_directory = directory;
+        if (m_directory.back() != '/')
+        {
+            m_directory.push_back('/');
+        }
+    }
+
+    template <class I>
+    void xindex_path::index_to_path(I first, I last, std::string& path) const
+    {
+        std::string fname;
+        for (auto it = first; it != last; ++it)
+        {
+            if (!fname.empty())
+            {
+                fname.push_back('.');
+            }
+            fname.append(std::to_string(*it));
+        }
+        path = m_directory + fname;
+    }
+
+    /************************************
+     * xchunked_assigner implementation *
+     ************************************/
+
+    template <class T, class EC, class IP>
+    template <class E, class DST>
+    inline void xchunked_assigner<T, xchunk_store_manager<EC, IP>>::build_and_assign_temporary(const xexpression<E>& e,
+                                                                                               DST& dst)
+    {
+        using store_type = xchunk_store_manager<EC, IP>;
+        store_type store(e.derived_cast().shape(), dst.chunk_shape(), dst.chunks().get_temporary_directory(), dst.chunks().get_pool_size());
+        temporary_type tmp(e, std::move(store), dst.chunk_shape());
+        tmp.chunks().flush();
+        dst.chunks().reset_to_directory(tmp.chunks().get_directory());
+    }
+
+    /*******************************************
+     * xchunke_store_manager factory functions *
+     *******************************************/
 
     template <class T, class IOH, layout_type L, class IP, class EXT, class S>
     inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
@@ -161,7 +254,7 @@ namespace xt
 
     template <class IOH, layout_type L, class IP, class EXT, class E, class S>
     inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
-    chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size, char chunk_memory_layout)
+    chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using chunk_storage = xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>;
         chunk_storage chunks(e.derived_cast().shape(), chunk_shape, path, pool_size, chunk_memory_layout);
@@ -170,39 +263,11 @@ namespace xt
 
     template <class IOH, layout_type L, class IP, class EXT, class E>
     inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
-    chunked_file_array(const xexpression<E>& e, const std::string& path, std::size_t pool_size, char chunk_memory_layout)
+    chunked_file_array(const xexpression<E>& e, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using chunk_storage = xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>;
         chunk_storage chunks(e.derived_cast().shape(), detail::chunk_helper<E>::chunk_shape(e), path, pool_size, chunk_memory_layout);
         return xchunked_array<chunk_storage, EXT>(e, chunk_storage());
-    }
-
-    /******************************
-     * xindex_path implementation *
-     ******************************/
-
-    inline void xindex_path::set_directory(const std::string& directory)
-    {
-        m_directory = directory;
-        if (m_directory.back() != '/')
-        {
-            m_directory.push_back('/');
-        }
-    }
-
-    template <class I>
-    void xindex_path::index_to_path(I first, I last, std::string& path)
-    {
-        std::string fname;
-        for (auto it = first; it != last; ++it)
-        {
-            if (!fname.empty())
-            {
-                fname.push_back('.');
-            }
-            fname.append(std::to_string(*it));
-        }
-        path = m_directory + fname;
     }
 
     /***************************************
@@ -219,7 +284,7 @@ namespace xt
         : m_shape(shape)
         , m_unload_index(0u)
     {
-        if (pool_size == -1)
+        if (pool_size == SIZE_MAX)
         {
             // as many "physical" chunks in the pool as there are "logical" chunks
             pool_size = size();
@@ -313,9 +378,21 @@ namespace xt
     }
 
     template <class EC, class IP>
-    inline std::size_t xchunk_store_manager<EC, IP>::size()
+    inline auto xchunk_store_manager<EC, IP>::size() const -> size_type
     {
         return compute_size(m_shape);
+    }
+
+    template <class EC, class IP>
+    inline const std::string& xchunk_store_manager<EC, IP>::get_directory() const
+    {
+        return m_index_path.get_directory();
+    }
+
+    template <class EC, class IP>
+    inline bool  xchunk_store_manager<EC, IP>::get_pool_size() const
+    {
+        return m_chunk_pool.size();
     }
 
     template <class EC, class IP>
@@ -391,6 +468,32 @@ namespace xt
     inline auto xchunk_store_manager<EC, IP>::map_file_array(I first, I last) const -> const_reference
     {
         return const_cast<xchunk_store_manager<EC, IP>*>(this)->map_file_array(first, last);
+    }
+
+    template <class EC, class IP>
+    inline std::string xchunk_store_manager<EC, IP>::get_temporary_directory() const
+    {
+        namespace fs = ghc::filesystem;
+        fs::path tmp_dir = fs::temp_directory_path();
+        std::size_t count = 0;
+        while(fs::exists(tmp_dir / std::to_string(count)))
+        {
+            ++count;
+        }
+        return tmp_dir / std::to_string(count);
+    }
+
+    template <class EC, class IP>
+    inline void xchunk_store_manager<EC, IP>::reset_to_directory(const std::string& directory)
+    {
+        namespace fs = ghc::filesystem;
+        fs::remove_all(get_directory());
+        fs::rename(directory, get_directory());
+        m_unload_index = 0u;
+        for (auto& chunk: m_chunk_pool)
+        {
+            chunk.ignore_empty_path(true);
+        }
     }
 
     template <class EC, class IP>
