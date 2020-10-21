@@ -22,7 +22,7 @@ namespace xt
     class xindex_path
     {
     public:
-        
+
         std::string get_directory() const;
         void set_directory(const std::string& directory);
 
@@ -92,12 +92,14 @@ namespace xt
         using const_stepper = typename iterable_base::const_stepper;
         using shape_type = typename iterable_base::inner_shape_type;
 
-        template <class S>
+        template <class S, class T>
         xchunk_store_manager(S&& shape,
                              S&& chunk_shape,
                              const std::string& directory,
                              std::size_t pool_size,
-                             layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+                             layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT,
+                             xfile_mode = load,
+                             T init_value = T());
         ~xchunk_store_manager() = default;
 
         xchunk_store_manager(const xchunk_store_manager&) = default;
@@ -173,7 +175,9 @@ namespace xt
                        S&& chunk_shape,
                        const std::string& path,
                        std::size_t pool_size = 1,
-                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT,
+                       xfile_mode file_mode = load,
+                       T init_value = T());
 
     template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class E, class S>
     xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
@@ -181,14 +185,18 @@ namespace xt
                        S&& chunk_shape,
                        const std::string& path,
                        std::size_t pool_size = 1,
-                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT,
+                       xfile_mode file_mode = load,
+                       typename E::value_type init_value = typename E::value_type());
 
     template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class E>
     xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
     chunked_file_array(const xexpression<E>& e,
                        const std::string& path,
                        std::size_t pool_size = 1,
-                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT,
+                       xfile_mode file_mode = load,
+                       typename E::value_type init_value = typename E::value_type());
 
     /******************************
      * xindex_path implementation *
@@ -239,34 +247,46 @@ namespace xt
         dst.chunks().reset_to_directory(tmp.chunks().get_directory());
     }
 
-    /*******************************************
-     * xchunke_store_manager factory functions *
-     *******************************************/
+    /******************************************
+     * xchunk_store_manager factory functions *
+     ******************************************/
 
     template <class T, class IOH, layout_type L, class IP, class EXT, class S>
     inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
-    chunked_file_array(S&& shape, S&& chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
+    chunked_file_array(S&& shape, S&& chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout, xfile_mode file_mode, T init_value)
     {
+        if (file_mode == init)
+        {
+            XTENSOR_THROW(std::runtime_error, "A chunked file array cannot have a file mode set to \"init\"");
+        }
         using chunk_storage = xchunk_store_manager<xfile_array<T, IOH, L>, IP>;
-        chunk_storage chunks(shape, chunk_shape, path, pool_size, chunk_memory_layout);
+        chunk_storage chunks(shape, chunk_shape, path, pool_size, chunk_memory_layout, file_mode, init_value);
         return xchunked_array<chunk_storage, EXT>(std::move(chunks), std::forward<S>(shape), std::forward<S>(chunk_shape));
     }
 
     template <class IOH, layout_type L, class IP, class EXT, class E, class S>
     inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
-    chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
+    chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout, xfile_mode file_mode, typename E::value_type init_value)
     {
+        if (file_mode == init)
+        {
+            XTENSOR_THROW(std::runtime_error, "A chunked file array cannot have a file mode set to \"init\"");
+        }
         using chunk_storage = xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>;
-        chunk_storage chunks(e.derived_cast().shape(), chunk_shape, path, pool_size, chunk_memory_layout);
+        chunk_storage chunks(e.derived_cast().shape(), chunk_shape, path, pool_size, chunk_memory_layout, file_mode, init_value);
         return xchunked_array<chunk_storage, EXT>(e, chunk_storage(), std::forward<S>(chunk_shape));
     }
 
     template <class IOH, layout_type L, class IP, class EXT, class E>
     inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
-    chunked_file_array(const xexpression<E>& e, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
+    chunked_file_array(const xexpression<E>& e, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout, xfile_mode file_mode, typename E::value_type init_value)
     {
+        if (file_mode == init)
+        {
+            XTENSOR_THROW(std::runtime_error, "A chunked file array cannot have a file mode set to \"init\"");
+        }
         using chunk_storage = xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>;
-        chunk_storage chunks(e.derived_cast().shape(), detail::chunk_helper<E>::chunk_shape(e), path, pool_size, chunk_memory_layout);
+        chunk_storage chunks(e.derived_cast().shape(), detail::chunk_helper<E>::chunk_shape(e), path, pool_size, chunk_memory_layout, file_mode, init_value);
         return xchunked_array<chunk_storage, EXT>(e, chunk_storage());
     }
 
@@ -275,12 +295,14 @@ namespace xt
      ***************************************/
 
     template <class EC, class IP>
-    template <class S>
+    template <class S, class T>
     inline xchunk_store_manager<EC, IP>::xchunk_store_manager(S&& shape,
                                                               S&& chunk_shape,
                                                               const std::string& directory,
                                                               std::size_t pool_size,
-                                                              layout_type chunk_memory_layout)
+                                                              layout_type chunk_memory_layout,
+                                                              xfile_mode file_mode,
+                                                              T init_value)
         : m_shape(shape)
         , m_unload_index(0u)
     {
@@ -289,13 +311,12 @@ namespace xt
             // as many "physical" chunks in the pool as there are "logical" chunks
             pool_size = size();
         }
-        m_chunk_pool.resize(pool_size);
+        m_chunk_pool.resize(pool_size, EC("", file_mode, init_value));
         m_index_pool.resize(pool_size);
         // resize the pool chunks
         for (auto& chunk: m_chunk_pool)
         {
             chunk.resize(chunk_shape, chunk_memory_layout);
-            chunk.ignore_empty_path(true);
         }
         m_index_path.set_directory(directory);
     }
@@ -490,10 +511,6 @@ namespace xt
         fs::remove_all(get_directory());
         fs::rename(directory, get_directory());
         m_unload_index = 0u;
-        for (auto& chunk: m_chunk_pool)
-        {
-            chunk.ignore_empty_path(true);
-        }
     }
 
     template <class EC, class IP>
