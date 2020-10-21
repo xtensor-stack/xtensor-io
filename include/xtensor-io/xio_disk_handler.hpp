@@ -15,7 +15,7 @@ namespace xt
         void write(const xexpression<E>& expression, const std::string& path) const;
 
         template <class ET>
-        void read(ET& array, const std::string& path, bool throw_on_fail = false) const;
+        void read(ET& array, const std::string& path) const;
 
         void configure_format(const C& format_config);
 
@@ -41,7 +41,7 @@ namespace xt
 
     template <class C>
     template <class ET>
-    inline void xio_disk_handler<C>::read(ET& array, const std::string& path, bool throw_on_fail) const
+    inline void xio_disk_handler<C>::read(ET& array, const std::string& path) const
     {
         std::ifstream in_file(path, std::ifstream::binary);
         if (in_file.is_open())
@@ -50,15 +50,7 @@ namespace xt
         }
         else
         {
-            if (throw_on_fail)
-            {
-                XTENSOR_THROW(std::runtime_error, "read: failed to open file " + path);
-            }
-            else
-            {
-                auto shape = array.shape();
-                array = zeros<typename ET::value_type>(shape);
-            }
+            XTENSOR_THROW(std::runtime_error, "read: failed to open file " + path);
         }
     }
 

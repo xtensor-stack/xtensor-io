@@ -10,6 +10,7 @@
 
 namespace xt
 {
+    enum xfile_mode { load, init, init_on_fail };
 
     template <class T>
     class xfile_value_reference
@@ -113,7 +114,7 @@ namespace xt
         static constexpr layout_type static_layout = layout_type::dynamic;
         static constexpr bool contiguous_layout = true;
 
-        xfile_array_container() = default;
+        xfile_array_container(xfile_mode mode=load, value_type init_value=value_type());
         ~xfile_array_container();
 
         xfile_array_container(const self_type&) = default;
@@ -123,10 +124,10 @@ namespace xt
         self_type& operator=(self_type&&) = default;
 
         template <class OE>
-        xfile_array_container(const xexpression<OE>& e);
+        xfile_array_container(const xexpression<OE>& e, xfile_mode mode=load, value_type init_value=value_type());
 
         template <class OE>
-        xfile_array_container(const xexpression<OE>& e, const std::string& path);
+        xfile_array_container(const xexpression<OE>& e, const std::string& path, xfile_mode mode=load, value_type init_value=value_type());
 
         template <class OE>
         self_type& operator=(const xexpression<OE>& e);
@@ -211,6 +212,8 @@ namespace xt
         IOH m_io_handler;
         std::string m_path;
         bool m_ignore_empty_path;
+        xfile_mode m_file_mode;
+        value_type m_init_value;
     };
 
     template <class T,
@@ -340,6 +343,18 @@ namespace xt
     }
 
     template <class E, class IOH>
+    inline xfile_array_container<E, IOH>::xfile_array_container(xfile_mode file_mode, value_type init_value)
+        : m_storage()
+        , m_dirty(true)
+        , m_io_handler()
+        , m_path()
+        , m_ignore_empty_path(false)
+        , m_file_mode(file_mode)
+        , m_init_value(init_value)
+    {
+    }
+
+    template <class E, class IOH>
     inline xfile_array_container<E, IOH>::~xfile_array_container()
     {
         flush();
@@ -347,23 +362,27 @@ namespace xt
 
     template <class E, class IOH>
     template <class OE>
-    inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e)
+    inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e, xfile_mode file_mode, value_type init_value)
         : m_storage(e)
         , m_dirty(true)
         , m_io_handler()
         , m_path(detail::file_helper<E>::path(e))
         , m_ignore_empty_path(false)
+        , m_file_mode(file_mode)
+        , m_init_value(init_value)
     {
     }
 
     template <class E, class IOH>
     template <class OE>
-    inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e, const std::string& path)
+    inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e, const std::string& path, xfile_mode file_mode, value_type init_value)
         : m_storage(e)
         , m_dirty(true)
         , m_io_handler()
         , m_path(path)
         , m_ignore_empty_path(false)
+        , m_file_mode(file_mode)
+        , m_init_value(init_value)
     {
     }
 
@@ -582,10 +601,29 @@ namespace xt
             // maybe write to old file
             flush();
             m_path = path;
-            // read new file
-            if (enable_io(path))
+            if (m_file_mode == init)
             {
-                m_io_handler.read(m_storage, path);
+                m_storage = xt::broadcast(m_storage, {m_init_value});
+                m_file_mode = load;
+            }
+            else
+            {
+                // read new file
+                if (enable_io(path))
+                {
+                    try
+                    {
+                        m_io_handler.read(m_storage, path);
+                    }
+                    catch (std::string& e)
+                    {
+                        if (m_file_mode == load)
+                        {
+                            throw e;
+                        }
+                        m_storage = xt::broadcast(m_storage, {m_init_value});
+                    }
+                }
             }
         }
     }
