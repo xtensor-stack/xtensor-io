@@ -14,6 +14,7 @@
 
 #include "xtensor/xadapt.hpp"
 #include "xtensor-io.hpp"
+#include "xfile_array.hpp"
 
 namespace xt
 {
@@ -161,6 +162,11 @@ namespace xt
         template <class T>
         void read_from(T& j)
         {
+        }
+
+        bool will_dump(xfile_dirty dirty)
+        {
+            return dirty.data_dirty;
         }
     };
 

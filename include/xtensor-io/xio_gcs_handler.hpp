@@ -17,7 +17,7 @@ namespace xt
         xio_gcs_handler();
 
         template <class E>
-        void write(const xexpression<E>& expression, const std::string& path) const;
+        void write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty);
 
         template <class ET>
         void read(ET& array, const std::string& path) const;
@@ -37,14 +37,17 @@ namespace xt
 
     template <class C>
     template <class E>
-    inline void xio_gcs_handler<C>::write(const xexpression<E>& expression, const std::string& path) const
+    inline void xio_gcs_handler<C>::write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty)
     {
-        std::string bucket_name;
-        std::string file_path;
-        split_bucket_path(path, bucket_name, file_path);
-        gcs::Client client((gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials())));
-        auto writer = client.WriteObject(bucket_name, file_path);
-        dump_file(writer, expression, m_format_config);
+        if (m_format_config.will_dump(dirty))
+        {
+            std::string bucket_name;
+            std::string file_path;
+            split_bucket_path(path, bucket_name, file_path);
+            gcs::Client client((gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials())));
+            auto writer = client.WriteObject(bucket_name, file_path);
+            dump_file(writer, expression, m_format_config);
+        }
     }
 
     template <class C>
