@@ -25,7 +25,7 @@ namespace xt
                                         const std::string& chunk_dir,
                                         size_t pool_size)
     {
-        return chunked_file_array<double, xio_disk_handler<xcsv_config>>(shape, chunk_shape, chunk_dir, pool_size, XTENSOR_DEFAULT_LAYOUT, init_on_fail);
+        return chunked_file_array<double, xio_disk_handler<xcsv_config>>(shape, chunk_shape, chunk_dir, pool_size);
     }
 
     TEST(xchunked_array, disk_array)
