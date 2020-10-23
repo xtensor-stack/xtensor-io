@@ -289,7 +289,7 @@ namespace xt
             // as many "physical" chunks in the pool as there are "logical" chunks
             pool_size = size();
         }
-        m_chunk_pool.resize(pool_size, EC("", init_on_fail));
+        m_chunk_pool.resize(pool_size, EC("", xfile_mode::init_on_fail));
         m_index_pool.resize(pool_size);
         // resize the pool chunks
         for (auto& chunk: m_chunk_pool)

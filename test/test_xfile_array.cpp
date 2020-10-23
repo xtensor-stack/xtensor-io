@@ -19,7 +19,7 @@ namespace xt
     TEST(xfile_array, indexed_access)
     {
         std::vector<size_t> shape = {2, 2, 2};
-        xfile_array<double, xio_disk_handler<xio_binary_config>> a("a");
+        xfile_array<double, xio_disk_handler<xio_binary_config>> a("a", xfile_mode::init);
         a.resize(shape);
         double val = 3.;
         for (auto it: a)

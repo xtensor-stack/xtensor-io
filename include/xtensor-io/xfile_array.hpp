@@ -10,7 +10,7 @@
 
 namespace xt
 {
-    enum xfile_mode { load, init, init_on_fail };
+    enum class xfile_mode { load, init, init_on_fail };
 
     template <class T>
     class xfile_value_reference
@@ -114,7 +114,7 @@ namespace xt
         static constexpr layout_type static_layout = layout_type::dynamic;
         static constexpr bool contiguous_layout = true;
 
-        xfile_array_container(const std::string& path, xfile_mode mode=load, value_type init_value=value_type());
+        xfile_array_container(const std::string& path, xfile_mode mode=xfile_mode::load);
         ~xfile_array_container();
 
         xfile_array_container(const self_type&) = default;
@@ -124,10 +124,10 @@ namespace xt
         self_type& operator=(self_type&&) = default;
 
         template <class OE>
-        xfile_array_container(const xexpression<OE>& e, xfile_mode mode=load, value_type init_value=value_type());
+        xfile_array_container(const xexpression<OE>& e);
 
         template <class OE>
-        xfile_array_container(const xexpression<OE>& e, const std::string& path, xfile_mode mode=load, value_type init_value=value_type());
+        xfile_array_container(const xexpression<OE>& e, const std::string& path);
 
         template <class OE>
         self_type& operator=(const xexpression<OE>& e);
@@ -209,7 +209,6 @@ namespace xt
         IOH m_io_handler;
         std::string m_path;
         xfile_mode m_file_mode;
-        value_type m_init_value;
     };
 
     template <class T,
@@ -339,14 +338,13 @@ namespace xt
     }
 
     template <class E, class IOH>
-    inline xfile_array_container<E, IOH>::xfile_array_container(const std::string& path, xfile_mode file_mode, value_type init_value)
+    inline xfile_array_container<E, IOH>::xfile_array_container(const std::string& path, xfile_mode file_mode)
         : m_storage()
         , m_dirty(false)
         , m_io_handler()
-        , m_path(path)
         , m_file_mode(file_mode)
-        , m_init_value(init_value)
     {
+        set_path(path);
     }
 
     template <class E, class IOH>
@@ -357,25 +355,23 @@ namespace xt
 
     template <class E, class IOH>
     template <class OE>
-    inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e, xfile_mode file_mode, value_type init_value)
+    inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e)
         : m_storage(e)
         , m_dirty(true)
         , m_io_handler()
         , m_path(detail::file_helper<E>::path(e))
-        , m_file_mode(file_mode)
-        , m_init_value(init_value)
+        , m_file_mode(xfile_mode::init)
     {
     }
 
     template <class E, class IOH>
     template <class OE>
-    inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e, const std::string& path, xfile_mode file_mode, value_type init_value)
+    inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e, const std::string& path)
         : m_storage(e)
         , m_dirty(true)
         , m_io_handler()
         , m_path(path)
-        , m_file_mode(file_mode)
-        , m_init_value(init_value)
+        , m_file_mode(xfile_mode::init)
     {
     }
 
@@ -582,12 +578,7 @@ namespace xt
             // maybe write to old file
             flush();
             m_path = path;
-            if (m_file_mode == init)
-            {
-                std::fill(m_storage.begin(), m_storage.end(), m_init_value);
-                m_file_mode = load;
-            }
-            else
+            if (m_file_mode != xfile_mode::init)
             {
                 // read new file
                 try
@@ -596,11 +587,10 @@ namespace xt
                 }
                 catch (const std::runtime_error& e)
                 {
-                    if (m_file_mode == load)
+                    if (m_file_mode == xfile_mode::load)
                     {
                         throw e;
                     }
-                    std::fill(m_storage.begin(), m_storage.end(), m_init_value);
                 }
             }
         }
