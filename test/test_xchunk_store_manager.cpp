@@ -23,19 +23,28 @@ namespace xt
     inline auto make_test_chunked_array(const S& shape,
                                         const S& chunk_shape,
                                         const std::string& chunk_dir,
-                                        size_t pool_size)
+                                        size_t pool_size,
+                                        bool init=false,
+                                        double init_value=0)
     {
-        return chunked_file_array<double, xio_disk_handler<xio_binary_config>>(shape, chunk_shape, chunk_dir, pool_size);
+        if (init)
+        {
+            return chunked_file_array<double, xio_disk_handler<xio_binary_config>>(shape, chunk_shape, chunk_dir, init_value, pool_size);
+        }
+        else
+        {
+            return chunked_file_array<double, xio_disk_handler<xio_binary_config>>(shape, chunk_shape, chunk_dir, pool_size);
+        }
     }
 
     TEST(xchunked_array, disk_array)
     {
         std::vector<size_t> shape = {4, 4};
         std::vector<size_t> chunk_shape = {2, 2};
-        std::string chunk_dir0 = "files0";
-        fs::create_directory(chunk_dir0);
+        std::string chunk_dir = "files0";
+        fs::create_directory(chunk_dir);
         std::size_t pool_size = 2;
-        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir0, pool_size);
+        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir, pool_size);
         std::vector<size_t> idx = {1, 2};
         double v1 = 3.4;
         double v2 = 5.6;
@@ -49,18 +58,18 @@ namespace xt
 
         std::ifstream in_file;
         xt::xarray<double> data;
-        in_file.open(chunk_dir0 + "/1.0");
+        in_file.open(chunk_dir + "/1.0");
         data = xt::load_bin<double>(in_file);
         EXPECT_EQ(data(1), v1);
         in_file.close();
 
         a1.chunks().flush();
-        in_file.open(chunk_dir0 + "/0.1");
+        in_file.open(chunk_dir + "/0.1");
         data = xt::load_bin<double>(in_file);
         EXPECT_EQ(data(2), v2);
         in_file.close();
 
-        in_file.open(chunk_dir0 + "/0.0");
+        in_file.open(chunk_dir + "/0.0");
         data = xt::load_bin<double>(in_file);
         EXPECT_EQ(data(0), v3);
         in_file.close();
@@ -95,6 +104,21 @@ namespace xt
         for (ptrdiff_t i = 0; i < 16; ++i)
         {
             EXPECT_EQ(a2.begin()[i], v1[i]);
+        }
+    }
+
+    TEST(xchunked_array, init_value)
+    {
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        std::string chunk_dir = "files3";
+        fs::create_directory(chunk_dir);
+        std::size_t pool_size = 1;
+        double init_value = 5.5;
+        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir, pool_size, true, init_value);
+        for (auto v: a1)
+        {
+            EXPECT_EQ(v, init_value);
         }
     }
 }
