@@ -14,6 +14,7 @@
 
 #include "xtensor/xadapt.hpp"
 #include "xtensor-io.hpp"
+#include "xfile_array.hpp"
 #include "blosc.h"
 
 namespace xt
@@ -221,6 +222,11 @@ namespace xt
             shuffle = j["shuffle"];
             cname = j["cname"];
             blocksize = j["blocksize"];
+        }
+
+        bool will_dump(xfile_dirty dirty)
+        {
+            return dirty.data_dirty;
         }
     };
 

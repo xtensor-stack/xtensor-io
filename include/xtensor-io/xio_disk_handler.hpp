@@ -12,7 +12,7 @@ namespace xt
     public:
 
         template <class E>
-        void write(const xexpression<E>& expression, const std::string& path) const;
+        void write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty);
 
         template <class ET>
         void read(ET& array, const std::string& path) const;
@@ -26,16 +26,19 @@ namespace xt
 
     template <class C>
     template <class E>
-    inline void xio_disk_handler<C>::write(const xexpression<E>& expression, const std::string& path) const
+    inline void xio_disk_handler<C>::write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty)
     {
-        std::ofstream out_file(path, std::ofstream::binary);
-        if (out_file.is_open())
+        if (m_format_config.will_dump(dirty))
         {
-            dump_file(out_file, expression, m_format_config);
-        }
-        else
-        {
-            XTENSOR_THROW(std::runtime_error, "write: failed to open file " + path);
+            std::ofstream out_file(path, std::ofstream::binary);
+            if (out_file.is_open())
+            {
+                dump_file(out_file, expression, m_format_config);
+            }
+            else
+            {
+                XTENSOR_THROW(std::runtime_error, "write: failed to open file " + path);
+            }
         }
     }
 

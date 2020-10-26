@@ -12,6 +12,23 @@ namespace xt
 {
     enum class xfile_mode { load, init, init_on_fail };
 
+    struct xfile_dirty
+    {
+        bool data_dirty;
+        bool shape_dirty;
+
+        xfile_dirty(bool is_dirty=false)
+        {
+            data_dirty = is_dirty;
+            shape_dirty = is_dirty;
+        }
+
+        operator bool() const
+        {
+            return data_dirty || shape_dirty;
+        }
+    };
+
     template <class T>
     class xfile_value_reference
     {
@@ -20,7 +37,7 @@ namespace xt
         using self_type = xfile_value_reference<T>;
         using const_reference = const T&;
 
-        xfile_value_reference(T& value, bool& dirty);
+        xfile_value_reference(T& value, xfile_dirty& dirty);
         ~xfile_value_reference() = default;
 
         xfile_value_reference(const xfile_value_reference&) = default;
@@ -49,7 +66,7 @@ namespace xt
     private:
 
         T& m_value;
-        bool& m_dirty;
+        xfile_dirty& m_dirty;
     };
 }
 
@@ -205,7 +222,7 @@ namespace xt
     private:
 
         E m_storage;
-        bool m_dirty;
+        xfile_dirty m_dirty;
         IOH m_io_handler;
         std::string m_path;
         xfile_mode m_file_mode;
@@ -223,7 +240,7 @@ namespace xt
      ****************************************/
 
     template <class T>
-    inline xfile_value_reference<T>::xfile_value_reference(T& value, bool& dirty)
+    inline xfile_value_reference<T>::xfile_value_reference(T& value, xfile_dirty& dirty)
         : m_value(value), m_dirty(dirty)
     {
     }
@@ -235,7 +252,7 @@ namespace xt
         if (v != m_value)
         {
             m_value = v;
-            m_dirty = true;
+            m_dirty.data_dirty = true;
         }
         return *this;
     }
@@ -247,7 +264,7 @@ namespace xt
         if (v != T(0))
         {
             m_value += v;
-            m_dirty = true;
+            m_dirty.data_dirty = true;
         }
         return *this;
     }
@@ -259,7 +276,7 @@ namespace xt
         if (v != T(0))
         {
             m_value -= v;
-            m_dirty = true;
+            m_dirty.data_dirty = true;
         }
         return *this;
     }
@@ -271,7 +288,7 @@ namespace xt
         if (v != T(1))
         {
             m_value *= v;
-            m_dirty = true;
+            m_dirty.data_dirty = true;
         }
         return *this;
     }
@@ -283,7 +300,7 @@ namespace xt
         if (v != T(1))
         {
             m_value /= v;
-            m_dirty = true;
+            m_dirty.data_dirty = true;
         }
         return *this;
     }
@@ -411,6 +428,7 @@ namespace xt
     inline void xfile_array_container<E, IOH>::resize(S&& shape, bool force)
     {
         m_storage.resize(std::forward<S>(shape), force);
+        m_dirty.shape_dirty = true;
     }
 
     template <class E, class IOH>
@@ -418,6 +436,7 @@ namespace xt
     inline void xfile_array_container<E, IOH>::resize(S&& shape, layout_type l)
     {
         m_storage.resize(std::forward<S>(shape), l);
+        m_dirty.shape_dirty = true;
     }
 
     template <class E, class IOH>
@@ -425,6 +444,7 @@ namespace xt
     inline void xfile_array_container<E, IOH>::resize(S&& shape, const strides_type& strides)
     {
         m_storage.resize(std::forward<S>(shape), strides);
+        m_dirty.shape_dirty = true;
     }
 
     template <class E, class IOH>
@@ -432,6 +452,7 @@ namespace xt
     inline auto xfile_array_container<E, IOH>::reshape(S&& shape, layout_type layout) & -> self_type&
     {
         m_storage.reshape(std::forward<S>(shape), layout);
+        m_dirty.shape_dirty = true;
         return *this;
     }
 
@@ -440,6 +461,7 @@ namespace xt
     inline auto xfile_array_container<E, IOH>::reshape(std::initializer_list<T> shape, layout_type layout) & -> self_type&
     {
         m_storage.reshape(shape, layout);
+        m_dirty.shape_dirty = true;
         return *this;
     }
 
@@ -601,7 +623,7 @@ namespace xt
     {
         if (m_dirty)
         {
-            m_io_handler.write(m_storage, m_path);
+            m_io_handler.write(m_storage, m_path, m_dirty);
             m_dirty = false;
         }
     }

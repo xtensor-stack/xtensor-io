@@ -60,4 +60,26 @@ namespace xt
         EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
     }
+
+    TEST(xfile_array, flush)
+    {
+        std::vector<std::size_t> shape = {2, 2};
+        auto a1 = xfile_array<double, xio_disk_handler<xio_binary_config>>(broadcast(5., shape), "a1");
+        a1.flush();
+        auto a2 = xfile_array<double, xio_disk_handler<xio_binary_config>>("");
+        // point a2 to a1's file
+        a2.set_path("a1");
+        // they should have the same size
+        EXPECT_EQ(a2.size(), compute_size(shape));
+        // resize a2
+        std::vector<std::size_t> new_shape = {3, 3};
+        a2.resize(new_shape);
+        // should not be flushed, as binary format only stores data (not shape)
+        a2.flush();
+        auto a3 = xfile_array<double, xio_disk_handler<xio_binary_config>>("");
+        // point a3 to a1's file (which is also a2's file)
+        a3.set_path("a1");
+        // shape should not have been changed
+        EXPECT_EQ(a3.size(), compute_size(shape));
+    }
 }
