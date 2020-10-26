@@ -10,8 +10,8 @@
 #include "gtest/gtest.h"
 
 #include <xtensor/xbroadcast.hpp>
-#include <xtensor/xcsv.hpp>
 #include "xtensor-io/xfile_array.hpp"
+#include <xtensor-io/xio_binary.hpp>
 #include "xtensor-io/xio_disk_handler.hpp"
 
 namespace xt
@@ -19,8 +19,7 @@ namespace xt
     TEST(xfile_array, indexed_access)
     {
         std::vector<size_t> shape = {2, 2, 2};
-        xfile_array<double, xio_disk_handler<xcsv_config>> a;
-        a.ignore_empty_path(true);
+        xfile_array<double, xio_disk_handler<xio_binary_config>> a("a", xfile_mode::init);
         a.resize(shape);
         double val = 3.;
         for (auto it: a)
@@ -32,16 +31,14 @@ namespace xt
     TEST(xfile_array, assign_expression)
     {
         double v1 = 3.;
-        auto a1 = xfile_array<double, xio_disk_handler<xcsv_config>>(broadcast(v1, {2, 2}), "a1");
-        a1.ignore_empty_path(true);
+        auto a1 = xfile_array<double, xio_disk_handler<xio_binary_config>>(broadcast(v1, {2, 2}), "a1");
         for (const auto& v: a1)
         {
             EXPECT_EQ(v, v1);
         }
 
         double v2 = 2. * v1;
-        auto a2 = xfile_array<double, xio_disk_handler<xcsv_config>>(a1 + a1, "a2");
-        a2.ignore_empty_path(true);
+        auto a2 = xfile_array<double, xio_disk_handler<xio_binary_config>>(a1 + a1, "a2");
         for (const auto& v: a2)
         {
             EXPECT_EQ(v, v2);
@@ -52,15 +49,15 @@ namespace xt
 
         std::ifstream in_file;
         in_file.open("a1");
-        auto data = load_csv<double>(in_file);
-        xarray<double> ref = {{v1, v1}, {v1, v1}};
-        EXPECT_EQ(data, ref);
+        auto data = load_bin<double>(in_file);
+        xarray<double> ref = {v1, v1, v1, v1};
+        EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
 
         in_file.open("a2");
-        data = load_csv<double>(in_file);
-        ref = {{v2, v2}, {v2, v2}};
-        EXPECT_EQ(data, ref);
+        data = load_bin<double>(in_file);
+        ref = {v2, v2, v2, v2};
+        EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
     }
 }

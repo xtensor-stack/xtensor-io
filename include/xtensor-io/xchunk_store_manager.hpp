@@ -22,7 +22,7 @@ namespace xt
     class xindex_path
     {
     public:
-        
+
         std::string get_directory() const;
         void set_directory(const std::string& directory);
 
@@ -239,9 +239,9 @@ namespace xt
         dst.chunks().reset_to_directory(tmp.chunks().get_directory());
     }
 
-    /*******************************************
-     * xchunke_store_manager factory functions *
-     *******************************************/
+    /******************************************
+     * xchunk_store_manager factory functions *
+     ******************************************/
 
     template <class T, class IOH, layout_type L, class IP, class EXT, class S>
     inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
@@ -289,13 +289,12 @@ namespace xt
             // as many "physical" chunks in the pool as there are "logical" chunks
             pool_size = size();
         }
-        m_chunk_pool.resize(pool_size);
+        m_chunk_pool.resize(pool_size, EC("", xfile_mode::init_on_fail));
         m_index_pool.resize(pool_size);
         // resize the pool chunks
         for (auto& chunk: m_chunk_pool)
         {
             chunk.resize(chunk_shape, chunk_memory_layout);
-            chunk.ignore_empty_path(true);
         }
         m_index_path.set_directory(directory);
     }
@@ -490,10 +489,6 @@ namespace xt
         fs::remove_all(get_directory());
         fs::rename(directory, get_directory());
         m_unload_index = 0u;
-        for (auto& chunk: m_chunk_pool)
-        {
-            chunk.ignore_empty_path(true);
-        }
     }
 
     template <class EC, class IP>

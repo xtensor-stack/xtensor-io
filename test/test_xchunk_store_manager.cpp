@@ -10,9 +10,9 @@
 #include "gtest/gtest.h"
 
 #include <xtensor/xbroadcast.hpp>
-#include <xtensor/xcsv.hpp>
 #include "xtensor-io/xchunk_store_manager.hpp"
 #include "xtensor-io/xfile_array.hpp"
+#include <xtensor-io/xio_binary.hpp>
 #include "xtensor-io/xio_disk_handler.hpp"
 
 namespace xt
@@ -25,16 +25,17 @@ namespace xt
                                         const std::string& chunk_dir,
                                         size_t pool_size)
     {
-        return chunked_file_array<double, xio_disk_handler<xcsv_config>>(shape, chunk_shape, chunk_dir, pool_size);
+        return chunked_file_array<double, xio_disk_handler<xio_binary_config>>(shape, chunk_shape, chunk_dir, pool_size);
     }
 
     TEST(xchunked_array, disk_array)
     {
         std::vector<size_t> shape = {4, 4};
         std::vector<size_t> chunk_shape = {2, 2};
-        std::string chunk_dir = "files";
+        std::string chunk_dir0 = "files0";
+        fs::create_directory(chunk_dir0);
         std::size_t pool_size = 2;
-        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir, pool_size);
+        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir0, pool_size);
         std::vector<size_t> idx = {1, 2};
         double v1 = 3.4;
         double v2 = 5.6;
@@ -47,25 +48,21 @@ namespace xt
         EXPECT_EQ(a1(0, 0), v3);
 
         std::ifstream in_file;
-        xt::xarray<double> ref;
         xt::xarray<double> data;
-        in_file.open(chunk_dir + "/1.0");
-        data = xt::load_csv<double>(in_file);
-        ref = {{0, v1}, {0, 0}};
-        EXPECT_EQ(data, ref);
+        in_file.open(chunk_dir0 + "/1.0");
+        data = xt::load_bin<double>(in_file);
+        EXPECT_EQ(data(1), v1);
         in_file.close();
 
         a1.chunks().flush();
-        in_file.open(chunk_dir + "/0.1");
-        data = xt::load_csv<double>(in_file);
-        ref = {{0, 0}, {v2, 0}};
-        EXPECT_EQ(data, ref);
+        in_file.open(chunk_dir0 + "/0.1");
+        data = xt::load_bin<double>(in_file);
+        EXPECT_EQ(data(2), v2);
         in_file.close();
 
-        in_file.open(chunk_dir + "/0.0");
-        data = xt::load_csv<double>(in_file);
-        ref = {{v3, 0}, {0, 0}};
-        EXPECT_EQ(data, ref);
+        in_file.open(chunk_dir0 + "/0.0");
+        data = xt::load_bin<double>(in_file);
+        EXPECT_EQ(data(0), v3);
         in_file.close();
     }
 
