@@ -115,15 +115,6 @@ namespace xt
         xchunk_store_manager(xchunk_store_manager&&) = default;
         xchunk_store_manager& operator=(xchunk_store_manager&&) = default;
 
-        template <class S, class T>
-        void initialize(S&& shape,
-                        S&& chunk_shape,
-                        const std::string& directory,
-                        bool init,
-                        const T& init_value,
-                        std::size_t pool_size,
-                        layout_type chunk_memory_layout);
-
         const shape_type& shape() const noexcept;
 
         template <class... Idxs>
@@ -174,6 +165,15 @@ namespace xt
 
         template <class... Idxs>
         std::array<std::size_t, sizeof...(Idxs)> get_indexes(Idxs... idxs) const;
+
+        template <class S, class T>
+        void initialize(S&& shape,
+                        S&& chunk_shape,
+                        const std::string& directory,
+                        bool init,
+                        const T& init_value,
+                        std::size_t pool_size,
+                        layout_type chunk_memory_layout);
 
         using chunk_pool_type = std::vector<EC>;
         using index_pool_type = std::vector<shape_type>;
