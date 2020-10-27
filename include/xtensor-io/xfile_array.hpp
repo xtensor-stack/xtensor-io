@@ -132,6 +132,9 @@ namespace xt
         static constexpr bool contiguous_layout = true;
 
         xfile_array_container(const std::string& path, xfile_mode mode=xfile_mode::load);
+
+        xfile_array_container(const std::string& path, xfile_mode mode, const value_type& init_value);
+
         ~xfile_array_container();
 
         xfile_array_container(const self_type&) = default;
@@ -226,6 +229,8 @@ namespace xt
         IOH m_io_handler;
         std::string m_path;
         xfile_mode m_file_mode;
+        value_type m_init_value;
+        bool m_init;
     };
 
     template <class T,
@@ -360,6 +365,19 @@ namespace xt
         , m_dirty(false)
         , m_io_handler()
         , m_file_mode(file_mode)
+        , m_init(false)
+    {
+        set_path(path);
+    }
+
+    template <class E, class IOH>
+    inline xfile_array_container<E, IOH>::xfile_array_container(const std::string& path, xfile_mode file_mode, const value_type& init_value)
+        : m_storage()
+        , m_dirty(false)
+        , m_io_handler()
+        , m_file_mode(file_mode)
+        , m_init_value(init_value)
+        , m_init(true)
     {
         set_path(path);
     }
@@ -378,6 +396,7 @@ namespace xt
         , m_io_handler()
         , m_path(detail::file_helper<E>::path(e))
         , m_file_mode(xfile_mode::init)
+        , m_init(false)
     {
     }
 
@@ -389,6 +408,7 @@ namespace xt
         , m_io_handler()
         , m_path(path)
         , m_file_mode(xfile_mode::init)
+        , m_init(false)
     {
     }
 
@@ -612,6 +632,11 @@ namespace xt
                     if (m_file_mode == xfile_mode::load)
                     {
                         throw e;
+                    }
+                    // m_file_mode == xfile_mode::init_on_fail
+                    if (m_init)
+                    {
+                        std::fill(m_storage.begin(), m_storage.end(), m_init_value);
                     }
                 }
             }

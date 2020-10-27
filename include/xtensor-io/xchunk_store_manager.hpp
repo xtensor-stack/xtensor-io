@@ -98,6 +98,15 @@ namespace xt
                              const std::string& directory,
                              std::size_t pool_size,
                              layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+
+        template <class S, class T>
+        xchunk_store_manager(S&& shape,
+                             S&& chunk_shape,
+                             const std::string& directory,
+                             std::size_t pool_size,
+                             const T& init_value,
+                             layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+
         ~xchunk_store_manager() = default;
 
         xchunk_store_manager(const xchunk_store_manager&) = default;
@@ -157,6 +166,15 @@ namespace xt
         template <class... Idxs>
         std::array<std::size_t, sizeof...(Idxs)> get_indexes(Idxs... idxs) const;
 
+        template <class S, class T>
+        void initialize(S&& shape,
+                        S&& chunk_shape,
+                        const std::string& directory,
+                        bool init,
+                        const T& init_value,
+                        std::size_t pool_size,
+                        layout_type chunk_memory_layout);
+
         using chunk_pool_type = std::vector<EC>;
         using index_pool_type = std::vector<shape_type>;
 
@@ -172,6 +190,15 @@ namespace xt
     chunked_file_array(S&& shape,
                        S&& chunk_shape,
                        const std::string& path,
+                       std::size_t pool_size = 1,
+                       layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
+
+    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class S>
+    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    chunked_file_array(S&& shape,
+                       S&& chunk_shape,
+                       const std::string& path,
+                       const T& init_value,
                        std::size_t pool_size = 1,
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
@@ -252,6 +279,15 @@ namespace xt
         return xchunked_array<chunk_storage, EXT>(std::move(chunks), std::forward<S>(shape), std::forward<S>(chunk_shape));
     }
 
+    template <class T, class IOH, layout_type L, class IP, class EXT, class S>
+    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    chunked_file_array(S&& shape, S&& chunk_shape, const std::string& path,  const T& init_value,std::size_t pool_size, layout_type chunk_memory_layout)
+    {
+        using chunk_storage = xchunk_store_manager<xfile_array<T, IOH, L>, IP>;
+        chunk_storage chunks(shape, chunk_shape, path, pool_size, init_value, chunk_memory_layout);
+        return xchunked_array<chunk_storage, EXT>(std::move(chunks), std::forward<S>(shape), std::forward<S>(chunk_shape));
+    }
+
     template <class IOH, layout_type L, class IP, class EXT, class E, class S>
     inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
     chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
@@ -284,12 +320,46 @@ namespace xt
         : m_shape(shape)
         , m_unload_index(0u)
     {
+        initialize(shape, chunk_shape, directory, false, 0, pool_size, chunk_memory_layout);
+    }
+
+    template <class EC, class IP>
+    template <class S, class T>
+    inline xchunk_store_manager<EC, IP>::xchunk_store_manager(S&& shape,
+                                                              S&& chunk_shape,
+                                                              const std::string& directory,
+                                                              std::size_t pool_size,
+                                                              const T& init_value,
+                                                              layout_type chunk_memory_layout)
+        : m_shape(shape)
+        , m_unload_index(0u)
+    {
+        initialize(shape, chunk_shape, directory, true, init_value, pool_size, chunk_memory_layout);
+    }
+
+    template <class EC, class IP>
+    template <class S, class T>
+    inline void xchunk_store_manager<EC, IP>::initialize(S&& shape,
+                                                         S&& chunk_shape,
+                                                         const std::string& directory,
+                                                         bool init,
+                                                         const T& init_value,
+                                                         std::size_t pool_size,
+                                                         layout_type chunk_memory_layout)
+    {
         if (pool_size == SIZE_MAX)
         {
             // as many "physical" chunks in the pool as there are "logical" chunks
             pool_size = size();
         }
-        m_chunk_pool.resize(pool_size, EC("", xfile_mode::init_on_fail));
+        if (init)
+        {
+            m_chunk_pool.resize(pool_size, EC("", xfile_mode::init_on_fail, init_value));
+        }
+        else
+        {
+            m_chunk_pool.resize(pool_size, EC("", xfile_mode::init_on_fail));
+        }
         m_index_pool.resize(pool_size);
         // resize the pool chunks
         for (auto& chunk: m_chunk_pool)
