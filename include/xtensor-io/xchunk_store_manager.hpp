@@ -116,6 +116,7 @@ namespace xt
         xchunk_store_manager& operator=(xchunk_store_manager&&) = default;
 
         const shape_type& shape() const noexcept;
+        const shape_type& chunk_shape() const noexcept;
 
         template <class... Idxs>
         reference operator()(Idxs... idxs);
@@ -149,8 +150,8 @@ namespace xt
         IP& get_index_path();
         void flush();
 
-        template <class C>
-        void configure_format(C& config);
+        template <class FC, class IOC>
+        void configure(FC& format_config, IOC& io_config);
 
         template <class I>
         reference map_file_array(I first, I last);
@@ -179,6 +180,7 @@ namespace xt
         using index_pool_type = std::vector<shape_type>;
 
         shape_type m_shape;
+        shape_type m_chunk_shape;
         chunk_pool_type m_chunk_pool;
         index_pool_type m_index_pool;
         std::size_t m_unload_index;
@@ -318,6 +320,7 @@ namespace xt
                                                               std::size_t pool_size,
                                                               layout_type chunk_memory_layout)
         : m_shape(shape)
+        , m_chunk_shape(chunk_shape)
         , m_unload_index(0u)
     {
         initialize(shape, chunk_shape, directory, false, 0, pool_size, chunk_memory_layout);
@@ -332,6 +335,7 @@ namespace xt
                                                               const T& init_value,
                                                               layout_type chunk_memory_layout)
         : m_shape(shape)
+        , m_chunk_shape(chunk_shape)
         , m_unload_index(0u)
     {
         initialize(shape, chunk_shape, directory, true, init_value, pool_size, chunk_memory_layout);
@@ -373,6 +377,12 @@ namespace xt
     inline auto xchunk_store_manager<EC, IP>::shape() const noexcept -> const shape_type&
     {
         return m_shape;
+    }
+
+    template <class EC, class IP>
+    inline auto xchunk_store_manager<EC, IP>::chunk_shape() const noexcept -> const shape_type&
+    {
+        return m_chunk_shape;
     }
 
     template <class EC, class IP>
@@ -474,12 +484,12 @@ namespace xt
     }
 
     template <class EC, class IP>
-    template <class C>
-    void xchunk_store_manager<EC, IP>::configure_format(C& config)
+    template <class FC, class IOC>
+    void xchunk_store_manager<EC, IP>::configure(FC& format_config, IOC& io_config)
     {
         for (auto& chunk: m_chunk_pool)
         {
-            chunk.configure_format(config);
+            chunk.configure(format_config, io_config);
         }
     }
 

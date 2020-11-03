@@ -217,8 +217,11 @@ namespace xt
         const std::string& path() const noexcept;
         void set_path(const std::string& path);
 
-        template <class C>
-        void configure_format(C& config);
+        template <class FC, class IOC>
+        void configure(FC& format_config, IOC& io_config);
+
+        template <class IOC>
+        void configure_io(IOC& io_config);
 
         void flush();
 
@@ -606,10 +609,17 @@ namespace xt
     }
 
     template <class E, class IOH>
-    template <class C>
-    inline void xfile_array_container<E, IOH>::configure_format(C& config)
+    template <class FC, class IOC>
+    inline void xfile_array_container<E, IOH>::configure(FC& format_config, IOC& io_config)
     {
-        m_io_handler.configure_format(config);
+        m_io_handler.configure(format_config, io_config);
+    }
+
+    template <class E, class IOH>
+    template <class IOC>
+    inline void xfile_array_container<E, IOH>::configure_io(IOC& io_config)
+    {
+        m_io_handler.configure_io(io_config);
     }
 
     template <class E, class IOH>

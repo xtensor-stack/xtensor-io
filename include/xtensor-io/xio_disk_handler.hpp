@@ -6,18 +6,24 @@
 
 namespace xt
 {
+    struct xio_disk_config
+    {
+    };
+
     template <class C>
     class xio_disk_handler
     {
     public:
+        using io_config = xio_disk_config;
 
         template <class E>
         void write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty);
 
         template <class ET>
-        void read(ET& array, const std::string& path) const;
+        void read(ET& array, const std::string& path);
 
-        void configure_format(const C& format_config);
+        void configure(const C& format_config, const xio_disk_config& io_config);
+        void configure_io(const xio_disk_config& io_config);
 
     private:
 
@@ -44,7 +50,7 @@ namespace xt
 
     template <class C>
     template <class ET>
-    inline void xio_disk_handler<C>::read(ET& array, const std::string& path) const
+    inline void xio_disk_handler<C>::read(ET& array, const std::string& path)
     {
         std::ifstream in_file(path, std::ifstream::binary);
         if (in_file.is_open())
@@ -58,11 +64,15 @@ namespace xt
     }
 
     template <class C>
-    inline void xio_disk_handler<C>::configure_format(const C& format_config)
+    inline void xio_disk_handler<C>::configure(const C& format_config, const xio_disk_config& io_config)
     {
         m_format_config = format_config;
     }
 
+    template <class C>
+    inline void xio_disk_handler<C>::configure_io(const xio_disk_config& io_config)
+    {
+    }
 
 }
 
