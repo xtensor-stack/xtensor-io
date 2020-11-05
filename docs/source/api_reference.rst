@@ -107,4 +107,32 @@ Defined in ``xtensor-io/xgdal.hpp``
 
 .. doxygenstruct:: xt::dump_gdal_options
    :project: xtensor-io
+
+xfile_array
+-----------
+
+Defined in ``xtensor-io/xfile_array.hpp``
+
+.. doxygenclass:: xt::xfile_array_container
+   :project: xtensor-io
    :members:
+
+.. doxygentypedef:: xt::xfile_array
+   :project: xtensor-io
+
+xchunk_store_manager
+--------------------
+
+Defined in ``xtensor-io/xchunk_store_manager.hpp``
+
+.. doxygenclass:: xt::xchunk_store_manager
+   :project: xtensor-io
+   :members:
+
+chunked_file_array
+------------------
+
+Defined in ``xtensor-io/xchunk_store_manager.hpp``
+
+.. doxygenfunction:: xt::chunked_file_array
+   :project: xtensor-io

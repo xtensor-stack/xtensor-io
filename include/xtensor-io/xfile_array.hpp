@@ -103,6 +103,18 @@ namespace xt
         using stepper = xindexed_stepper<xfile_array_container<E, IOH>, false>;
     };
 
+    /**
+     * @class xfile_array_container
+     * @brief Dense multidimensional file-backed cached container with tensor semantic.
+     *
+     * The xfile_array_container class implements a dense multidimensional container
+     * with tensor semantic, stored on a file system. It acts as a file-backed cached
+     * container, allowing for data persistence.
+     *
+     * @tparam E The type of the container holding the elements
+     * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
+     * @sa chunked_file_array, xchunk_store_manager
+     */
     template <class E, class IOH>
     class xfile_array_container : public xaccessible<xfile_array_container<E, IOH>>,
                                   public xiterable<xfile_array_container<E, IOH>>,
