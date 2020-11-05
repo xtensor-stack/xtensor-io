@@ -71,6 +71,18 @@ namespace xt
         using const_stepper = xindexed_stepper<xchunk_store_manager<EC, IP>, true>;
     };
 
+    /**
+     * @class xchunk_store_manager
+     * @brief Multidimensional chunk container and manager.
+     *
+     * The xchunk_store_manager class implements a multidimensional chunk container.
+     * Chunks are managed in a pool, allowing for a limited number of chunks
+     * that can simultaneously be hold in memory.
+     *
+     * @tparam EC The type of a chunk (e.g. xfile_array)
+     * @tparam IP The type of the index-to-path transformer (default: xindex_path)
+     * @sa xfile_array, xchunked_array, chunked_array, chunked_file_array
+     */
     template <class EC, class IP = xindex_path>
     class xchunk_store_manager: public xaccessible<xchunk_store_manager<EC, IP>>,
                                 public xiterable<xchunk_store_manager<EC, IP>>
@@ -187,6 +199,24 @@ namespace xt
         IP m_index_path;
     };
 
+    /**
+     * Creates a stored chunked array.
+     * This function returns an uninitialized ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>``.
+     *
+     * @tparam T The type of the elements (e.g. double)
+     * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
+     * @tparam L The layout_type of the array
+     * @tparam IP The type of the index-to-path transformer (default: xindex_path)
+     * @tparam EXT The type of the array extension (default: empty_extension)
+     *
+     * @param shape The shape of the array
+     * @param chunk_shape The shape of a chunk
+     * @param path The path to the chunk store
+     * @param pool_size The size of the chunk pool (default: 1)
+     * @param chunk_memory_layout The layout of each chunk (default: XTENSOR_DEFAULT_LAYOUT)
+     *
+     * @return returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` with the given shape, chunk shape and memory layout.
+     */
     template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class S>
     xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
     chunked_file_array(S&& shape,
@@ -195,6 +225,25 @@ namespace xt
                        std::size_t pool_size = 1,
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
+    /**
+     * Creates a stored chunked array.
+     * This function returns a uninitialized ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>``.
+     *
+     * @tparam T The type of the elements (e.g. double)
+     * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
+     * @tparam L The layout_type of the array
+     * @tparam IP The type of the index-to-path transformer (default: xindex_path)
+     * @tparam EXT The type of the array extension (default: empty_extension)
+     *
+     * @param shape The shape of the array
+     * @param chunk_shape The shape of a chunk
+     * @param path The path to the chunk store
+     * @param init_value The value with which to initialize the chunks when they are not already stored
+     * @param pool_size The size of the chunk pool (default: 1)
+     * @param chunk_memory_layout The layout of each chunk (default: XTENSOR_DEFAULT_LAYOUT)
+     *
+     * @return returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` with the given shape, chunk shape and memory layout.
+     */
     template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class S>
     xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
     chunked_file_array(S&& shape,
@@ -204,6 +253,24 @@ namespace xt
                        std::size_t pool_size = 1,
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
+    /**
+     * Creates a stored chunked array.
+     * This function returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` initialized from an expression.
+     *
+     * @tparam T The type of the elements (e.g. double)
+     * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
+     * @tparam L The layout_type of the array
+     * @tparam IP The type of the index-to-path transformer (default: xindex_path)
+     * @tparam EXT The type of the array extension (default: empty_extension)
+     *
+     * @param e The expression to initialize the chunked array from
+     * @param chunk_shape The shape of a chunk
+     * @param path The path to the chunk store
+     * @param pool_size The size of the chunk pool (default: 1)
+     * @param chunk_memory_layout The layout of each chunk (default: XTENSOR_DEFAULT_LAYOUT)
+     *
+     * @return returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` from the given expression, with the given chunk shape and memory layout.
+     */
     template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class E, class S>
     xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
     chunked_file_array(const xexpression<E>& e,
@@ -212,6 +279,22 @@ namespace xt
                        std::size_t pool_size = 1,
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
+    /**
+     * Creates a stored chunked array.
+     * This function returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` initialized from an expression.
+     *
+     * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
+     * @tparam L The layout_type of the array
+     * @tparam IP The type of the index-to-path transformer (default: xindex_path)
+     * @tparam EXT The type of the array extension (default: empty_extension)
+     *
+     * @param e The expression to initialize the chunked array from
+     * @param path The path to the chunk store
+     * @param pool_size The size of the chunk pool (default: 1)
+     * @param chunk_memory_layout The layout of each chunk (default: XTENSOR_DEFAULT_LAYOUT)
+     *
+     * @return returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` from the given expression, with the expression's chunk shape and the given memory layout.
+     */
     template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class E>
     xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
     chunked_file_array(const xexpression<E>& e,
