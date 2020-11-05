@@ -46,6 +46,7 @@ This software is licensed under the BSD-3-Clause license. See the LICENSE file f
 
    basic_usage
    xhighfive
+   stored_arrays
 
 .. toctree::
    :caption: API REFERENCE
