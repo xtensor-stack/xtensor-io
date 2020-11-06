@@ -7,6 +7,9 @@
 Stored Arrays
 =============
 
+File arrays
+-----------
+
 Arrays can be stored on a file system using ``xfile_array``, enabling
 persistence of data. This type of array is a file-backed cached ``xarray``,
 meaning that you can use it as a normal array, and it will be flushed to the
@@ -16,7 +19,7 @@ file system or Google Cloud Storage, and data can be stored in various formats,
 e.g. GZip or Blosc.
 
 File Mode
----------
+^^^^^^^^^
 
 A file array can be created using one of the three following file modes:
 
@@ -30,9 +33,35 @@ A file array can be created using one of the three following file modes:
 
 The default mode is ``load``.
 
-Example : on-disk file array
-----------------------------
+IO handler
+^^^^^^^^^^
 
+Stored arrays can be read and written to various file systems using an IO
+handler, which is a template parameter of ``xfile_array``. The following IO
+handlers are currently supported:
+
+- ``xio_disk_handler``: for accessing the local file system.
+- ``xio_gcs_handler``: for accessing Google Cloud Storage.
+
+The IO handler is itself templated by a file format.
+
+File format
+^^^^^^^^^^^
+
+An array is stored in a file system using a file format, which usually performs
+some kind of compression. A file format has the ability to store the data, and
+optionally the shape of the array. It can also optionally be configured. The
+following file formats are currently supported:
+
+- ``xio_binary_config``: raw binary format.
+- ``xio_gzip_config``: GZip format.
+- ``xio_blosc_config``: Blosc format.
+
+These formats currently only store the data, not the shape. GZip and Blosc
+formats are configurable, but not the binary format.
+
+Example : on-disk file array
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: cpp
 
@@ -64,13 +93,13 @@ Example : on-disk file array
         a2.resize(shape);
 
         // a1 and a2 are equal
-        assert(xt:all(xt::equal(a1, a2)));
+        assert(xt::all(xt::equal(a1, a2)));
 
         return 0;
     }
 
-Stored Chunked Arrays
----------------------
+Chunked File Arrays
+-------------------
 
 As for a "normal" array, a chunked array can be stored on a file system. Under
 the hood, it will use ``xfile_array`` to store the chunks. But rather than
@@ -79,7 +108,10 @@ only a limited number of file arrays are used at the same time in a chunk pool.
 The container which is responsible for managing the chunk pool (i.e. map
 logical chunks in the array to physical chunks in the pool) is the
 ``xchunk_store_manager``, but you should not use it directly. Instead, we
-provide factory functions to create a stored chunked array, as shown below:
+provide factory functions to create a chunked file array, as shown below:
+
+Example : on-disk chunked file array
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: cpp
 
@@ -105,5 +137,6 @@ provide factory functions to create a stored chunked array, as shown below:
         a1(0, 0) = 5.6;  // because the pool is full, this saves chunk (1, 0) to disk
                          // and assigns to chunk (0, 0) in memory
         // when a1 is destroyed, all the modified chunks are saved to disk
-        // this can be forced with a1.chunks().flush()
+        // here, only chunks (0, 1) and (0, 0) are saved, since chunk (1, 0) was not changed
+        // flushing can be triggered manually by calling a1.chunks().flush()
     }
