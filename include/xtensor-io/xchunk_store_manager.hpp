@@ -77,11 +77,12 @@ namespace xt
      *
      * The xchunk_store_manager class implements a multidimensional chunk container.
      * Chunks are managed in a pool, allowing for a limited number of chunks
-     * that can simultaneously be hold in memory.
+     * that can simultaneously be hold in memory, by swapping chunks when the pool
+     * is full. Should not be used directly, instead use chunked_file_array factory
+     * functions.
      *
      * @tparam EC The type of a chunk (e.g. xfile_array)
      * @tparam IP The type of the index-to-path transformer (default: xindex_path)
-     * @sa xfile_array, xchunked_array, chunked_array, chunked_file_array
      */
     template <class EC, class IP = xindex_path>
     class xchunk_store_manager: public xaccessible<xchunk_store_manager<EC, IP>>,
@@ -200,7 +201,7 @@ namespace xt
     };
 
     /**
-     * Creates a stored chunked array.
+     * Creates a chunked file array.
      * This function returns an uninitialized ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>``.
      *
      * @tparam T The type of the elements (e.g. double)
@@ -226,8 +227,8 @@ namespace xt
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
     /**
-     * Creates a stored chunked array.
-     * This function returns a uninitialized ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>``.
+     * Creates a chunked file array.
+     * This function returns an uninitialized ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>``.
      *
      * @tparam T The type of the elements (e.g. double)
      * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
@@ -254,7 +255,7 @@ namespace xt
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
     /**
-     * Creates a stored chunked array.
+     * Creates a chunked file array.
      * This function returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` initialized from an expression.
      *
      * @tparam T The type of the elements (e.g. double)
@@ -280,7 +281,7 @@ namespace xt
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
     /**
-     * Creates a stored chunked array.
+     * Creates a chunked file array.
      * This function returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` initialized from an expression.
      *
      * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)

@@ -113,7 +113,7 @@ namespace xt
      *
      * @tparam E The type of the container holding the elements
      * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
-     * @sa chunked_file_array, xchunk_store_manager
+     * @sa xchunk_store_manager
      */
     template <class E, class IOH>
     class xfile_array_container : public xaccessible<xfile_array_container<E, IOH>>,
