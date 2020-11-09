@@ -214,8 +214,8 @@ namespace xt
 
     struct xio_gzip_config
     {
-        const char* name;
-        const char* version;
+        std::string name;
+        std::string version;
         bool big_endian;
         int level;
 

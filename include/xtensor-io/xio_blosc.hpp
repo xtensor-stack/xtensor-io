@@ -187,13 +187,13 @@ namespace xt
 
     struct xio_blosc_config
     {
-        const char* name;
-        const char* version;
+        std::string name;
+        std::string version;
         bool big_endian;
         int clevel;
         int shuffle;
-        const char* cname;
-        const std::size_t blocksize;
+        std::string cname;
+        std::size_t blocksize;
 
         xio_blosc_config()
             : name("blosc")
@@ -220,7 +220,7 @@ namespace xt
         {
             clevel = j["clevel"];
             shuffle = j["shuffle"];
-            cname = j["cname"];
+            cname = std::string(j["cname"]);
             blocksize = j["blocksize"];
         }
 
@@ -249,7 +249,7 @@ namespace xt
     template <class E>
     void dump_file(std::ostream& stream, const xexpression<E> &e, const xio_blosc_config& config)
     {
-        dump_blosc(stream, e, config.big_endian, config.clevel, config.shuffle, config.cname, config.blocksize);
+        dump_blosc(stream, e, config.big_endian, config.clevel, config.shuffle, config.cname.c_str(), config.blocksize);
     }
 }  // namespace xt
 

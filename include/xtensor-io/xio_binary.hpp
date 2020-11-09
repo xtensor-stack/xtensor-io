@@ -143,8 +143,8 @@ namespace xt
 
     struct xio_binary_config
     {
-        const char* name;
-        const char* version;
+        std::string name;
+        std::string version;
         bool big_endian;
 
         xio_binary_config()
