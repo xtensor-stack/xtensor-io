@@ -53,13 +53,14 @@ message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 set(XTENSOR_IO_HEADERS
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xaudio.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xchunk_store_manager.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_disk_handler.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xfile_array.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xgdal.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xhighfive.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_binary.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_blosc.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_disk_handler.hpp
+  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gcs_handler.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gzip.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
   ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor-io.hpp
