@@ -42,8 +42,8 @@ message(STATUS "Building xtensor-io v${${PROJECT_NAME}_VERSION}")
 # Dependencies
 # ============
 
-find_package(xtensor 0.21.2 REQUIRED)
-find_package(xtl 0.6.9 REQUIRED)
+set (xtensor_REQUIRED_VERSION 0.21.9)
+find_package(xtensor ${xtensor_REQUIRED_VERSION} REQUIRED)
 
 message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 
