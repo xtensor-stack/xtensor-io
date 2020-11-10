@@ -2,7 +2,7 @@ name: xtensor-io
 channels:
   - conda-forge
 dependencies:
-  - xtensor-io=0.9.0
+  - xtensor-io=0.10.0
   - xeus-cling=0.5.1
   - xwidgets=0.17.0
   - ffmpeg=3.4.2  # openimageio is being added as a runtime requirement to xtensor-io
