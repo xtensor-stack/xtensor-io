@@ -212,6 +212,28 @@ else()
   message(WARNING "Google Cloud Storage not found - install google-cloud-cpp for GCS IO handler support")
 endif()
 
+if (NOT DEFINED BUILD_SHARED_LIBS)
+  set (BUILD_SHARED_LIBS ON)
+  find_package(AWSSDK REQUIRED COMPONENTS s3)
+  unset (BUILD_SHARED_LIBS)
+else ()
+  find_package(AWSSDK REQUIRED COMPONENTS s3)
+endif ()
+message(STATUS "Trying to find AWS SDK for AWS S3 IO handler support")
+if(${AWSSDK_FOUND})
+  message(STATUS "AWSSDK ${AWSSDK_VERSION} found, AWS S3 IO handler support enabled")
+  target_include_directories(xtensor-io
+      INTERFACE
+      ${AWSSDK_INCLUDE_DIRS}
+  )
+  target_link_libraries(xtensor-io
+      INTERFACE
+      ${AWSSDK_LINK_LIBRARIES}
+  )
+else()
+  message(WARNING "AWSSDK not found - install aws-sdk-cpp for AWS S3 IO handler support")
+endif()
+
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
 endif()
