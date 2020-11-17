@@ -145,6 +145,9 @@ namespace xt
 
         xfile_array_container(const std::string& path, xfile_mode mode=xfile_mode::load);
 
+        template <class IOC>
+        xfile_array_container(const std::string& path, IOC& io_config, xfile_mode mode=xfile_mode::load);
+
         xfile_array_container(const std::string& path, xfile_mode mode, const value_type& init_value);
 
         ~xfile_array_container();
@@ -382,6 +385,19 @@ namespace xt
         , m_file_mode(file_mode)
         , m_init(false)
     {
+        set_path(path);
+    }
+
+    template <class E, class IOH>
+    template <class IOC>
+    inline xfile_array_container<E, IOH>::xfile_array_container(const std::string& path, IOC& io_config, xfile_mode file_mode)
+        : m_storage()
+        , m_dirty(false)
+        , m_io_handler()
+        , m_file_mode(file_mode)
+        , m_init(false)
+    {
+        m_io_handler.configure_io(io_config);
         set_path(path);
     }
 

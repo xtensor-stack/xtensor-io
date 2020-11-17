@@ -35,7 +35,7 @@ install:
     # Install mamba
     - conda install mamba -c conda-forge
     # Install host dependencies
-    - mamba install openimageio=2.1.10 libsndfile=1.0.28 zlib=1.2.11 highfive=2.1.1 blosc gdal nlohmann_json google-cloud-cpp=1.19.0 xtensor=0.21.9 cpp-filesystem -c conda-forge
+    - mamba install openimageio=2.1.10 libsndfile=1.0.28 zlib=1.2.11 highfive=2.1.1 blosc gdal nlohmann_json google-cloud-cpp=1.19.0 aws-sdk-cpp xtensor=0.21.9 cpp-filesystem -c conda-forge
     - mamba install ffmpeg=4.1.3 -c conda-forge  # openimageio is missing ffmpedg as a runtime requirement
     # Install build dependencies
     - mamba install cmake -c conda-forge
