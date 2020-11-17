@@ -26,15 +26,20 @@ namespace xt
         xio_aws_handler();
 
         template <class E>
-        void write(const xexpression<E>& expression, const Aws::String& path, xfile_dirty dirty);
+        void write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty);
 
         template <class ET>
-        void read(ET& array, const Aws::String& path);
+        void read(ET& array, const std::string& path);
 
         void configure(const C& format_config, const xio_aws_config& io_config);
         void configure_io(const xio_aws_config& io_config);
 
     private:
+        template <class E>
+        void write(const xexpression<E>& expression, const char* path, xfile_dirty dirty);
+
+        template <class ET>
+        void read(ET& array, const char* path);
 
         C m_format_config;
         Aws::S3::S3Client m_client;
@@ -48,16 +53,24 @@ namespace xt
 
     template <class C>
     template <class E>
-    inline void xio_aws_handler<C>::write(const xexpression<E>& expression, const Aws::String& path, xfile_dirty dirty)
+    inline void xio_aws_handler<C>::write(const xexpression<E>& expression, const std::string& path, xfile_dirty dirty)
+    {
+        write(expression, path.c_str(), dirty);
+    }
+
+    template <class C>
+    template <class E>
+    inline void xio_aws_handler<C>::write(const xexpression<E>& expression, const char* path, xfile_dirty dirty)
     {
         if (m_format_config.will_dump(dirty))
         {
+            Aws::String path2 = path;
             Aws::S3::Model::PutObjectRequest request;
             request.SetBucket(m_bucket);
-            request.SetKey(path);
+            request.SetKey(path2);
 
-            std::shared_ptr<Aws::IOStream> writer = Aws::MakeShared<Aws::FStream>("SampleAllocationTag", path.c_str(), std::ios_base::in | std::ios_base::binary);
-            dump_file(writer, expression, m_format_config);
+            std::shared_ptr<Aws::IOStream> writer = Aws::MakeShared<Aws::FStream>("SampleAllocationTag", path, std::ios_base::in | std::ios_base::binary);
+            dump_file(*writer, expression, m_format_config);
 
             request.SetBody(writer);
 
@@ -73,11 +86,19 @@ namespace xt
 
     template <class C>
     template <class ET>
-    inline void xio_aws_handler<C>::read(ET& array, const Aws::String& path)
+    inline void xio_aws_handler<C>::read(ET& array, const std::string& path)
     {
+        read(array, path.c_str());
+    }
+
+    template <class C>
+    template <class ET>
+    inline void xio_aws_handler<C>::read(ET& array, const char* path)
+    {
+        Aws::String path2 = path;
         Aws::S3::Model::GetObjectRequest request;
         request.SetBucket(m_bucket);
-        request.SetKey(path);
+        request.SetKey(path2);
 
         Aws::S3::Model::GetObjectOutcome outcome = m_client.GetObject(request);
 
