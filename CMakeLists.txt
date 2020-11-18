@@ -42,7 +42,7 @@ message(STATUS "Building xtensor-io v${${PROJECT_NAME}_VERSION}")
 # Dependencies
 # ============
 
-set (xtensor_REQUIRED_VERSION 0.21.9)
+set (xtensor_REQUIRED_VERSION 0.21.10)
 find_package(xtensor ${xtensor_REQUIRED_VERSION} REQUIRED)
 
 message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
@@ -51,20 +51,20 @@ message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 # =====
 
 set(XTENSOR_IO_HEADERS
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xaudio.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xchunk_store_manager.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xfile_array.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xgdal.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xhighfive.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_binary.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_blosc.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_disk_handler.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gcs_handler.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gzip.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor-io.hpp
-  ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xaudio.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xchunk_store_manager.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xfile_array.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xgdal.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xhighfive.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_binary.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_blosc.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_disk_handler.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gcs_handler.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gzip.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor-io.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
 )
 
 OPTION(BUILD_TESTS "xtensor-io test suite" OFF)
@@ -79,14 +79,13 @@ add_library(xtensor-io INTERFACE)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 target_include_directories(xtensor-io
-  INTERFACE
+    INTERFACE
     $<BUILD_INTERFACE:${XTENSOR_IO_INCLUDE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(xtensor-io
-  INTERFACE
-    xtl
+    INTERFACE
     xtensor
 )
 
@@ -99,15 +98,15 @@ if (${OIIO_FOUND})
   message(STATUS "OpenImageIO found, image file support enabled")
   include_directories(${OIIO_INCLUDE_DIRS})
   target_include_directories(xtensor-io
-    INTERFACE
+      INTERFACE
       $<BUILD_INTERFACE:${OIIO_INCLUDE_DIRS}>
   )
   target_link_libraries(xtensor-io
-    INTERFACE
+      INTERFACE
       ${OIIO_LIBRARIES}
   )
 else()
-  message(WARNING "OpenImageIO not found - install OpenImageIO for image support")
+    message(WARNING "OpenImageIO not found - install OpenImageIO for image support")
 endif()
 
 message(STATUS "Trying to find SndFile for xaudio support")
@@ -116,15 +115,15 @@ if (${LIBSNDFILE_FOUND})
   message(STATUS "SndFile found, audio file support enabled")
   include_directories(${LIBSNDFILE_INCLUDE_DIRS})
   target_include_directories(xtensor-io
-    INTERFACE
+      INTERFACE
       $<BUILD_INTERFACE:${LIBSNDFILE_INCLUDE_DIRS}>
   )
   target_link_libraries(xtensor-io
-    INTERFACE
+      INTERFACE
       ${LIBSNDFILE_LIBRARIES}
   )
 else()
-  message(WARNING "SndFile (libsndfile) not found - install libsndfile for audio support")
+    message(WARNING "SndFile (libsndfile) not found - install libsndfile for audio support")
 endif()
 
 message(STATUS "Trying to find ZLIB for npz file support")
@@ -133,15 +132,15 @@ if (${ZLIB_FOUND})
   message(STATUS "ZLIB found, npz file support enabled")
   include_directories(${ZLIB_INCLUDE_DIRS})
   target_include_directories(xtensor-io
-    INTERFACE
-    $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>
+      INTERFACE
+      $<BUILD_INTERFACE:${ZLIB_INCLUDE_DIRS}>
   )
   target_link_libraries(xtensor-io
-    INTERFACE
+      INTERFACE
       ${ZLIB_LIBRARIES}
   )
 else()
-  message(WARNING "ZLIB not found - install zlib for xnpz file support")
+    message(WARNING "ZLIB not found - install zlib for xnpz file support")
 endif()
 
 message(STATUS "Trying to find HighFive for npz file support")
@@ -152,11 +151,11 @@ if (${HighFive_FOUND} AND ${HDF5_FOUND})
   find_package(HDF5 REQUIRED)
   get_target_property(HighFive_INCLUDE_DIRECTORIES_EXTRACTED HighFive INTERFACE_INCLUDE_DIRECTORIES)
   target_include_directories(xtensor-io
-    INTERFACE
+      INTERFACE
       ${HighFive_INCLUDE_DIRECTORIES_EXTRACTED}
   )
   target_link_libraries(xtensor-io
-    INTERFACE
+      INTERFACE
       ${HDF5_LIBRARIES}
   )
 else()
@@ -169,15 +168,15 @@ if (${Blosc_FOUND})
   message(STATUS "Blosc found, Blosc file support enabled")
   include_directories(${Blosc_INCLUDE_DIRS})
   target_include_directories(xtensor-io
-    INTERFACE
-    $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
+      INTERFACE
+      $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
   )
   target_link_libraries(xtensor-io
-    INTERFACE
+      INTERFACE
       ${Blosc_LIBRARIES}
   )
 else()
-  message(WARNING "Blosc not found - install blosc for Blosc file support")
+    message(WARNING "Blosc not found - install blosc for Blosc file support")
 endif()
 
 message(STATUS "Trying to find GDAL for geospatial raster file support")
@@ -185,11 +184,11 @@ find_package(GDAL)
 if(${GDAL_FOUND})
   message(STATUS "GDAL ${GDAL_VERSION} found, geospatial raster file support enabled")
   target_include_directories(xtensor-io
-    INTERFACE
+      INTERFACE
       ${GDAL_INCLUDE_DIRS}
   )
   target_link_libraries(xtensor-io
-    INTERFACE
+      INTERFACE
       ${GDAL_LIBRARIES}
   )
 else()
