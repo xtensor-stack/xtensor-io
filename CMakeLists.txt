@@ -59,6 +59,7 @@ set(XTENSOR_IO_HEADERS
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/ximage.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_binary.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_blosc.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_aws_handler.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_disk_handler.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gcs_handler.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gzip.hpp
