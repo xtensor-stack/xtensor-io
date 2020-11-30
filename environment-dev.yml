@@ -1,4 +1,4 @@
-name: xtensor
+name: xtensor-io
 channels:
   - conda-forge
 dependencies:
