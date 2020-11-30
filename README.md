@@ -1,6 +1,6 @@
 # ![xtensor-io](docs/source/xtensor-io.svg)
 
-[![Travis](https://travis-ci.org/xtensor-stack/xtensor-io.svg?branch=master)](https://travis-ci.org/xtensor-stack/xtensor-io)
+[![Azure Pipelines](https://dev.azure.com/xtensor-stack/xtensor-stack/_apis/build/status/xtensor-stack.xtensor-io?branchName=master)](https://dev.azure.com/xtensor-stack/xtensor-stack/_build/latest?definitionId=8&branchName=master)
 [![ReadTheDocs](https://readthedocs.org/projects/xtensor-io/badge/?version=stable)](http://xtensor-io.readthedocs.io/en/stable/)
 [![Binder](https://img.shields.io/badge/launch-binder-brightgreen.svg)](https://mybinder.org/v2/gh/xtensor-stack/xtensor-io/stable?filepath=notebooks%2Fdemo.ipynb)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
