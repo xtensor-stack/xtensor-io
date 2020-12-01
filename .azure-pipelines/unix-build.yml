@@ -26,16 +26,16 @@ steps:
     workingDirectory: $(Build.BinariesDirectory)
 
   - script: |
-      source activate xtenso-io
+      source activate xtensor-io
       make -j2 test_xtensor_io_lib
       make -j2 test_xtensor_io_ho
-    displayName: Build xtenso-io
+    displayName: Build xtensor-io
     workingDirectory: $(Build.BinariesDirectory)/build
 
   - script: |
-      source activate xtenso-io
+      source activate xtensor-io
       ./test_xtensor_io_lib
       ./test_xtensor_io_ho
-    displayName: Test xtenso-io
+    displayName: Test xtensor-io
     workingDirectory: $(Build.BinariesDirectory)/build/test
 
