@@ -6,13 +6,13 @@ dependencies:
   - cmake
   # Host dependencies
   - openimageio=2.2.7
-  - libsndfile=1.0.28
+  - libsndfile=1.0.30
   - zlib=1.2.11
   - highfive=2.1.1 
   - blosc
-  - gdal 
+  - gdal
   - nlohmann_json
-  - google-cloud-cpp=1.19.0
+  - google-cloud-cpp=1.21.0
   - aws-sdk-cpp
   - xtensor=0.21.10
   - cpp-filesystem
