@@ -5,7 +5,7 @@ dependencies:
   # Build dependencies
   - cmake
   # Host dependencies
-  - openimageio=2.1.10
+  - openimageio=2.2.7
   - libsndfile=1.0.28
   - zlib=1.2.11
   - highfive=2.1.1 
