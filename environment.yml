@@ -4,7 +4,7 @@ channels:
 dependencies:
   - xtensor-io=0.10.3
   - xeus-cling=0.10.0
-  - xwidgets=0.24.1
+  - xwidgets=0.24.2
   - ffmpeg=4.3.1
   - widgetsnbextension
   - cling=0.7.0=*_3  # Require build of cling with gcc 9.3
