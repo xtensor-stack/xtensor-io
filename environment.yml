@@ -4,6 +4,7 @@ channels:
 dependencies:
   - xtensor-io=0.10.3
   - xeus-cling=0.10.0
-  - xwidgets=0.24.0
-  - ffmpeg=3.4.2  # openimageio is being added as a runtime requirement to xtensor-io
+  - xwidgets=0.24.1
+  - ffmpeg=4.3.1
   - widgetsnbextension
+  - cling=0.7.0=*_3  # Require build of cling with gcc 9.3
