@@ -10,8 +10,6 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
 
 ## Introduction
 
-**xtensor-io is an early developer preview, and is not suitable for general usage yet. Features and implementation are subject to change.**
-
 `xtensor-io` offers an API to read and write various file formats into `xtensor` data structures:
 
  - images,
