@@ -20,10 +20,33 @@ namespace xt
 {
     namespace detail
     {
-        template <typename T>
-        inline xt::svector<T> load_bin_file(std::istream& stream, bool as_big_endian)
+        // load_bin "overload" for file-like objects
+        // we check that `fclose` can be called on them!
+        template<typename T, class I>
+        auto load_bin_imp(I& file, std::string& buffer)
+            -> decltype(fclose(file), void())
         {
-            std::string buffer{std::istreambuf_iterator<char>{stream}, {}};
+            fseek(file, 0, SEEK_END);
+            std::size_t size = ftell(file);
+            buffer.resize(size);
+            rewind(file);
+            fread(&buffer[0], 1, size, file);
+        }
+
+        // load_bin "overload" for stream-like objects
+        // we check that they have a `tellg` method!
+        template<typename T, class I>
+        auto load_bin_imp(I& stream, std::string& buffer)
+            -> decltype(stream.tellg(), void())
+        {
+            buffer = {std::istreambuf_iterator<char>{stream}, {}};
+        }
+
+        template <typename T, class I>
+        inline xt::svector<T> load_bin(I& stream, bool as_big_endian)
+        {
+            std::string buffer;
+            load_bin_imp<T>(stream, buffer);
             std::size_t uncompressed_size = buffer.size() / sizeof(T);
             xt::svector<T> uncompressed_buffer(uncompressed_size);
             std::copy((const T*)(buffer.data()), (const T*)(buffer.data()) + uncompressed_size, uncompressed_buffer.begin());
@@ -34,8 +57,28 @@ namespace xt
             return uncompressed_buffer;
         }
 
+        // dump_bin "overload" for file-like objects
+        // we check that `fclose` can be called on them!
+        template <class O>
+        auto dump_bin_imp(O& file, const char* uncompressed_buffer, std::size_t uncompressed_size)
+            -> decltype(fclose(file), void())
+        {
+            fwrite(uncompressed_buffer, 1, uncompressed_size, file);
+            fflush(file);
+        }
+
+        // dump_bin "overload" for stream-like objects
+        // we check that they have a `tellp` method!
+        template <class O>
+        auto dump_bin_imp(O& stream, const char* uncompressed_buffer, std::size_t uncompressed_size)
+            -> decltype(stream.tellp(), void())
+        {
+            stream.write(uncompressed_buffer, std::streamsize(uncompressed_size));
+            stream.flush();
+        }
+
         template <class O, class E>
-        inline void dump_bin_stream(O& stream, const xexpression<E>& e, bool as_big_endian)
+        inline void dump_bin(O& stream, const xexpression<E>& e, bool as_big_endian)
         {
             using value_type = typename E::value_type;
             const E& ex = e.derived_cast();
@@ -56,10 +99,15 @@ namespace xt
             {
                 uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
             }
-            stream.write(uncompressed_buffer, std::streamsize(uncompressed_size));
-            stream.flush();
+            dump_bin_imp(stream, uncompressed_buffer, uncompressed_size);
         }
     }  // namespace detail
+
+    template <typename E, class O>
+    inline void dump_bin(O& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian())
+    {
+        detail::dump_bin(stream, e, as_big_endian);
+    }
 
     /**
      * Save xexpression to binary format
@@ -68,9 +116,9 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_bin(std::ostream& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian())
+    inline void dump_bin(std::ofstream& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian())
     {
-        detail::dump_bin_stream(stream, e, as_big_endian);
+        detail::dump_bin(stream, e, as_big_endian);
     }
 
     /**
@@ -87,7 +135,7 @@ namespace xt
         {
             std::runtime_error("IO Error: failed to open file");
         }
-        detail::dump_bin_stream(stream, e, as_big_endian);
+        detail::dump_bin(stream, e, as_big_endian);
     }
 
     /**
@@ -99,7 +147,7 @@ namespace xt
     inline std::string dump_bin(const xexpression<E>& e, bool as_big_endian=is_big_endian())
     {
         std::stringstream stream;
-        detail::dump_bin_stream(stream, e, as_big_endian);
+        detail::dump_bin(stream, e, as_big_endian);
         return stream.str();
     }
 
@@ -112,10 +160,10 @@ namespace xt
      *           Fortran format
      * @return xarray with contents from binary file
      */
-    template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_bin(std::istream& stream, bool as_big_endian=is_big_endian())
+    template <typename T, layout_type L = layout_type::dynamic, class I>
+    inline auto load_bin(I& stream, bool as_big_endian=is_big_endian())
     {
-        xt::svector<T> uncompressed_buffer = detail::load_bin_file<T>(stream, as_big_endian);
+        xt::svector<T> uncompressed_buffer = detail::load_bin<T>(stream, as_big_endian);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
@@ -170,8 +218,8 @@ namespace xt
         }
     };
 
-    template <class E>
-    void load_file(std::istream& stream, xexpression<E>& e, const xio_binary_config& config)
+    template <class E, class I>
+    void load_file(I& stream, xexpression<E>& e, const xio_binary_config& config)
     {
         E& ex = e.derived_cast();
         auto shape = ex.shape();
@@ -186,8 +234,8 @@ namespace xt
         }
     }
 
-    template <class E>
-    void dump_file(std::ostream& stream, const xexpression<E> &e, const xio_binary_config& config)
+    template <class E, class O>
+    void dump_file(O& stream, const xexpression<E> &e, const xio_binary_config& config)
     {
         dump_bin(stream, e, config.big_endian);
     }

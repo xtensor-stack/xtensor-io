@@ -13,18 +13,36 @@
 
 namespace xt
 {
-    TEST(xio_binary, dump_load)
+    TEST(xio_binary, dump_load_stream)
     {
         xtensor<double, 2> data
             {{ 1.0,  2.0,  3.0,  4.0},
              {10.0, 12.0, 15.0, 18.0}};
 
-        const char* fname = "data.bin";
+        const char* fname = "data_stream.bin";
         std::ofstream out_file(fname, std::ofstream::binary);
         dump_file(out_file, data, xio_binary_config());
 
         xarray<double> a;
         std::ifstream in_file(fname, std::ifstream::binary);
+        load_file(in_file, a, xio_binary_config());
+        a.reshape({2, 4});
+
+        ASSERT_TRUE(all(equal(a, data)));
+    }
+
+    TEST(xio_binary, dump_load_file)
+    {
+        xtensor<double, 2> data
+            {{ 1.0,  2.0,  3.0,  4.0},
+             {10.0, 12.0, 15.0, 18.0}};
+
+        const char* fname = "data_file.bin";
+        FILE* out_file = fopen(fname, "wb");
+        dump_file(out_file, data, xio_binary_config());
+
+        xarray<double> a;
+        FILE* in_file = fopen(fname, "rb");
         load_file(in_file, a, xio_binary_config());
         a.reshape({2, 4});
 

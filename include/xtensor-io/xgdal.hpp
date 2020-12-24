@@ -46,7 +46,7 @@ namespace xt
     }
 
     /**
-     * Get a band interleaved by yixel layout; index order = [row, column, band].
+     * Get a band interleaved by pixel layout; index order = [row, column, band].
      */
     inline layout layout_band_interleaved_pixel()
     {
@@ -346,7 +346,7 @@ namespace xt
         std::string driver_name;
 
         /**
-         * Options passed to to GDAL when the dataset is created (like COMPRESS=JPEG).
+         * Options passed to GDAL when the dataset is created (like COMPRESS=JPEG).
          */
         std::vector<std::string> creation_options;
 
