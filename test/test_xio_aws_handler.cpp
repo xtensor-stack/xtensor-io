@@ -12,7 +12,6 @@
 #include <exception>
 
 #include "gtest/gtest.h"
-#include "xtensor/xview.hpp"
 #include "xtensor-io/xfile_array.hpp"
 #include "xtensor-io/xio_binary.hpp"
 #include "xtensor-io/xio_aws_handler.hpp"
@@ -33,8 +32,9 @@ namespace xt
         xarray<char> a0;
         std::string path = "main.js";
         h.read(a0, path);
-        xarray<char> a1 = {'/', '*', 'j', 's', 'l', 'i', 'n', 't', ' ', 'b', 'r' ,'o', 'w', 's', 'e', 'r', ':', ' ', 't', 'r', 'u', 'e', '*', '/'};
-        EXPECT_TRUE(xt::all(xt::equal(xt::view(a0, xt::range(0, 24)), a1)));
+        std::string ref = "/*jslint browser: true*/";
+        std::string res = a0.data();
+        EXPECT_EQ(ref, res.substr(0, ref.size()));
 
         Aws::ShutdownAPI(options);
     }
@@ -47,9 +47,11 @@ namespace xt
         Aws::S3::S3Client client;
         xio_aws_config c = {client, "elevation-tiles-prod"};
         xfile_array<char, xio_aws_handler<xio_binary_config>> a0("main.js", c);
+        xarray<char> a1 = a0;
 
-        xarray<char> a1 = {'/', '*', 'j', 's', 'l', 'i', 'n', 't', ' ', 'b', 'r' ,'o', 'w', 's', 'e', 'r', ':', ' ', 't', 'r', 'u', 'e', '*', '/'};
-        EXPECT_TRUE(xt::all(xt::equal(xt::view(a0, xt::range(0, 24)), a1)));
+        std::string ref = "/*jslint browser: true*/";
+        std::string res = a1.data();
+        EXPECT_EQ(ref, res.substr(0, ref.size()));
 
         Aws::ShutdownAPI(options);
     }

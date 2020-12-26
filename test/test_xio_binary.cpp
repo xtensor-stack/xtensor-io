@@ -10,6 +10,8 @@
 #include "gtest/gtest.h"
 
 #include "xtensor-io/xio_binary.hpp"
+#include "xtensor-io/xio_stream_wrapper.hpp"
+#include "xtensor-io/xio_file_wrapper.hpp"
 
 namespace xt
 {
@@ -21,11 +23,13 @@ namespace xt
 
         const char* fname = "data_stream.bin";
         std::ofstream out_file(fname, std::ofstream::binary);
-        dump_file(out_file, data, xio_binary_config());
+        auto o = xt::xostream_wrapper(out_file);
+        dump_file(o, data, xio_binary_config());
 
         xarray<double> a;
         std::ifstream in_file(fname, std::ifstream::binary);
-        load_file(in_file, a, xio_binary_config());
+        auto i = xt::xistream_wrapper(in_file);
+        load_file(i, a, xio_binary_config());
         a.reshape({2, 4});
 
         ASSERT_TRUE(all(equal(a, data)));
@@ -39,11 +43,13 @@ namespace xt
 
         const char* fname = "data_file.bin";
         FILE* out_file = fopen(fname, "wb");
-        dump_file(out_file, data, xio_binary_config());
+        auto o = xt::xfile_wrapper(out_file);
+        dump_file(o, data, xio_binary_config());
 
         xarray<double> a;
         FILE* in_file = fopen(fname, "rb");
-        load_file(in_file, a, xio_binary_config());
+        auto i = xt::xfile_wrapper(in_file);
+        load_file(i, a, xio_binary_config());
         a.reshape({2, 4});
 
         ASSERT_TRUE(all(equal(a, data)));

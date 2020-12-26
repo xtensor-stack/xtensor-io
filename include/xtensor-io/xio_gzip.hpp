@@ -17,6 +17,7 @@
 #include "xtensor/xadapt.hpp"
 #include "xtensor-io.hpp"
 #include "xfile_array.hpp"
+#include "xio_stream_wrapper.hpp"
 
 #define GZIP_CHUNK 0x4000
 #define GZIP_WINDOWBITS 15
@@ -27,8 +28,8 @@ namespace xt
 {
     namespace detail
     {
-        template <typename T>
-        inline xt::svector<T> load_gzip_file(std::istream& stream, bool as_big_endian)
+        template <typename T, class I>
+        inline xt::svector<T> load_gzip(I& stream, bool as_big_endian)
         {
             xt::svector<T> uncompressed_buffer;
             z_stream zs = {0};
@@ -88,7 +89,7 @@ namespace xt
         }
 
         template <class O, class E>
-        inline void dump_gzip_stream(O& stream, const xexpression<E>& e, bool as_big_endian, int level)
+        inline void dump_gzip(O& stream, const xexpression<E>& e, bool as_big_endian, int level)
         {
             using value_type = typename E::value_type;
             const E& ex = e.derived_cast();
@@ -138,10 +139,17 @@ namespace xt
      * @param stream An output stream to which to dump the data
      * @param e the xexpression
      */
+    template <typename E, class O>
+    inline void dump_gzip(O& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
+    {
+        detail::dump_gzip(stream, e, as_big_endian, level);
+    }
+
     template <typename E>
     inline void dump_gzip(std::ostream& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
     {
-        detail::dump_gzip_stream(stream, e, as_big_endian, level);
+        auto s = xostream_wrapper(stream);
+        detail::dump_gzip(s, e, as_big_endian, level);
     }
 
     /**
@@ -151,14 +159,21 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_gzip(const std::string& filename, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
+    inline void dump_gzip(const char* filename, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
     {
         std::ofstream stream(filename, std::ofstream::binary);
         if (!stream.is_open())
         {
             std::runtime_error("IO Error: failed to open file");
         }
-        detail::dump_gzip_stream(stream, e, as_big_endian, level);
+        auto s = xostream_wrapper(stream);
+        detail::dump_gzip(s, e, as_big_endian, level);
+    }
+
+    template <typename E>
+    inline void dump_gzip(const std::string& filename, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
+    {
+        dump_gzip<E>(filename.c_str(), e, as_big_endian, level);
     }
 
     /**
@@ -170,7 +185,8 @@ namespace xt
     inline std::string dump_gzip(const xexpression<E>& e, bool as_big_endian=is_big_endian(), int level=1)
     {
         std::stringstream stream;
-        detail::dump_gzip_stream(stream, e, as_big_endian, level);
+        auto s = xostream_wrapper(stream);
+        detail::dump_gzip(s, e, as_big_endian, level);
         return stream.str();
     }
 
@@ -183,10 +199,10 @@ namespace xt
      *           Fortran format
      * @return xarray with contents from GZIP file
      */
-    template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_gzip(std::istream& stream, bool as_big_endian=is_big_endian())
+    template <typename T, layout_type L = layout_type::dynamic, class I>
+    inline auto load_gzip(I& stream, bool as_big_endian=is_big_endian())
     {
-        xt::svector<T> uncompressed_buffer = detail::load_gzip_file<T>(stream, as_big_endian);
+        xt::svector<T> uncompressed_buffer = detail::load_gzip<T>(stream, as_big_endian);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
@@ -202,14 +218,21 @@ namespace xt
      * @return xarray with contents from GZIP file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_gzip(const std::string& filename, bool as_big_endian=is_big_endian())
+    inline auto load_gzip(const char* filename, bool as_big_endian=is_big_endian())
     {
         std::ifstream stream(filename, std::ifstream::binary);
         if (!stream.is_open())
         {
-            std::runtime_error("load_gzip: failed to open file " + filename);
+            std::runtime_error(std::string("load_gzip: failed to open file ") + filename);
         }
-        return load_gzip<T, L>(stream, as_big_endian);
+        auto s = xistream_wrapper(stream);
+        return load_gzip<T, L>(s, as_big_endian);
+    }
+
+    template <typename T, layout_type L = layout_type::dynamic>
+    inline auto load_gzip(const std::string& filename, bool as_big_endian=is_big_endian())
+    {
+        return load_gzip<T, L>(filename.c_str(), as_big_endian);
     }
 
     struct xio_gzip_config
@@ -245,8 +268,8 @@ namespace xt
         }
     };
 
-    template <class E>
-    void load_file(std::istream& stream, xexpression<E>& e, const xio_gzip_config& config)
+    template <class E, class I>
+    void load_file(I& stream, xexpression<E>& e, const xio_gzip_config& config)
     {
         E& ex = e.derived_cast();
         auto shape = ex.shape();
@@ -261,8 +284,8 @@ namespace xt
         }
     }
 
-    template <class E>
-    void dump_file(std::ostream& stream, const xexpression<E> &e, const xio_gzip_config& config)
+    template <class E, class O>
+    void dump_file(O& stream, const xexpression<E> &e, const xio_gzip_config& config)
     {
         dump_gzip(stream, e, config.big_endian, config.level);
     }

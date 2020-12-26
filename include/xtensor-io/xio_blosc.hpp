@@ -16,6 +16,7 @@
 #include "xtensor-io.hpp"
 #include "xfile_array.hpp"
 #include "blosc.h"
+#include "xio_stream_wrapper.hpp"
 
 namespace xt
 {
@@ -31,11 +32,12 @@ namespace xt
             }
         }
 
-        template <typename T>
-        inline xt::svector<T> load_blosc_file(std::istream& stream, bool as_big_endian)
+        template <typename T, class I>
+        inline xt::svector<T> load_blosc(I& stream, bool as_big_endian)
         {
             init_blosc();
-            std::string compressed_buffer{std::istreambuf_iterator<char>{stream}, {}};
+            std::string compressed_buffer;
+            stream.read_all(compressed_buffer);
             auto compressed_size = compressed_buffer.size();
             std::size_t uncompressed_size = 0;
             int res = blosc_cbuffer_validate(compressed_buffer.data(), compressed_size, &uncompressed_size);
@@ -60,7 +62,7 @@ namespace xt
         }
 
         template <class O, class E>
-        inline void dump_blosc_stream(O& stream, const xexpression<E>& e, bool as_big_endian, int clevel, int shuffle, const char* cname, std::size_t blocksize)
+        inline void dump_blosc(O& stream, const xexpression<E>& e, bool as_big_endian, int clevel, int shuffle, const char* cname, std::size_t blocksize)
         {
             init_blosc();
             using value_type = typename E::value_type;
@@ -99,8 +101,8 @@ namespace xt
             {
                 XTENSOR_THROW(std::runtime_error, "Blosc: compression error");
             }
-            stream.write(compressed_buffer,
-                         std::streamsize(true_compressed_size));
+            stream.write(compressed_buffer, std::streamsize(true_compressed_size));
+            stream.flush();
             char_allocator.deallocate(compressed_buffer, max_compressed_size);
         }
     }  // namespace detail
@@ -111,10 +113,17 @@ namespace xt
      * @param stream An output stream to which to dump the data
      * @param e the xexpression
      */
+    template <typename E, class O>
+    inline void dump_blosc(O& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int clevel=5, int shuffle=1, const char* cname="blosclz", std::size_t blocksize=0)
+    {
+        detail::dump_blosc(stream, e, as_big_endian, clevel, shuffle, cname, blocksize);
+    }
+
     template <typename E>
     inline void dump_blosc(std::ostream& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int clevel=5, int shuffle=1, const char* cname="blosclz", std::size_t blocksize=0)
     {
-        detail::dump_blosc_stream(stream, e, as_big_endian, clevel, shuffle, cname, blocksize);
+        auto s = xostream_wrapper(stream);
+        detail::dump_blosc(s, e, as_big_endian, clevel, shuffle, cname, blocksize);
     }
 
     /**
@@ -124,14 +133,21 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_blosc(const std::string& filename, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int clevel=5, int shuffle=1, const char* cname="blosclz", std::size_t blocksize=0)
+    inline void dump_blosc(const char* filename, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int clevel=5, int shuffle=1, const char* cname="blosclz", std::size_t blocksize=0)
     {
         std::ofstream stream(filename, std::ofstream::binary);
         if (!stream.is_open())
         {
-            XTENSOR_THROW(std::runtime_error, "Blosc: failed to open file " + filename);
+            XTENSOR_THROW(std::runtime_error, std::string("Blosc: failed to open file ") + filename);
         }
-        detail::dump_blosc_stream(stream, e, as_big_endian, clevel, shuffle, cname, blocksize);
+        auto s = xostream_wrapper(stream);
+        detail::dump_blosc(s, e, as_big_endian, clevel, shuffle, cname, blocksize);
+    }
+
+    template <typename E>
+    inline void dump_blosc(const std::string& filename, const xexpression<E>& e, bool as_big_endian=is_big_endian(), int clevel=5, int shuffle=1, const char* cname="blosclz", std::size_t blocksize=0)
+    {
+        dump_blosc<E>(filename.c_str(), e, as_big_endian, clevel, shuffle, cname, blocksize);
     }
 
     /**
@@ -143,7 +159,8 @@ namespace xt
     inline std::string dump_blosc(const xexpression<E>& e, bool as_big_endian=is_big_endian(), int clevel=5, int shuffle=1, const char* cname="blosclz", std::size_t blocksize=0)
     {
         std::stringstream stream;
-        detail::dump_blosc_stream(stream, e, as_big_endian, clevel, shuffle, cname, blocksize);
+        auto s = xostream_wrapper(stream);
+        detail::dump_blosc(s, e, as_big_endian, clevel, shuffle, cname, blocksize);
         return stream.str();
     }
 
@@ -156,10 +173,10 @@ namespace xt
      *           Fortran format
      * @return xarray with contents from blosc file
      */
-    template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_blosc(std::istream& stream, bool as_big_endian=is_big_endian())
+    template <typename T, layout_type L = layout_type::dynamic, class I>
+    inline auto load_blosc(I& stream, bool as_big_endian=is_big_endian())
     {
-        xt::svector<T> uncompressed_buffer = detail::load_blosc_file<T>(stream, as_big_endian);
+        xt::svector<T> uncompressed_buffer = detail::load_blosc<T>(stream, as_big_endian);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
@@ -175,14 +192,21 @@ namespace xt
      * @return xarray with contents from blosc file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_blosc(const std::string& filename, bool as_big_endian=is_big_endian())
+    inline auto load_blosc(const char* filename, bool as_big_endian=is_big_endian())
     {
         std::ifstream stream(filename, std::ifstream::binary);
         if (!stream.is_open())
         {
-            XTENSOR_THROW(std::runtime_error, "Blosc: failed to open file " + filename);
+            XTENSOR_THROW(std::runtime_error, std::string("Blosc: failed to open file ") + filename);
         }
-        return load_blosc<T, L>(stream, as_big_endian);
+        auto s = xistream_wrapper(stream);;
+        return load_blosc<T, L>(s, as_big_endian);
+    }
+
+    template <typename T, layout_type L = layout_type::dynamic>
+    inline auto load_blosc(const std::string& filename, bool as_big_endian=is_big_endian())
+    {
+        return load_blosc<T, L>(filename.c_str(), as_big_endian);
     }
 
     struct xio_blosc_config
@@ -230,8 +254,8 @@ namespace xt
         }
     };
 
-    template <class E>
-    void load_file(std::istream& stream, xexpression<E>& e, const xio_blosc_config& config)
+    template <class E, class I>
+    void load_file(I& stream, xexpression<E>& e, const xio_blosc_config& config)
     {
         E& ex = e.derived_cast();
         auto shape = ex.shape();
@@ -246,8 +270,8 @@ namespace xt
         }
     }
 
-    template <class E>
-    void dump_file(std::ostream& stream, const xexpression<E> &e, const xio_blosc_config& config)
+    template <class E, class O>
+    void dump_file(O& stream, const xexpression<E> &e, const xio_blosc_config& config)
     {
         dump_blosc(stream, e, config.big_endian, config.clevel, config.shuffle, config.cname.c_str(), config.blocksize);
     }

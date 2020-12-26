@@ -4,7 +4,7 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xexpression.hpp>
 #include <xtensor-io/xfile_array.hpp>
-#include <xtensor-io/xio_vsilfile.hpp>
+#include <xtensor-io/xio_vsilfile_wrapper.hpp>
 
 #include <cpl_vsi.h>
 
@@ -43,7 +43,7 @@ namespace xt
             VSILFILE* out_file = VSIFOpenL(path.c_str(), "wb");
             if (out_file != NULL)
             {
-                auto f = xvsilfile(out_file);
+                auto f = xvsilfile_wrapper(out_file);
                 dump_file(f, expression, m_format_config);
             }
             else
@@ -60,7 +60,7 @@ namespace xt
         VSILFILE* in_file = VSIFOpenL(path.c_str(), "rb");
         if (in_file != NULL)
         {
-            auto f = xvsilfile(in_file);
+            auto f = xvsilfile_wrapper(in_file);
             load_file<ET>(f, array, m_format_config);
         }
         else

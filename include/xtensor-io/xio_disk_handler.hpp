@@ -3,6 +3,7 @@
 
 #include <xtensor/xarray.hpp>
 #include <xtensor/xexpression.hpp>
+#include <xtensor-io/xio_stream_wrapper.hpp>
 
 namespace xt
 {
@@ -39,7 +40,8 @@ namespace xt
             std::ofstream out_file(path, std::ofstream::binary);
             if (out_file.is_open())
             {
-                dump_file(out_file, expression, m_format_config);
+                auto s = xostream_wrapper(out_file);
+                dump_file(s, expression, m_format_config);
             }
             else
             {
@@ -55,7 +57,8 @@ namespace xt
         std::ifstream in_file(path, std::ifstream::binary);
         if (in_file.is_open())
         {
-            load_file<ET>(in_file, array, m_format_config);
+            auto s = xistream_wrapper(in_file);
+            load_file<ET>(s, array, m_format_config);
         }
         else
         {

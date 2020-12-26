@@ -64,8 +64,9 @@ set(XTENSOR_IO_HEADERS
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gcs_handler.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gdal_handler.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_gzip.hpp
-    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_file.hpp
-    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_vsilfile.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_file_wrapper.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_vsilfile_wrapper.hpp
+    ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xio_stream_wrapper.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xnpz.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor-io.hpp
     ${XTENSOR_IO_INCLUDE_DIR}/xtensor-io/xtensor_io_config.hpp
