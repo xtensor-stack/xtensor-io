@@ -85,6 +85,7 @@ set(XTENSOR_IO_TESTS
     test_xio_binary.cpp
     test_xio_gcs_handler.cpp
     test_xio_aws_handler.cpp
+    test_xio_gdal_handler.cpp
 )
 
 set(XTENSOR_IO_HO_TESTS

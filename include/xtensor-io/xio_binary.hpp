@@ -15,6 +15,7 @@
 #include "xtensor/xadapt.hpp"
 #include "xtensor-io.hpp"
 #include "xfile_array.hpp"
+#include "xio_file.hpp"
 
 namespace xt
 {
@@ -24,13 +25,13 @@ namespace xt
         // we check that `fclose` can be called on them!
         template<typename T, class I>
         auto load_bin_imp(I& file, std::string& buffer)
-            -> decltype(fclose(file), void())
+            -> decltype(file.ftell(), void())
         {
-            fseek(file, 0, SEEK_END);
-            std::size_t size = ftell(file);
+            file.fseek(0, SEEK_END);
+            std::size_t size = file.ftell();
             buffer.resize(size);
-            rewind(file);
-            fread(&buffer[0], 1, size, file);
+            file.rewind();
+            file.fread(&buffer[0], 1, size);
         }
 
         // load_bin "overload" for stream-like objects
@@ -61,10 +62,10 @@ namespace xt
         // we check that `fclose` can be called on them!
         template <class O>
         auto dump_bin_imp(O& file, const char* uncompressed_buffer, std::size_t uncompressed_size)
-            -> decltype(fclose(file), void())
+            -> decltype(file.ftell(), void())
         {
-            fwrite(uncompressed_buffer, 1, uncompressed_size, file);
-            fflush(file);
+            file.fwrite(uncompressed_buffer, 1, uncompressed_size);
+            file.fflush();
         }
 
         // dump_bin "overload" for stream-like objects
