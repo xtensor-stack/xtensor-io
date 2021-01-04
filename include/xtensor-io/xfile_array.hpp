@@ -675,6 +675,7 @@ namespace xt
                     if (m_init)
                     {
                         std::fill(m_storage.begin(), m_storage.end(), m_init_value);
+                        m_dirty = true;
                     }
                 }
             }
