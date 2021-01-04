@@ -387,13 +387,9 @@ namespace xt
     chunked_file_array(std::initializer_list<S> shape, std::initializer_list<S> chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using sh_type = std::vector<std::size_t>;
-        sh_type sh = xtl::make_sequence<sh_type>(shape.size());
-        std::copy(shape.begin(), shape.end(), sh.begin());
-        sh_type ch_sh = xtl::make_sequence<sh_type>(chunk_shape.size());
-        std::copy(chunk_shape.begin(), chunk_shape.end(), ch_sh.begin());
-        using chunk_storage = xchunk_store_manager<xfile_array<T, IOH, L>, IP>;
-        chunk_storage chunks(sh, ch_sh, path, pool_size, chunk_memory_layout);
-        return xchunked_array<chunk_storage, EXT>(std::move(chunks), std::move(sh), std::move(ch_sh));
+        auto sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(shape);
+        auto ch_sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(chunk_shape);
+        return chunked_file_array<T, IOH, L, IP, EXT, sh_type>(std::move(sh), std::move(ch_sh), path, pool_size, chunk_memory_layout);
     }
 
     template <class T, class IOH, layout_type L, class IP, class EXT, class S>
@@ -410,13 +406,9 @@ namespace xt
     chunked_file_array(std::initializer_list<S> shape, std::initializer_list<S> chunk_shape, const std::string& path,  const T& init_value, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using sh_type = std::vector<std::size_t>;
-        sh_type sh = xtl::make_sequence<sh_type>(shape.size());
-        std::copy(shape.begin(), shape.end(), sh.begin());
-        sh_type ch_sh = xtl::make_sequence<sh_type>(chunk_shape.size());
-        std::copy(chunk_shape.begin(), chunk_shape.end(), ch_sh.begin());
-        using chunk_storage = xchunk_store_manager<xfile_array<T, IOH, L>, IP>;
-        chunk_storage chunks(sh, ch_sh, path, pool_size, init_value, chunk_memory_layout);
-        return xchunked_array<chunk_storage, EXT>(std::move(chunks), std::move(sh), std::move(ch_sh));
+        auto sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(shape);
+        auto ch_sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(chunk_shape);
+        return chunked_file_array<T, IOH, L, IP, EXT, sh_type>(std::move(sh), std::move(ch_sh), path, init_value, pool_size, chunk_memory_layout);
     }
 
     template <class IOH, layout_type L, class IP, class EXT, class E, class S>
