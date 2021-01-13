@@ -59,18 +59,21 @@ namespace xt
         std::ifstream in_file;
         xt::xarray<double> data;
         in_file.open(chunk_dir + "/1.0");
-        data = xt::load_bin<double>(in_file);
+        auto i1 = xt::xistream_wrapper(in_file);
+        data = xt::load_bin<double>(i1);
         EXPECT_EQ(data(1), v1);
         in_file.close();
 
         a1.chunks().flush();
         in_file.open(chunk_dir + "/0.1");
-        data = xt::load_bin<double>(in_file);
+        auto i2 = xt::xistream_wrapper(in_file);
+        data = xt::load_bin<double>(i2);
         EXPECT_EQ(data(2), v2);
         in_file.close();
 
         in_file.open(chunk_dir + "/0.0");
-        data = xt::load_bin<double>(in_file);
+        auto i3 = xt::xistream_wrapper(in_file);
+        data = xt::load_bin<double>(i3);
         EXPECT_EQ(data(0), v3);
         in_file.close();
     }

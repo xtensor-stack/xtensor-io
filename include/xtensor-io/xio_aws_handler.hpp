@@ -4,6 +4,7 @@
 #include "xtensor/xarray.hpp"
 #include "xtensor/xexpression.hpp"
 #include "xfile_array.hpp"
+#include "xio_stream_wrapper.hpp"
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/GetObjectRequest.h>
@@ -70,7 +71,8 @@ namespace xt
             request.SetKey(path2);
 
             std::shared_ptr<Aws::IOStream> writer = Aws::MakeShared<Aws::FStream>("SampleAllocationTag", path, std::ios_base::in | std::ios_base::binary);
-            dump_file(*writer, expression, m_format_config);
+            auto s = xostream_wrapper(*writer);
+            dump_file(s, expression, m_format_config);
 
             request.SetBody(writer);
 
@@ -109,7 +111,8 @@ namespace xt
         }
 
         auto& reader = outcome.GetResultWithOwnership().GetBody();
-        load_file<ET>(reader, array, m_format_config);
+        auto s = xistream_wrapper(reader);
+        load_file<ET>(s, array, m_format_config);
     }
 
     template <class C>

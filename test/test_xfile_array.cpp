@@ -49,13 +49,15 @@ namespace xt
 
         std::ifstream in_file;
         in_file.open("a1");
-        auto data = load_bin<double>(in_file);
+        auto i1 = xt::xistream_wrapper(in_file);
+        auto data = load_bin<double>(i1);
         xarray<double> ref = {v1, v1, v1, v1};
         EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();
 
         in_file.open("a2");
-        data = load_bin<double>(in_file);
+        auto i2 = xt::xistream_wrapper(in_file);
+        data = load_bin<double>(i2);
         ref = {v2, v2, v2, v2};
         EXPECT_TRUE(xt::all(xt::equal(data, ref)));
         in_file.close();

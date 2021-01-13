@@ -1,6 +1,7 @@
 #ifndef XTENSOR_IO_GCS_HANDLER_HPP
 #define XTENSOR_IO_GCS_HANDLER_HPP
 
+#include "xio_stream_wrapper.hpp"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xexpression.hpp"
 #include "google/cloud/storage/client.h"
@@ -52,7 +53,8 @@ namespace xt
         if (m_format_config.will_dump(dirty))
         {
             auto writer = m_client.WriteObject(m_bucket, path);
-            dump_file(writer, expression, m_format_config);
+            auto s = xt::xostream_wrapper(writer);
+            dump_file(s, expression, m_format_config);
         }
     }
 
@@ -61,7 +63,8 @@ namespace xt
     inline void xio_gcs_handler<C>::read(ET& array, const std::string& path)
     {
         auto reader = m_client.ReadObject(m_bucket, path);
-        load_file<ET>(reader, array, m_format_config);
+        auto s = xt::xistream_wrapper(reader);
+        load_file<ET>(s, array, m_format_config);
     }
 
     template <class C>

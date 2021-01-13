@@ -15,15 +15,17 @@
 #include "xtensor/xadapt.hpp"
 #include "xtensor-io.hpp"
 #include "xfile_array.hpp"
+#include "xio_stream_wrapper.hpp"
 
 namespace xt
 {
     namespace detail
     {
-        template <typename T>
-        inline xt::svector<T> load_bin_file(std::istream& stream, bool as_big_endian)
+        template <typename T, class I>
+        inline xt::svector<T> load_bin(I& stream, bool as_big_endian)
         {
-            std::string buffer{std::istreambuf_iterator<char>{stream}, {}};
+            std::string buffer;
+            stream.read_all(buffer);
             std::size_t uncompressed_size = buffer.size() / sizeof(T);
             xt::svector<T> uncompressed_buffer(uncompressed_size);
             std::copy((const T*)(buffer.data()), (const T*)(buffer.data()) + uncompressed_size, uncompressed_buffer.begin());
@@ -35,7 +37,7 @@ namespace xt
         }
 
         template <class O, class E>
-        inline void dump_bin_stream(O& stream, const xexpression<E>& e, bool as_big_endian)
+        inline void dump_bin(O& stream, const xexpression<E>& e, bool as_big_endian)
         {
             using value_type = typename E::value_type;
             const E& ex = e.derived_cast();
@@ -56,7 +58,7 @@ namespace xt
             {
                 uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
             }
-            stream.write(uncompressed_buffer, std::streamsize(uncompressed_size));
+            stream.write(uncompressed_buffer, uncompressed_size);
             stream.flush();
         }
     }  // namespace detail
@@ -67,10 +69,17 @@ namespace xt
      * @param stream An output stream to which to dump the data
      * @param e the xexpression
      */
-    template <typename E>
-    inline void dump_bin(std::ostream& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian())
+    template <typename E, class O>
+    inline void dump_bin(O& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian())
     {
-        detail::dump_bin_stream(stream, e, as_big_endian);
+        detail::dump_bin(stream, e, as_big_endian);
+    }
+
+    template <typename E>
+    inline void dump_bin(std::ofstream& stream, const xexpression<E>& e, bool as_big_endian=is_big_endian())
+    {
+        auto s = xostream_wrapper(stream);
+        detail::dump_bin(s, e, as_big_endian);
     }
 
     /**
@@ -80,14 +89,21 @@ namespace xt
      * @param e the xexpression
      */
     template <typename E>
-    inline void dump_bin(const std::string& filename, const xexpression<E>& e, bool as_big_endian=is_big_endian())
+    inline void dump_bin(const char* filename, const xexpression<E>& e, bool as_big_endian=is_big_endian())
     {
         std::ofstream stream(filename, std::ofstream::binary);
         if (!stream.is_open())
         {
             std::runtime_error("IO Error: failed to open file");
         }
-        detail::dump_bin_stream(stream, e, as_big_endian);
+        auto s = xostream_wrapper(stream);
+        detail::dump_bin(s, e, as_big_endian);
+    }
+
+    template <typename E>
+    inline void dump_bin(const std::string& filename, const xexpression<E>& e, bool as_big_endian=is_big_endian())
+    {
+        dump_bin<E>(filename.c_str(), e, as_big_endian);
     }
 
     /**
@@ -99,7 +115,8 @@ namespace xt
     inline std::string dump_bin(const xexpression<E>& e, bool as_big_endian=is_big_endian())
     {
         std::stringstream stream;
-        detail::dump_bin_stream(stream, e, as_big_endian);
+        auto s = xostream_wrapper(stream);
+        detail::dump_bin(s, e, as_big_endian);
         return stream.str();
     }
 
@@ -112,10 +129,10 @@ namespace xt
      *           Fortran format
      * @return xarray with contents from binary file
      */
-    template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_bin(std::istream& stream, bool as_big_endian=is_big_endian())
+    template <typename T, layout_type L = layout_type::dynamic, class I>
+    inline auto load_bin(I& stream, bool as_big_endian=is_big_endian())
     {
-        xt::svector<T> uncompressed_buffer = detail::load_bin_file<T>(stream, as_big_endian);
+        xt::svector<T> uncompressed_buffer = detail::load_bin<T>(stream, as_big_endian);
         std::vector<std::size_t> shape = {uncompressed_buffer.size()};
         auto array = adapt(std::move(uncompressed_buffer), shape);
         return array;
@@ -131,14 +148,21 @@ namespace xt
      * @return xarray with contents from binary file
      */
     template <typename T, layout_type L = layout_type::dynamic>
-    inline auto load_bin(const std::string& filename, bool as_big_endian=is_big_endian())
+    inline auto load_bin(const char* filename, bool as_big_endian=is_big_endian())
     {
         std::ifstream stream(filename, std::ifstream::binary);
         if (!stream.is_open())
         {
-            std::runtime_error("load_bin: failed to open file " + filename);
+            std::runtime_error(std::string("load_bin: failed to open file ") + filename);
         }
-        return load_bin<T, L>(stream, as_big_endian);
+        auto s = xistream_wrapper(stream);
+        return load_bin<T, L>(s, as_big_endian);
+    }
+
+    template <typename T, layout_type L = layout_type::dynamic>
+    inline auto load_bin(const std::string& filename, bool as_big_endian=is_big_endian())
+    {
+        return load_bin<T, L>(filename.c_str(), as_big_endian);
     }
 
     struct xio_binary_config
@@ -170,8 +194,8 @@ namespace xt
         }
     };
 
-    template <class E>
-    void load_file(std::istream& stream, xexpression<E>& e, const xio_binary_config& config)
+    template <class E, class I>
+    void load_file(I& stream, xexpression<E>& e, const xio_binary_config& config)
     {
         E& ex = e.derived_cast();
         auto shape = ex.shape();
@@ -186,8 +210,8 @@ namespace xt
         }
     }
 
-    template <class E>
-    void dump_file(std::ostream& stream, const xexpression<E> &e, const xio_binary_config& config)
+    template <class E, class O>
+    void dump_file(O& stream, const xexpression<E> &e, const xio_binary_config& config)
     {
         dump_bin(stream, e, config.big_endian);
     }
