@@ -208,7 +208,6 @@ namespace xt
      * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
      * @tparam L The layout_type of the array
      * @tparam IP The type of the index-to-path transformer (default: xindex_path)
-     * @tparam EXT The type of the array extension (default: empty_extension)
      *
      * @param shape The shape of the array
      * @param chunk_shape The shape of a chunk
@@ -218,16 +217,16 @@ namespace xt
      *
      * @return returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` with the given shape, chunk shape and memory layout.
      */
-    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class S>
-    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class S>
+    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
     chunked_file_array(S&& shape,
                        S&& chunk_shape,
                        const std::string& path,
                        std::size_t pool_size = 1,
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
-    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class S>
-    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class S>
+    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
     chunked_file_array(std::initializer_list<S> shape,
                        std::initializer_list<S> chunk_shape,
                        const std::string& path,
@@ -242,7 +241,6 @@ namespace xt
      * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
      * @tparam L The layout_type of the array
      * @tparam IP The type of the index-to-path transformer (default: xindex_path)
-     * @tparam EXT The type of the array extension (default: empty_extension)
      *
      * @param shape The shape of the array
      * @param chunk_shape The shape of a chunk
@@ -253,8 +251,8 @@ namespace xt
      *
      * @return returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` with the given shape, chunk shape and memory layout.
      */
-    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class S>
-    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class S>
+    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
     chunked_file_array(S&& shape,
                        S&& chunk_shape,
                        const std::string& path,
@@ -262,8 +260,8 @@ namespace xt
                        std::size_t pool_size = 1,
                        layout_type chunk_memory_layout = XTENSOR_DEFAULT_LAYOUT);
 
-    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class S>
-    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    template <class T, class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class S>
+    xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
     chunked_file_array(std::initializer_list<S> shape,
                        std::initializer_list<S> chunk_shape,
                        const std::string& path,
@@ -279,7 +277,6 @@ namespace xt
      * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
      * @tparam L The layout_type of the array
      * @tparam IP The type of the index-to-path transformer (default: xindex_path)
-     * @tparam EXT The type of the array extension (default: empty_extension)
      *
      * @param e The expression to initialize the chunked array from
      * @param chunk_shape The shape of a chunk
@@ -289,8 +286,8 @@ namespace xt
      *
      * @return returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` from the given expression, with the given chunk shape and memory layout.
      */
-    template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class E, class S>
-    xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
+    template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class E, class S>
+    xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>>
     chunked_file_array(const xexpression<E>& e,
                        S&& chunk_shape,
                        const std::string& path,
@@ -304,7 +301,6 @@ namespace xt
      * @tparam IOH The type of the IO handler (e.g. xio_disk_handler)
      * @tparam L The layout_type of the array
      * @tparam IP The type of the index-to-path transformer (default: xindex_path)
-     * @tparam EXT The type of the array extension (default: empty_extension)
      *
      * @param e The expression to initialize the chunked array from
      * @param path The path to the chunk store
@@ -313,8 +309,8 @@ namespace xt
      *
      * @return returns a ``xchunked_array<xchunk_store_manager<xfile_array<T, IOH>>>`` from the given expression, with the expression's chunk shape and the given memory layout.
      */
-    template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class EXT = empty_extension, class E>
-    xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
+    template <class IOH, layout_type L = XTENSOR_DEFAULT_LAYOUT, class IP = xindex_path, class E>
+    xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>>
     chunked_file_array(const xexpression<E>& e,
                        const std::string& path,
                        std::size_t pool_size = 1,
@@ -373,60 +369,60 @@ namespace xt
      * xchunk_store_manager factory functions *
      ******************************************/
 
-    template <class T, class IOH, layout_type L, class IP, class EXT, class S>
-    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    template <class T, class IOH, layout_type L, class IP, class S>
+    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
     chunked_file_array(S&& shape, S&& chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using chunk_storage = xchunk_store_manager<xfile_array<T, IOH, L>, IP>;
         chunk_storage chunks(shape, chunk_shape, path, pool_size, chunk_memory_layout);
-        return xchunked_array<chunk_storage, EXT>(std::move(chunks), std::forward<S>(shape), std::forward<S>(chunk_shape));
+        return xchunked_array<chunk_storage>(std::move(chunks), std::forward<S>(shape), std::forward<S>(chunk_shape));
     }
 
-    template <class T, class IOH, layout_type L, class IP, class EXT, class S>
-    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    template <class T, class IOH, layout_type L, class IP, class S>
+    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
     chunked_file_array(std::initializer_list<S> shape, std::initializer_list<S> chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using sh_type = std::vector<std::size_t>;
         auto sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(shape);
         auto ch_sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(chunk_shape);
-        return chunked_file_array<T, IOH, L, IP, EXT, sh_type>(std::move(sh), std::move(ch_sh), path, pool_size, chunk_memory_layout);
+        return chunked_file_array<T, IOH, L, IP, sh_type>(std::move(sh), std::move(ch_sh), path, pool_size, chunk_memory_layout);
     }
 
-    template <class T, class IOH, layout_type L, class IP, class EXT, class S>
-    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    template <class T, class IOH, layout_type L, class IP, class S>
+    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
     chunked_file_array(S&& shape, S&& chunk_shape, const std::string& path, const T& init_value, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using chunk_storage = xchunk_store_manager<xfile_array<T, IOH, L>, IP>;
         chunk_storage chunks(shape, chunk_shape, path, pool_size, init_value, chunk_memory_layout);
-        return xchunked_array<chunk_storage, EXT>(std::move(chunks), std::forward<S>(shape), std::forward<S>(chunk_shape));
+        return xchunked_array<chunk_storage>(std::move(chunks), std::forward<S>(shape), std::forward<S>(chunk_shape));
     }
 
-    template <class T, class IOH, layout_type L, class IP, class EXT, class S>
-    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>, EXT>
+    template <class T, class IOH, layout_type L, class IP, class S>
+    inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
     chunked_file_array(std::initializer_list<S> shape, std::initializer_list<S> chunk_shape, const std::string& path,  const T& init_value, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using sh_type = std::vector<std::size_t>;
         auto sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(shape);
         auto ch_sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(chunk_shape);
-        return chunked_file_array<T, IOH, L, IP, EXT, sh_type>(std::move(sh), std::move(ch_sh), path, init_value, pool_size, chunk_memory_layout);
+        return chunked_file_array<T, IOH, L, IP, sh_type>(std::move(sh), std::move(ch_sh), path, init_value, pool_size, chunk_memory_layout);
     }
 
-    template <class IOH, layout_type L, class IP, class EXT, class E, class S>
-    inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
+    template <class IOH, layout_type L, class IP, class E, class S>
+    inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>>
     chunked_file_array(const xexpression<E>& e, S&& chunk_shape, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using chunk_storage = xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>;
         chunk_storage chunks(e.derived_cast().shape(), chunk_shape, path, pool_size, chunk_memory_layout);
-        return xchunked_array<chunk_storage, EXT>(e, chunk_storage(), std::forward<S>(chunk_shape));
+        return xchunked_array<chunk_storage>(e, chunk_storage(), std::forward<S>(chunk_shape));
     }
 
-    template <class IOH, layout_type L, class IP, class EXT, class E>
-    inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>, EXT>
+    template <class IOH, layout_type L, class IP, class E>
+    inline xchunked_array<xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>>
     chunked_file_array(const xexpression<E>& e, const std::string& path, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using chunk_storage = xchunk_store_manager<xfile_array<typename E::value_type, IOH, L>, IP>;
         chunk_storage chunks(e.derived_cast().shape(), detail::chunk_helper<E>::chunk_shape(e), path, pool_size, chunk_memory_layout);
-        return xchunked_array<chunk_storage, EXT>(e, chunk_storage());
+        return xchunked_array<chunk_storage>(e, chunk_storage());
     }
 
     /***************************************
