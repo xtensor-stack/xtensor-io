@@ -1,10 +1,11 @@
 #ifndef XTENSOR_IO_GCS_HANDLER_HPP
 #define XTENSOR_IO_GCS_HANDLER_HPP
 
+#include <xtensor/xarray.hpp>
+#include <xtensor/xexpression.hpp>
+#include <google/cloud/storage/client.h>
+#include "xfile_array.hpp"
 #include "xio_stream_wrapper.hpp"
-#include "xtensor/xarray.hpp"
-#include "xtensor/xexpression.hpp"
-#include "google/cloud/storage/client.h"
 
 namespace gcs = google::cloud::storage;
 

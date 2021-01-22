@@ -127,9 +127,7 @@ namespace xt
 
     TEST(xchunked_array, shape_initializer_list)
     {
-        std::vector<size_t> shape = {4, 4};
-        std::vector<size_t> chunk_shape = {2, 2};
-        auto a = chunked_file_array<double, xio_disk_handler<xio_binary_config>>({4, 4}, {2, 2}, "files3");
+        auto a = chunked_file_array<double, xio_disk_handler<xio_binary_config>>({4, 4}, {2, 2}, "files3", 5.5);
         for (auto v: a)
         {
             EXPECT_EQ(v, 5.5);
