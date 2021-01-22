@@ -3,8 +3,8 @@
 
 #include <xtensor/xarray.hpp>
 #include <xtensor/xexpression.hpp>
-#include <xtensor-io/xfile_array.hpp>
-#include <xtensor-io/xio_vsilfile_wrapper.hpp>
+#include "xfile_array.hpp"
+#include "xio_vsilfile_wrapper.hpp"
 
 #include <cpl_vsi.h>
 

@@ -3,7 +3,8 @@
 
 #include <xtensor/xarray.hpp>
 #include <xtensor/xexpression.hpp>
-#include <xtensor-io/xio_stream_wrapper.hpp>
+#include "xio_stream_wrapper.hpp"
+#include "xfile_array.hpp"
 
 namespace xt
 {

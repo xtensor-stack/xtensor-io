@@ -399,7 +399,7 @@ namespace xt
 
     template <class T, class IOH, layout_type L, class IP, class S>
     inline xchunked_array<xchunk_store_manager<xfile_array<T, IOH, L>, IP>>
-    chunked_file_array(std::initializer_list<S> shape, std::initializer_list<S> chunk_shape, const std::string& path,  const T& init_value, std::size_t pool_size, layout_type chunk_memory_layout)
+    chunked_file_array(std::initializer_list<S> shape, std::initializer_list<S> chunk_shape, const std::string& path, const T& init_value, std::size_t pool_size, layout_type chunk_memory_layout)
     {
         using sh_type = std::vector<std::size_t>;
         auto sh = xtl::forward_sequence<sh_type, std::initializer_list<S>>(shape);
