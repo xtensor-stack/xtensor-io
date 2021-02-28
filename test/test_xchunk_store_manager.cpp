@@ -9,6 +9,7 @@
 
 #include "gtest/gtest.h"
 
+#include <xtensor/xview.hpp>
 #include <xtensor/xbroadcast.hpp>
 #include "xtensor-io/xchunk_store_manager.hpp"
 #include "xtensor-io/xfile_array.hpp"
@@ -132,5 +133,69 @@ namespace xt
         {
             EXPECT_EQ(v, 5.5);
         }
+    }
+
+    TEST(xchunked_array, assign_array_noalias)
+    {
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        std::string chunk_dir = "files4";
+        fs::create_directory(chunk_dir);
+        std::size_t pool_size = 1;
+        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir, pool_size);
+
+        auto a2 = xt::arange(0, 4 * 4).reshape(shape);
+        noalias(a1) = a2;
+        a1.chunks().flush();
+
+        std::ifstream in_file;
+        xt::xarray<double> data;
+
+        in_file.open(chunk_dir + "/0.0");
+        auto i0 = xt::xistream_wrapper(in_file);
+        data = xt::load_bin<double>(i0);
+        EXPECT_EQ(data.reshape(chunk_shape), xt::view(a2, xt::range(0, 2), xt::range(0, 2)));
+        in_file.close();
+
+        in_file.open(chunk_dir + "/0.1");
+        auto i1 = xt::xistream_wrapper(in_file);
+        data = xt::load_bin<double>(i1);
+        EXPECT_EQ(data.reshape(chunk_shape), xt::view(a2, xt::range(0, 2), xt::range(2, 4)));
+        in_file.close();
+
+        in_file.open(chunk_dir + "/1.0");
+        auto i2 = xt::xistream_wrapper(in_file);
+        data = xt::load_bin<double>(i2);
+        EXPECT_EQ(data.reshape(chunk_shape), xt::view(a2, xt::range(2, 4), xt::range(0, 2)));
+        in_file.close();
+
+        in_file.open(chunk_dir + "/1.1");
+        auto i3 = xt::xistream_wrapper(in_file);
+        data = xt::load_bin<double>(i3);
+        EXPECT_EQ(data.reshape(chunk_shape), xt::view(a2, xt::range(2, 4), xt::range(2, 4)));
+        in_file.close();
+    }
+
+    TEST(xchunked_array, assign_view)
+    {
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        std::string chunk_dir = "files5";
+        fs::create_directory(chunk_dir);
+        std::size_t pool_size = 1;
+        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir, pool_size);
+
+        auto a2 = arange(0, 2 * 2).reshape(chunk_shape);
+        view(a1, range(0, 2), range(0, 2)) = a2;
+        a1.chunks().flush();
+
+        std::ifstream in_file;
+        xarray<double> data;
+
+        in_file.open(chunk_dir + "/0.0");
+        auto i0 = xistream_wrapper(in_file);
+        data = load_bin<double>(i0);
+        EXPECT_EQ(data.reshape(chunk_shape), a2);
+        in_file.close();
     }
 }
