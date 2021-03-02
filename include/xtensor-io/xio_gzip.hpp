@@ -19,10 +19,21 @@
 #include "xfile_array.hpp"
 #include "xio_stream_wrapper.hpp"
 
+#ifndef GZIP_CHUNK
 #define GZIP_CHUNK 0x4000
+#endif
+
+#ifndef GZIP_WINDOWBITS
 #define GZIP_WINDOWBITS 15
+#endif
+
+#ifndef GZIP_ENCODING
 #define GZIP_ENCODING 16
+#endif
+
+#ifndef ENABLE_ZLIB_GZIP
 #define ENABLE_ZLIB_GZIP 32
+#endif
 
 namespace xt
 {
@@ -31,30 +42,27 @@ namespace xt
         template <typename T, class I>
         inline xt::svector<T> load_gzip(I& stream, bool as_big_endian)
         {
-            xt::svector<T> uncompressed_buffer;
-            z_stream zs = {0};
-            unsigned char in[GZIP_CHUNK];
+            char in[GZIP_CHUNK];
             T out[GZIP_CHUNK / sizeof(T)];
+            z_stream zs;
             zs.zalloc = Z_NULL;
             zs.zfree = Z_NULL;
             zs.opaque = Z_NULL;
-            zs.next_in = in;
+            zs.next_in = reinterpret_cast<Bytef*>(in);
             zs.avail_in = 0;
             inflateInit2(&zs, GZIP_WINDOWBITS | ENABLE_ZLIB_GZIP);
-            while (true) {
-                int bytes_read;
-                int zlib_status;
-
-                stream.read((char*)in, sizeof(in));
-                bytes_read = stream.gcount();
+            xt::svector<T> uncompressed_buffer;
+            while (true)
+            {
+                stream.read(in, sizeof(in));
+                uInt bytes_read = static_cast<uInt>(stream.gcount());
                 zs.avail_in = bytes_read;
-                zs.next_in = in;
+                zs.next_in = reinterpret_cast<Bytef*>(in);
                 do
                 {
-                    unsigned have;
                     zs.avail_out = GZIP_CHUNK;
-                    zs.next_out = (Bytef*)out;
-                    zlib_status = inflate(&zs, Z_NO_FLUSH);
+                    zs.next_out = reinterpret_cast<Bytef*>(out);
+                    int zlib_status = inflate(&zs, Z_NO_FLUSH);
                     switch (zlib_status)
                     {
                         case Z_OK:
@@ -63,16 +71,10 @@ namespace xt
                             break;
                         default:
                             inflateEnd(&zs);
-                            return uncompressed_buffer;
+                            XTENSOR_THROW(std::runtime_error, "gzip decompression failed (" + std::to_string(zlib_status) + ")");
                     }
-                    have = GZIP_CHUNK - zs.avail_out;
-                    // not possible to insert in a xt::svector currently
-                    //uncompressed_buffer.insert(std::end(uncompressed_buffer), out, out + have / sizeof(T));
-                    // so just loop for now
-                    for (int i = 0; i < have / sizeof(T); i++)
-                    {
-                        uncompressed_buffer.push_back(out[i]);
-                    }
+                    unsigned int have = GZIP_CHUNK - zs.avail_out;
+                    uncompressed_buffer.insert(std::end(uncompressed_buffer), out, out + have / sizeof(T));
                 }
                 while (zs.avail_out == 0);
                 if (stream.eof())
@@ -96,7 +98,6 @@ namespace xt
             auto&& eval_ex = eval(ex);
             auto shape = eval_ex.shape();
             std::size_t size = compute_size(shape);
-            std::size_t uncompressed_size = size * sizeof(value_type);
             const char* uncompressed_buffer;
             xt::svector<value_type> swapped_buffer;
             if ((sizeof(value_type) > 1) && (as_big_endian != is_big_endian()))
@@ -110,22 +111,25 @@ namespace xt
             {
                 uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
             }
-            unsigned char out[GZIP_CHUNK];
             z_stream zs;
             zs.zalloc = Z_NULL;
             zs.zfree = Z_NULL;
             zs.opaque = Z_NULL;
             deflateInit2(&zs, level, Z_DEFLATED, GZIP_WINDOWBITS | GZIP_ENCODING, 8, Z_DEFAULT_STRATEGY);
-            zs.avail_in = uncompressed_size;
-            zs.next_in = (Bytef*)uncompressed_buffer;
+            zs.avail_in = static_cast<uInt>(size * sizeof(value_type));
+            zs.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(uncompressed_buffer));
+            char out[GZIP_CHUNK];
             do
             {
-                int have;
                 zs.avail_out = GZIP_CHUNK;
-                zs.next_out = out;
-                deflate(&zs, Z_FINISH);
-                have = GZIP_CHUNK - zs.avail_out;
-                stream.write((const char*)out, std::streamsize(have));
+                zs.next_out = reinterpret_cast<Bytef*>(out);
+                int zlib_status = deflate(&zs, Z_FINISH);
+                if (zlib_status < 0)
+                {
+                    XTENSOR_THROW(std::runtime_error, "gzip compression failed (" + std::to_string(zlib_status) + ")");
+                }
+                uInt have = GZIP_CHUNK - zs.avail_out;
+                stream.write(out, static_cast<std::streamsize>(have));
             }
             while (zs.avail_out == 0);
             deflateEnd(&zs);
