@@ -19,7 +19,9 @@
 #include "xfile_array.hpp"
 #include "xio_stream_wrapper.hpp"
 
+#ifndef ZLIB_CHUNK
 #define ZLIB_CHUNK 0x4000
+#endif
 
 namespace xt
 {
@@ -45,36 +47,33 @@ namespace xt
         template <typename T, class I>
         inline xt::svector<T> load_zlib(I& stream, bool as_big_endian)
         {
-            xt::svector<T> uncompressed_buffer;
-            int ret;
-            unsigned have;
             z_stream strm;
-            unsigned char in[ZLIB_CHUNK];
-            T out[ZLIB_CHUNK / sizeof(T)];
-
             strm.zalloc = Z_NULL;
             strm.zfree = Z_NULL;
             strm.opaque = Z_NULL;
             strm.avail_in = 0;
             strm.next_in = Z_NULL;
-            ret = inflateInit(&strm);
+            int ret = inflateInit(&strm);
             if (ret != Z_OK)
             {
                 XTENSOR_THROW(std::runtime_error, "zlib decompression failed (" + zlib_err(ret) + ")");
             }
+            char in[ZLIB_CHUNK];
+            T out[ZLIB_CHUNK / sizeof(T)];
+            xt::svector<T> uncompressed_buffer;
             do
             {
-                stream.read((char*)in, sizeof(in));
-                strm.avail_in = (unsigned int)stream.gcount();
+                stream.read(in, sizeof(in));
+                strm.avail_in = static_cast<unsigned int>(stream.gcount());
                 if (strm.avail_in == 0)
                 {
                     break;
                 }
-                strm.next_in = in;
+                strm.next_in = reinterpret_cast<Bytef*>(in);
                 do
                 {
                     strm.avail_out = ZLIB_CHUNK;
-                    strm.next_out = (Bytef*)out;
+                    strm.next_out = reinterpret_cast<Bytef*>(out);
                     ret = inflate(&strm, Z_NO_FLUSH);
                     if (ret == Z_STREAM_ERROR)
                     {
@@ -85,23 +84,17 @@ namespace xt
                             ret = Z_DATA_ERROR;
                         case Z_DATA_ERROR:
                         case Z_MEM_ERROR:
-                            (void)inflateEnd(&strm);
+                            static_cast<void>(inflateEnd(&strm));
                             XTENSOR_THROW(std::runtime_error, "zlib decompression failed (" + zlib_err(ret) + ")");
                     }
-                    have = ZLIB_CHUNK - strm.avail_out;
-                    // not possible to insert in a xt::svector currently
-                    //uncompressed_buffer.insert(std::end(uncompressed_buffer), out, out + have / sizeof(T));
-                    // so just loop for now
-                    for (uInt i = 0; i < have / sizeof(T); i++)
-                    {
-                        uncompressed_buffer.push_back(out[i]);
-                    }
+                    unsigned int have = ZLIB_CHUNK - strm.avail_out;
+                    uncompressed_buffer.insert(std::end(uncompressed_buffer), out, out + have / sizeof(T));
                 }
                 while (strm.avail_out == 0);
             }
             while (ret != Z_STREAM_END);
 
-            (void)inflateEnd(&strm);
+            static_cast<void>(inflateEnd(&strm));
             if (ret != Z_STREAM_END)
             {
                 XTENSOR_THROW(std::runtime_error, "zlib decompression failed (" + zlib_err(Z_DATA_ERROR) + ")");
@@ -122,53 +115,51 @@ namespace xt
             auto shape = eval_ex.shape();
             std::size_t size = compute_size(shape);
             std::size_t uncompressed_size = size * sizeof(value_type);
-            const unsigned char* uncompressed_buffer;
+            const char* uncompressed_buffer;
             xt::svector<value_type> swapped_buffer;
             if ((sizeof(value_type) > 1) && (as_big_endian != is_big_endian()))
             {
                 swapped_buffer.resize(size);
                 std::copy(eval_ex.data(), eval_ex.data() + size, swapped_buffer.begin());
                 swap_endianness(swapped_buffer);
-                uncompressed_buffer = reinterpret_cast<const unsigned char*>(swapped_buffer.data());
+                uncompressed_buffer = reinterpret_cast<const char*>(swapped_buffer.data());
             }
             else
             {
-                uncompressed_buffer = reinterpret_cast<const unsigned char*>(eval_ex.data());
+                uncompressed_buffer = reinterpret_cast<const char*>(eval_ex.data());
             }
-            int ret, flush;
-            unsigned have;
-            z_stream strm;
-            const unsigned char* in;
-            unsigned char out[ZLIB_CHUNK];
 
+            z_stream strm;
             strm.zalloc = Z_NULL;
             strm.zfree = Z_NULL;
             strm.opaque = Z_NULL;
-            ret = deflateInit(&strm, level);
+            int ret = deflateInit(&strm, level);
             if (ret != Z_OK)
             {
                 XTENSOR_THROW(std::runtime_error, "zlib compression failed (" + zlib_err(ret) + ")");
             }
 
-            in = uncompressed_buffer;
+            const char* in = uncompressed_buffer;
+            char out[ZLIB_CHUNK];
+            int flush;
             do
             {
-                strm.next_in = (Bytef*)in;
+                strm.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(in));
                 in += ZLIB_CHUNK;
                 flush = (in >= uncompressed_buffer + uncompressed_size) ? Z_FINISH : Z_NO_FLUSH;
                 long int in_size = (flush == Z_FINISH) ? (ZLIB_CHUNK - (in - (uncompressed_buffer + uncompressed_size))) : ZLIB_CHUNK;
-                strm.avail_in = (uInt)in_size;
+                strm.avail_in = static_cast<uInt>(in_size);
                 do
                 {
                     strm.avail_out = ZLIB_CHUNK;
-                    strm.next_out = out;
+                    strm.next_out = reinterpret_cast<Bytef*>(out);
                     ret = deflate(&strm, flush);
                     if (ret == Z_STREAM_ERROR)
                     {
                         XTENSOR_THROW(std::runtime_error, "zlib compression failed (" + zlib_err(Z_STREAM_ERROR) + ")");
                     }
-                    have = ZLIB_CHUNK - strm.avail_out;
-                    stream.write((const char*)out, std::streamsize(have));
+                    unsigned int have = ZLIB_CHUNK - strm.avail_out;
+                    stream.write(reinterpret_cast<const char*>(out), static_cast<std::streamsize>(have));
                 }
                 while (strm.avail_out == 0);
                 if (strm.avail_in != 0)
@@ -181,7 +172,7 @@ namespace xt
             {
                 XTENSOR_THROW(std::runtime_error, "zlib compression failed (stream not complete)");
             }
-            (void)deflateEnd(&strm);
+            static_cast<void>(deflateEnd(&strm));
             stream.flush();
         }
     }  // namespace detail
