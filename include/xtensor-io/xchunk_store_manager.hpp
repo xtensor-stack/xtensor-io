@@ -6,6 +6,8 @@
 
 #include "ghc/filesystem.hpp"
 
+#include <xtl/xsequence.hpp>
+
 #include "xtensor/xarray.hpp"
 #include "xtensor/xchunked_array.hpp"
 #include "xfile_array.hpp"
@@ -436,8 +438,8 @@ namespace xt
                                                               const std::string& directory,
                                                               std::size_t pool_size,
                                                               layout_type chunk_memory_layout)
-        : m_shape(shape)
-        , m_chunk_shape(chunk_shape)
+        : m_shape(xtl::forward_sequence<shape_type, S>(shape))
+        , m_chunk_shape(xtl::forward_sequence<shape_type, S>(chunk_shape))
         , m_unload_index(0u)
     {
         initialize(shape, chunk_shape, directory, false, 0, pool_size, chunk_memory_layout);
@@ -451,8 +453,8 @@ namespace xt
                                                               std::size_t pool_size,
                                                               const T& init_value,
                                                               layout_type chunk_memory_layout)
-        : m_shape(shape)
-        , m_chunk_shape(chunk_shape)
+        : m_shape(xtl::forward_sequence<shape_type, S>(shape))
+        , m_chunk_shape(xtl::forward_sequence<shape_type, S>(chunk_shape))
         , m_unload_index(0u)
     {
         initialize(shape, chunk_shape, directory, true, init_value, pool_size, chunk_memory_layout);

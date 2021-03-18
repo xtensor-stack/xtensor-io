@@ -17,6 +17,12 @@ steps:
 
   - script: |
       source activate xtensor-io
+      conda install tbb==2020.2 -c conda-forge
+    condition: eq('${{ parameters.platform }}', 'OSX')
+    displayName: Workaround missing TBB
+
+  - script: |
+      source activate xtensor-io
       export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
       export LINKFLAGS="${LDFLAGS}"
       mkdir build
