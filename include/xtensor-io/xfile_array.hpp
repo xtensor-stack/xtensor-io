@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <xtl/xtype_traits.hpp>
+
 #include <xtensor/xarray.hpp>
 #include <xtensor/xnoalias.hpp>
 
@@ -70,7 +72,7 @@ namespace xt
     };
 }
 
-namespace std
+namespace xtl
 {
     template <class T>
     struct is_signed<xt::xfile_value_reference<T>>
