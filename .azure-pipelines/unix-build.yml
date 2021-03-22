@@ -27,7 +27,8 @@ steps:
       export LINKFLAGS="${LDFLAGS}"
       mkdir build
       cd build
-      cmake -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DDOWNLOAD_GTEST=ON -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX $(Build.SourcesDirectory)
+      cmake -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DDOWNLOAD_GTEST=ON -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DHAVE_OIIO=ON -DHAVE_SndFile=ON -DHAVE_ZLIB=ON -DHAVE_HighFive=ON -DHAVE_Blosc=ON -DHAVE_GDAL=ON -DHAVE_storage_client=ON -DHAVE_AWSSDK=ON $(Build.SourcesDirectory)
+
     displayName: Configure xtensor-io
     workingDirectory: $(Build.BinariesDirectory)
 
