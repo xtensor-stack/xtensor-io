@@ -86,6 +86,19 @@ OPTION(HAVE_GDAL "require GDAL for geospatial raster file support" OFF)
 OPTION(HAVE_storage_client "require storage_client for Google Cloud Storage IO handler support" OFF)
 OPTION(HAVE_AWSSDK "require AWSSDK for AWS S3 IO handler support" OFF)
 
+OPTION(HAVE_ALL_DEPS "require all optional dependencies" OFF)
+
+if(HAVE_ALL_DEPS)
+  set(HAVE_OIIO ON)
+  set(HAVE_SndFile ON)
+  set(HAVE_ZLIB ON)
+  set(HAVE_HighFive ON)
+  set(HAVE_Blosc ON)
+  set(HAVE_GDAL ON)
+  set(HAVE_storage_client ON)
+  set(HAVE_AWSSDK ON)
+endif()
+
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
 
 add_library(xtensor-io INTERFACE)
