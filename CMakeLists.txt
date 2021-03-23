@@ -77,7 +77,38 @@ OPTION(BUILD_TESTS "xtensor-io test suite" OFF)
 OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
-# Find OpenImageIO
+# each optional dependency can be required individually with e.g. -DHAVE_OIIO=ON
+
+OPTION(HAVE_OIIO "require OpenImageIO dependency for image file support" OFF)
+OPTION(HAVE_SndFile "require SndFile for audio file support" OFF)
+OPTION(HAVE_ZLIB "require ZLIB for npz file support" OFF)
+OPTION(HAVE_HighFive "require HighFive for HDF5 file support" OFF)
+OPTION(HAVE_Blosc "require Blosc for Blosc file support" OFF)
+OPTION(HAVE_GDAL "require GDAL for geospatial raster file support" OFF)
+OPTION(HAVE_storage_client "require storage_client for Google Cloud Storage IO handler support" OFF)
+OPTION(HAVE_AWSSDK "require AWSSDK for AWS S3 IO handler support" OFF)
+
+# all dependencies can be required with -DHAVE_ALL_DEPS=ON
+
+OPTION(HAVE_ALL_DEPS "require all optional dependencies" OFF)
+
+if(HAVE_ALL_DEPS)
+  set(HAVE_OIIO ON)
+  set(HAVE_SndFile ON)
+  set(HAVE_ZLIB ON)
+  set(HAVE_HighFive ON)
+  set(HAVE_Blosc ON)
+  set(HAVE_GDAL ON)
+  set(HAVE_storage_client ON)
+  set(HAVE_AWSSDK ON)
+endif()
+
+# a list of dependencies can be required with e.g. "-DOPTIONAL_DEPENDENCIES=OIIO;SndFile"
+
+foreach(DEP ${OPTIONAL_DEPENDENCIES})
+  set(HAVE_${DEP} ON)
+endforeach()
+
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
 
 add_library(xtensor-io INTERFACE)
@@ -95,13 +126,11 @@ target_link_libraries(xtensor-io
     xtensor
 )
 
-# We now check for each library seperately if they are installed. If not we
-# print a warning and carry on!
+# We now check for each optional library seperately if they are required.
 
-message(STATUS "Trying to find OpenImageIO for ximage support")
-find_package(OIIO)
-if (${OIIO_FOUND})
-  message(STATUS "OpenImageIO found, image file support enabled")
+if(HAVE_OIIO)
+  find_package(OIIO REQUIRED)
+  message(STATUS "OpenImageIO ${OIIO_VERSION} found, image file support enabled")
   include_directories(${OIIO_INCLUDE_DIRS})
   target_include_directories(xtensor-io
       INTERFACE
@@ -112,13 +141,12 @@ if (${OIIO_FOUND})
       ${OIIO_LIBRARIES}
   )
 else()
-    message(WARNING "OpenImageIO not found - install OpenImageIO for image support")
+  message(STATUS "OpenImageIO not enabled: use -DHAVE_OIIO=ON for image file support")
 endif()
 
-message(STATUS "Trying to find SndFile for xaudio support")
-find_package(SndFile)
-if (${LIBSNDFILE_FOUND})
-  message(STATUS "SndFile found, audio file support enabled")
+if(HAVE_SndFile)
+  find_package(SndFile REQUIRED)
+  message(STATUS "SndFile ${SndFile_VERSION} found, audio file support enabled")
   include_directories(${LIBSNDFILE_INCLUDE_DIRS})
   target_include_directories(xtensor-io
       INTERFACE
@@ -129,13 +157,12 @@ if (${LIBSNDFILE_FOUND})
       ${LIBSNDFILE_LIBRARIES}
   )
 else()
-    message(WARNING "SndFile (libsndfile) not found - install libsndfile for audio support")
+  message(STATUS "SndFile not enabled: use -DHAVE_SndFile=ON for audio file support")
 endif()
 
-message(STATUS "Trying to find ZLIB for npz file support")
-find_package(ZLIB)
-if (${ZLIB_FOUND})
-  message(STATUS "ZLIB found, npz file support enabled")
+if(HAVE_ZLIB)
+  find_package(ZLIB REQUIRED)
+  message(STATUS "ZLIB ${ZLIB_VERSION} found, npz file support enabled")
   include_directories(${ZLIB_INCLUDE_DIRS})
   target_include_directories(xtensor-io
       INTERFACE
@@ -146,14 +173,13 @@ if (${ZLIB_FOUND})
       ${ZLIB_LIBRARIES}
   )
 else()
-    message(WARNING "ZLIB not found - install zlib for xnpz file support")
+  message(STATUS "ZLIB not enabled: use -DHAVE_ZLIB=ON for npz file support")
 endif()
 
-message(STATUS "Trying to find HighFive for npz file support")
-find_package(HighFive)
-find_package(HDF5)
-if (${HighFive_FOUND} AND ${HDF5_FOUND})
-  message(STATUS "HighFive and HDF5 found, HDF5 file support enabled")
+if(HAVE_HighFive)
+  find_package(HighFive REQUIRED)
+  find_package(HDF5 REQUIRED)
+  message(STATUS "HighFive ${HighFive_VERSION} and HDF5 ${HDF5_VERSION} found, HDF5 file support enabled")
   find_package(HDF5 REQUIRED)
   get_target_property(HighFive_INCLUDE_DIRECTORIES_EXTRACTED HighFive INTERFACE_INCLUDE_DIRECTORIES)
   target_include_directories(xtensor-io
@@ -165,13 +191,12 @@ if (${HighFive_FOUND} AND ${HDF5_FOUND})
       ${HDF5_LIBRARIES}
   )
 else()
-  message(WARNING "HighFive and/or HDF5 not found - install HighFive and HDF5 for HDF5 file support")
+  message(STATUS "HighFive not enabled: use -DHAVE_HighFive=ON for HDF5 file support")
 endif()
 
-message(STATUS "Trying to find Blosc for Blosc file support")
-find_package(Blosc)
-if (${Blosc_FOUND})
-  message(STATUS "Blosc found, Blosc file support enabled")
+if(HAVE_Blosc)
+  find_package(Blosc REQUIRED)
+  message(STATUS "Blosc ${Blosc_VERSION} found, Blosc file support enabled")
   include_directories(${Blosc_INCLUDE_DIRS})
   target_include_directories(xtensor-io
       INTERFACE
@@ -182,12 +207,11 @@ if (${Blosc_FOUND})
       ${Blosc_LIBRARIES}
   )
 else()
-    message(WARNING "Blosc not found - install blosc for Blosc file support")
+  message(STATUS "Blosc not enabled: use -DHAVE_Blosc=ON for Blosc file support")
 endif()
 
-message(STATUS "Trying to find GDAL for geospatial raster file support")
-find_package(GDAL)
-if(${GDAL_FOUND})
+if(HAVE_GDAL)
+  find_package(GDAL REQUIRED)
   message(STATUS "GDAL ${GDAL_VERSION} found, geospatial raster file support enabled")
   target_include_directories(xtensor-io
       INTERFACE
@@ -198,13 +222,12 @@ if(${GDAL_FOUND})
       ${GDAL_LIBRARIES}
   )
 else()
-  message(WARNING "GDAL not found - install GDAL for geospatial raster file support")
+  message(STATUS "GDAL not enabled: use -DHAVE_GDAL=ON for geospatial raster file support")
 endif()
 
-find_package(storage_client)
-message(STATUS "Trying to find Google Cloud Storage for GCS IO handler support")
-if(${storage_client_FOUND})
-  message(STATUS "storage_client ${storage_client_VERSION} found, GCS IO handler support enabled")
+if(HAVE_storage_client)
+  find_package(storage_client REQUIRED)
+  message(STATUS "storage_client ${storage_client_VERSION} found, Google Cloud Storage IO handler support enabled")
   target_include_directories(xtensor-io
     INTERFACE
       ${storage_client_INCLUDE_DIRS}
@@ -214,18 +237,17 @@ if(${storage_client_FOUND})
       storage_client
   )
 else()
-  message(WARNING "Google Cloud Storage not found - install google-cloud-cpp for GCS IO handler support")
+  message(STATUS "storage_client not enabled: use -DHAVE_storage_client=ON for Google Cloud Storage IO handler support")
 endif()
 
-if (NOT DEFINED BUILD_SHARED_LIBS)
-  set (BUILD_SHARED_LIBS ON)
-  find_package(AWSSDK COMPONENTS s3)
-  unset (BUILD_SHARED_LIBS)
-else ()
-  find_package(AWSSDK COMPONENTS s3)
-endif ()
-message(STATUS "Trying to find AWS SDK for AWS S3 IO handler support")
-if(${AWSSDK_FOUND})
+if(HAVE_AWSSDK)
+  if (NOT DEFINED BUILD_SHARED_LIBS)
+    set (BUILD_SHARED_LIBS ON)
+    find_package(AWSSDK COMPONENTS s3 REQUIRED)
+    unset (BUILD_SHARED_LIBS)
+  else ()
+    find_package(AWSSDK COMPONENTS s3 REQUIRED)
+  endif ()
   message(STATUS "AWSSDK ${AWSSDK_VERSION} found, AWS S3 IO handler support enabled")
   target_include_directories(xtensor-io
       INTERFACE
@@ -236,7 +258,7 @@ if(${AWSSDK_FOUND})
       ${AWSSDK_LINK_LIBRARIES}
   )
 else()
-  message(WARNING "AWSSDK not found - install aws-sdk-cpp for AWS S3 IO handler support")
+  message(STATUS "AWSSDK not enabled: use -DHAVE_AWSSDK=ON for AWS S3 IO handler support")
 endif()
 
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
