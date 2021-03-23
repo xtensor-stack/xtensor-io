@@ -77,6 +77,8 @@ OPTION(BUILD_TESTS "xtensor-io test suite" OFF)
 OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
+# each optional dependency can be required individually with e.g. -DHAVE_OIIO=ON
+
 OPTION(HAVE_OIIO "require OpenImageIO dependency for image file support" OFF)
 OPTION(HAVE_SndFile "require SndFile for audio file support" OFF)
 OPTION(HAVE_ZLIB "require ZLIB for npz file support" OFF)
@@ -85,6 +87,8 @@ OPTION(HAVE_Blosc "require Blosc for Blosc file support" OFF)
 OPTION(HAVE_GDAL "require GDAL for geospatial raster file support" OFF)
 OPTION(HAVE_storage_client "require storage_client for Google Cloud Storage IO handler support" OFF)
 OPTION(HAVE_AWSSDK "require AWSSDK for AWS S3 IO handler support" OFF)
+
+# all dependencies can be required with -DHAVE_ALL_DEPS=ON
 
 OPTION(HAVE_ALL_DEPS "require all optional dependencies" OFF)
 
@@ -98,6 +102,12 @@ if(HAVE_ALL_DEPS)
   set(HAVE_storage_client ON)
   set(HAVE_AWSSDK ON)
 endif()
+
+# a list of dependencies can be required with e.g. "-DOPTIONAL_DEPENDENCIES=OIIO;SndFile"
+
+foreach(DEP ${OPTIONAL_DEPENDENCIES})
+  set(HAVE_${DEP} ON)
+endforeach()
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
 
