@@ -43,9 +43,18 @@ message(STATUS "Building xtensor-io v${${PROJECT_NAME}_VERSION}")
 # ============
 
 set (xtensor_REQUIRED_VERSION 0.23.0)
-find_package(xtensor ${xtensor_REQUIRED_VERSION} REQUIRED)
+if(TARGET xtensor)
+    set(xtensor_VERSION ${XTENSOR_VERSION_MAJOR}.${XTENSOR_VERSION_MINOR}.${XTENSOR_VERSION_PATCH})
+    if( NOT ${xtensor_VERSION} VERSION_GREATER_EQUAL ${xtensor_REQUIRED_VERSION})
+        message(ERROR "Mismatch xtensor versions. Found '${xtensor_VERSION}' but requires: '${xtensor_REQUIRED_VERSION}'")
+    else()
+        message(STATUS "Found xtensor v${xtensor_VERSION}")
+    endif()
+else()
+    find_package(xtensor ${xtensor_REQUIRED_VERSION} REQUIRED)
+    message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
+endif()
 
-message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 
 # Build
 # =====
