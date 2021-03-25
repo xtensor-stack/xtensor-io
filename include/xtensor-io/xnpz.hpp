@@ -154,7 +154,8 @@ namespace xt
         using result_type = std::map<std::string, detail::npy_file>;
         result_type arrays;
 
-        for (alignas(uint32_t) detail::zip_local_header entry;;)
+        alignas(uint32_t) detail::zip_local_header entry;
+        for (;;)
         {
             if (!stream.read(reinterpret_cast<char*>(&entry), sizeof(entry)))
             {
