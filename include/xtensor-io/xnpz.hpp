@@ -238,7 +238,8 @@ namespace xt
             throw std::runtime_error("load_npz: failed to open file " + filename);
         }
 
-        for (alignas(uint32_t) detail::zip_local_header entry;;)
+        alignas(uint32_t) detail::zip_local_header entry;
+        for (;;)
         {
             if (!stream.read(reinterpret_cast<char*>(&entry), sizeof(entry)))
             {
