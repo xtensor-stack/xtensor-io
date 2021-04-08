@@ -133,4 +133,25 @@ namespace xt
             EXPECT_EQ(v, 5.5);
         }
     }
+
+    TEST(xchunked_array, create_directories)
+    {
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        std::string chunk_dir = "doesntexist";
+        std::size_t pool_size = 2;
+        auto a1 = make_test_chunked_array(shape, chunk_shape, chunk_dir, pool_size);
+        xio_binary_config format_config;
+        xio_disk_config io_config;
+        io_config.create_directories = false;
+        a1.chunks().configure(format_config, io_config);
+        a1(0, 0) = 1.2;
+        // the directory doesn't exist and we didn't set the create_directories option
+        // so this should throw an exception
+        EXPECT_THROW(a1.chunks().flush(), std::runtime_error);
+        // now we set the create_directories option, this should not throw
+        io_config.create_directories = true;
+        a1.chunks().configure(format_config, io_config);
+        a1.chunks().flush();
+    }
 }
