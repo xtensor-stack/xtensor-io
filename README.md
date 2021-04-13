@@ -22,10 +22,10 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
 
 ## Installation
 
-`xtensor-io` is a header-only library. We provide a package for the conda package manager.
+`xtensor-io` is a header-only library. We provide a package for the mamba (or conda) package manager.
 
 ```bash
-conda install xtensor-io -c conda-forge
+mamba install xtensor-io -c conda-forge
 ```
 
 - `xtensor-io` depends on `xtensor` `^0.23.0`.

@@ -26,15 +26,16 @@ On Linux, installation of the dependencies can be done through the package manag
 
 .. image:: conda.svg
 
-Using the conda package
------------------------
+Using the conda-forge package
+-----------------------------
 
-A package for xtensor-io is available on the conda package manager.
+A package for xtensor-io is available for the mamba (or conda) package manager.
+
 The package will also pull all the dependencies (OpenImageIO, libsndfile and zlib).
 
 .. code::
 
-    conda install xtensor-io -c conda-forge
+    mamba install xtensor-io -c conda-forge
 
 The easiest way to make use of xtensor-io in your code is by using cmake for your project.
 In order for cmake to pick up the xtensor-io dependency, just utilize the interface target and link the xtensor-io library to your target.
@@ -61,7 +62,6 @@ and add the following to your ``CMakeLists.txt``.
       INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
       BUILD_WITH_INSTALL_RPATH ON
   )
-
 
 
 .. image:: cmake.svg
