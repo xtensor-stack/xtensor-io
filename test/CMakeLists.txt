@@ -155,3 +155,20 @@ add_custom_target(xtest
     DEPENDS test_xtensor_io_lib test_xtensor_io_ho
 )
 
+foreach(filename IN LISTS XTENSOR_IO_HO_TESTS)
+    string(REPLACE ".cpp" "" targetname ${filename})
+    add_executable(${targetname} ${filename} ${XTENSOR_IO_HEADERS})
+    target_include_directories(${targetname} PRIVATE ${XTENSOR_IO_INCLUDE_DIR})
+    target_link_libraries(${targetname}
+        PUBLIC
+            xtensor-io
+            ${CMAKE_DL_LIBS}
+            ${GTEST_BOTH_LIBRARIES}
+            ${CMAKE_THREAD_LIBS_INIT}
+    )
+    add_custom_target(
+        x${targetname}
+        COMMAND ${targetname}
+        DEPENDS ${targetname} ${filename} ${XTENSOR_IO_HEADERS}
+    )
+endforeach()
