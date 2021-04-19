@@ -39,7 +39,7 @@ namespace xt
         using self_type = xfile_value_reference<T>;
         using const_reference = const T&;
 
-        xfile_value_reference(T& value, xfile_dirty& dirty);
+        xfile_value_reference(T& value, xfile_dirty& dirty, bool& invalidate);
         ~xfile_value_reference() = default;
 
         xfile_value_reference(const xfile_value_reference&) = default;
@@ -69,6 +69,7 @@ namespace xt
 
         T& m_value;
         xfile_dirty& m_dirty;
+        bool& m_invalidate;
     };
 }
 
@@ -246,6 +247,7 @@ namespace xt
 
         E m_storage;
         xfile_dirty m_dirty;
+        bool m_invalidate;
         IOH m_io_handler;
         std::string m_path;
         xfile_mode m_file_mode;
@@ -265,8 +267,10 @@ namespace xt
      ****************************************/
 
     template <class T>
-    inline xfile_value_reference<T>::xfile_value_reference(T& value, xfile_dirty& dirty)
-        : m_value(value), m_dirty(dirty)
+    inline xfile_value_reference<T>::xfile_value_reference(T& value, xfile_dirty& dirty, bool& invalidate)
+        : m_value(value)
+        , m_dirty(dirty)
+        , m_invalidate(invalidate)
     {
     }
 
@@ -274,10 +278,11 @@ namespace xt
     template <class V>
     inline auto xfile_value_reference<T>::operator=(const V& v) -> self_type&
     {
-        if (v != m_value)
+        if (v != m_value || m_invalidate)
         {
             m_value = v;
             m_dirty.data_dirty = true;
+            m_invalidate = false;
         }
         return *this;
     }
@@ -286,10 +291,11 @@ namespace xt
     template <class V>
     inline auto xfile_value_reference<T>::operator+=(const V& v) -> self_type&
     {
-        if (v != T(0))
+        if (v != T(0) || m_invalidate)
         {
             m_value += v;
             m_dirty.data_dirty = true;
+            m_invalidate = false;
         }
         return *this;
     }
@@ -298,10 +304,11 @@ namespace xt
     template <class V>
     inline auto xfile_value_reference<T>::operator-=(const V& v) -> self_type&
     {
-        if (v != T(0))
+        if (v != T(0) || m_invalidate)
         {
             m_value -= v;
             m_dirty.data_dirty = true;
+            m_invalidate = false;
         }
         return *this;
     }
@@ -310,10 +317,11 @@ namespace xt
     template <class V>
     inline auto xfile_value_reference<T>::operator*=(const V& v) -> self_type&
     {
-        if (v != T(1))
+        if (v != T(1) || m_invalidate)
         {
             m_value *= v;
             m_dirty.data_dirty = true;
+            m_invalidate = false;
         }
         return *this;
     }
@@ -322,10 +330,11 @@ namespace xt
     template <class V>
     inline auto xfile_value_reference<T>::operator/=(const V& v) -> self_type&
     {
-        if (v != T(1))
+        if (v != T(1) || m_invalidate)
         {
             m_value /= v;
             m_dirty.data_dirty = true;
+            m_invalidate = false;
         }
         return *this;
     }
@@ -383,6 +392,7 @@ namespace xt
     inline xfile_array_container<E, IOH>::xfile_array_container(const std::string& path, xfile_mode file_mode)
         : m_storage()
         , m_dirty(false)
+        , m_invalidate(false)
         , m_io_handler()
         , m_file_mode(file_mode)
         , m_init(false)
@@ -395,6 +405,7 @@ namespace xt
     inline xfile_array_container<E, IOH>::xfile_array_container(const std::string& path, IOC& io_config, xfile_mode file_mode)
         : m_storage()
         , m_dirty(false)
+        , m_invalidate(false)
         , m_io_handler()
         , m_file_mode(file_mode)
         , m_init(false)
@@ -407,6 +418,7 @@ namespace xt
     inline xfile_array_container<E, IOH>::xfile_array_container(const std::string& path, xfile_mode file_mode, const value_type& init_value)
         : m_storage()
         , m_dirty(false)
+        , m_invalidate(false)
         , m_io_handler()
         , m_file_mode(file_mode)
         , m_init_value(init_value)
@@ -426,6 +438,7 @@ namespace xt
     inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e)
         : m_storage(e)
         , m_dirty(true)
+        , m_invalidate(false)
         , m_io_handler()
         , m_path(detail::file_helper<E>::path(e))
         , m_file_mode(xfile_mode::init)
@@ -438,6 +451,7 @@ namespace xt
     inline xfile_array_container<E, IOH>::xfile_array_container(const xexpression<OE>& e, const std::string& path)
         : m_storage(e)
         , m_dirty(true)
+        , m_invalidate(false)
         , m_io_handler()
         , m_path(path)
         , m_file_mode(xfile_mode::init)
@@ -536,7 +550,7 @@ namespace xt
     template <class It>
     inline auto xfile_array_container<E, IOH>::element(It first, It last) -> reference
     {
-        return reference(m_storage.element(first, last), m_dirty);
+        return reference(m_storage.element(first, last), m_dirty, m_invalidate);
     }
 
     template <class E, class IOH>
@@ -677,6 +691,10 @@ namespace xt
                     if (m_init)
                     {
                         std::fill(m_storage.begin(), m_storage.end(), m_init_value);
+                    }
+                    else
+                    {
+                        m_invalidate = true;
                     }
                 }
             }
