@@ -22,7 +22,7 @@ namespace xt
 {
     namespace detail
     {
-        void init_blosc()
+        inline void init_blosc()
         {
             static bool initialized = false;
             if (!initialized)
