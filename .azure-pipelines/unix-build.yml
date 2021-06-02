@@ -46,7 +46,7 @@ steps:
 
   - script: |
       source activate xtensor-io
-      ./test_xtensor_io_lib && ./test_xtensor_io_ho
+      ./test_xtensor_io_lib --gtest_filter="-xio_gdal_handler.read_vsigs" && ./test_xtensor_io_ho
     displayName: Test xtensor-io
     workingDirectory: $(Build.BinariesDirectory)/build/test
 
