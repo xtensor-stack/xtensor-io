@@ -40,6 +40,12 @@ steps:
 
   - script: |
       source activate xtensor-io
+      python -c 'import struct, zlib; open("files/test.zl", "wb").write(zlib.compress(struct.pack("4d", 3.0, 2.0, 1.0, 0.0), level=1))'
+    displayName: Generate data for zlib test
+    workingDirectory: $(Build.BinariesDirectory)/build/test
+
+  - script: |
+      source activate xtensor-io
       ./test_xtensor_io_lib && ./test_xtensor_io_ho
     displayName: Test xtensor-io
     workingDirectory: $(Build.BinariesDirectory)/build/test
