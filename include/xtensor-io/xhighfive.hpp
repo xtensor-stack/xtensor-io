@@ -102,11 +102,11 @@ namespace xt
             switch (mode)
             {
                 case xt::dump_mode::create:
-                  return HighFive::DumpMode::Create;
+                  return H5Easy::DumpMode::Create;
                 case xt::dump_mode::overwrite:
-                  return HighFive::DumpMode::Overwrite;
+                  return H5Easy::DumpMode::Overwrite;
                 default:
-                  return HighFive::DumpMode::Create;
+                  return H5Easy::DumpMode::Create;
             }
         }
     }
