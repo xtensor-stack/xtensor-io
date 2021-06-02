@@ -34,15 +34,13 @@ steps:
 
   - script: |
       source activate xtensor-io
-      make -j2 test_xtensor_io_lib
-      make -j2 test_xtensor_io_ho
+      make -j2 test_xtensor_io_lib test_xtensor_io_ho
     displayName: Build xtensor-io
     workingDirectory: $(Build.BinariesDirectory)/build
 
   - script: |
       source activate xtensor-io
-      ./test_xtensor_io_lib
-      ./test_xtensor_io_ho
+      ./test_xtensor_io_lib && ./test_xtensor_io_ho
     displayName: Test xtensor-io
     workingDirectory: $(Build.BinariesDirectory)/build/test
 
