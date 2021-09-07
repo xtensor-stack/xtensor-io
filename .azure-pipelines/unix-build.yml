@@ -34,15 +34,13 @@ steps:
 
   - script: |
       source activate xtensor-io
-      make -j2 test_xtensor_io_lib
-      make -j2 test_xtensor_io_ho
-    displayName: Build xtensor-io
-    workingDirectory: $(Build.BinariesDirectory)/build
+      python -c 'import struct, zlib; open("files/test.zl", "wb").write(zlib.compress(struct.pack("4d", 3.0, 2.0, 1.0, 0.0), level=1))'
+    displayName: Generate data for zlib test
+    workingDirectory: $(Build.BinariesDirectory)/build/test
 
   - script: |
       source activate xtensor-io
-      ./test_xtensor_io_lib
-      ./test_xtensor_io_ho
-    displayName: Test xtensor-io
-    workingDirectory: $(Build.BinariesDirectory)/build/test
-
+      export GTEST_FILTER="-xio_gdal_handler.read_vsigs"
+      make -j2 xtest
+    displayName: Build and run xtensor-io tests
+    workingDirectory: $(Build.BinariesDirectory)/build
