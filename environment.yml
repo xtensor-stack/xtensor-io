@@ -2,7 +2,7 @@ name: xtensor-io
 channels:
   - conda-forge
 dependencies:
-  - xtensor-io=0.12.9
+  - xtensor-io=0.13.0
   - xeus-cling=0.12.1
   - xwidgets=0.25.1
   - ffmpeg=4.3.1
