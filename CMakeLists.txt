@@ -124,6 +124,16 @@ add_library(xtensor-io INTERFACE)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
+find_path(ghc-filesystem-include REQUIRED
+    NAMES "ghc/filesystem.hpp"
+    DOC "Path to include directory of https://github.com/gulrak/filesystem"
+    )
+target_include_directories(xtensor-io
+    INTERFACE
+    $<BUILD_INTERFACE:${ghc-filesystem-include}>
+    $<INSTALL_INTERFACE:include>
+)
+
 target_include_directories(xtensor-io
     INTERFACE
     $<BUILD_INTERFACE:${XTENSOR_IO_INCLUDE_DIR}>
