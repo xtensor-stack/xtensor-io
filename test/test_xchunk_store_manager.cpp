@@ -37,6 +37,17 @@ namespace xt
         }
     }
 
+    template <class T>
+    inline void check_file_equal(const std::string& path, const T&& ref)
+    {
+        std::ifstream in_file;
+        in_file.open(path);
+        xt::xarray<double> data;
+        data = xt::load_bin<double>(in_file);
+        EXPECT_EQ(data, ref);
+        in_file.close();
+    }
+
     TEST(xchunked_array, disk_array)
     {
         std::vector<size_t> shape = {4, 4};
@@ -59,21 +70,18 @@ namespace xt
         std::ifstream in_file;
         xt::xarray<double> data;
         in_file.open(chunk_dir + "/1.0");
-        auto i1 = xt::xistream_wrapper(in_file);
-        data = xt::load_bin<double>(i1);
+        data = xt::load_bin<double>(in_file);
         EXPECT_EQ(data(1), v1);
         in_file.close();
 
         a1.chunks().flush();
         in_file.open(chunk_dir + "/0.1");
-        auto i2 = xt::xistream_wrapper(in_file);
-        data = xt::load_bin<double>(i2);
+        data = xt::load_bin<double>(in_file);
         EXPECT_EQ(data(2), v2);
         in_file.close();
 
         in_file.open(chunk_dir + "/0.0");
-        auto i3 = xt::xistream_wrapper(in_file);
-        data = xt::load_bin<double>(i3);
+        data = xt::load_bin<double>(in_file);
         EXPECT_EQ(data(0), v3);
         in_file.close();
     }
@@ -123,6 +131,34 @@ namespace xt
         {
             EXPECT_EQ(v, init_value);
         }
+    }
+
+    TEST(xchunked_array, chunked_assign_chunked)
+    {
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        std::string chunk_dir1 = "files4";
+        fs::create_directory(chunk_dir1);
+        auto a1 = chunked_file_array<double, xio_disk_handler<xio_binary_config>>(shape, chunk_shape, chunk_dir1);
+        std::string chunk_dir2 = "files5";
+        fs::create_directory(chunk_dir2);
+        auto a2 = chunked_file_array<double, xio_disk_handler<xio_binary_config>>(shape, chunk_shape, chunk_dir2);
+        auto a3 = arange(4 * 4).reshape({4, 4});
+        noalias(a2) = a3;
+        a2.chunks().flush();
+        // check that a2 has correct chunks
+        check_file_equal(chunk_dir2 + "/0.0", xt::xarray<double>({0, 1, 4, 5}));
+        check_file_equal(chunk_dir2 + "/1.0", xt::xarray<double>({8, 9, 12, 13}));
+        check_file_equal(chunk_dir2 + "/0.1", xt::xarray<double>({2, 3, 6, 7}));
+        check_file_equal(chunk_dir2 + "/1.1", xt::xarray<double>({10, 11, 14, 15}));
+
+        noalias(a1) = a2;
+        a1.chunks().flush();
+        // check that a1 has correct chunks
+        check_file_equal(chunk_dir1 + "/0.0", xt::xarray<double>({0, 1, 4, 5}));
+        check_file_equal(chunk_dir1 + "/1.0", xt::xarray<double>({8, 9, 12, 13}));
+        check_file_equal(chunk_dir1 + "/0.1", xt::xarray<double>({2, 3, 6, 7}));
+        check_file_equal(chunk_dir1 + "/1.1", xt::xarray<double>({10, 11, 14, 15}));
     }
 
     TEST(xchunked_array, shape_initializer_list)
