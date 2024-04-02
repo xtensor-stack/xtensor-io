@@ -4,6 +4,7 @@ channels:
 dependencies:
   # Build dependencies
   - cmake
+  - ninja
   # Host dependencies
   - openimageio=2.2.7
   - libsndfile=1.0.30

@@ -1,4 +1,4 @@
-name: Linux
+name: CI
 on:
   workflow_dispatch:
   pull_request:
@@ -11,10 +11,12 @@ defaults:
   run:
     shell: bash -e -l {0}
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  unix:
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-12]
 
     steps:
 
@@ -31,9 +33,15 @@ jobs:
       run: cmake -G Ninja -Bbuild -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DDOWNLOAD_GTEST=ON -DHAVE_ALL_DEPS=ON
 
     - name: Generate data for zlib test
+      working-directory: build/test
       run: python -c 'import struct, zlib; open("files/test.zl", "wb").write(zlib.compress(struct.pack("4d", 3.0, 2.0, 1.0, 0.0), level=1))'
 
-    - name: Build and run xtensor-io tests
+    - name: Build
+      working-directory: build
+      run: cmake --build . --target test_xtensor_io_lib --parallel 8
+
+    - name: Run tests
+      working-directory: build/test
       run: |
         export GTEST_FILTER="-xio_gdal_handler.read_vsigs"
-        make -j2 xtest
+        ./test_xtensor_io_lib
