@@ -2,6 +2,6 @@ trigger:
   - master
 
 jobs:
-  - template: ./.azure-pipelines/azure-pipelines-linux.yml
+  #  - template: ./.azure-pipelines/azure-pipelines-linux.yml
   - template: ./.azure-pipelines/azure-pipelines-osx.yml
 

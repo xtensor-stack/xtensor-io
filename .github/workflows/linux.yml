@@ -1,0 +1,39 @@
+name: Linux
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [master]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    shell: bash -e -l {0}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set conda environment
+      uses: mamba-org/setup-micromamba@main
+      with:
+        environment-name: myenv
+        environment-file: environment-dev.yml
+
+    - name: Configure using CMake
+      run: cmake -G Ninja -Bbuild -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DDOWNLOAD_GTEST=ON -DHAVE_ALL_DEPS=ON
+
+    - name: Generate data for zlib test
+      run: python -c 'import struct, zlib; open("files/test.zl", "wb").write(zlib.compress(struct.pack("4d", 3.0, 2.0, 1.0, 0.0), level=1))'
+
+    - name: Build and run xtensor-io tests
+      run: |
+        export GTEST_FILTER="-xio_gdal_handler.read_vsigs"
+        make -j2 xtest
