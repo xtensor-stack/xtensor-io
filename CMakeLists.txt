@@ -42,7 +42,7 @@ message(STATUS "Building xtensor-io v${${PROJECT_NAME}_VERSION}")
 # Dependencies
 # ============
 
-set (xtensor_REQUIRED_VERSION 0.23.0)
+set (xtensor_REQUIRED_VERSION 0.25.0)
 if(TARGET xtensor)
     set(xtensor_VERSION ${XTENSOR_VERSION_MAJOR}.${XTENSOR_VERSION_MINOR}.${XTENSOR_VERSION_PATCH})
     if( NOT ${xtensor_VERSION} VERSION_GREATER_EQUAL ${xtensor_REQUIRED_VERSION})

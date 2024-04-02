@@ -28,7 +28,7 @@ Reading and writing image, sound and npz file formats to and from xtensor data s
 mamba install xtensor-io -c conda-forge
 ```
 
-- `xtensor-io` depends on `xtensor` `^0.24.0`.
+- `xtensor-io` depends on `xtensor` `^0.25.0`.
 
 - `OpenImageIO`, `libsndfile`, `zlib`, `HighFive`, and `blosc` are optional dependencies to `xtensor-io`
 
