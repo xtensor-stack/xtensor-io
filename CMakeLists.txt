@@ -121,6 +121,7 @@ endforeach()
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
 
 add_library(xtensor-io INTERFACE)
+target_compile_features(xtensor-io INTERFACE cxx_std_17)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
