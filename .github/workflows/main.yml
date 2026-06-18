@@ -21,7 +21,7 @@ jobs:
     steps:
 
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set conda environment
       uses: mamba-org/setup-micromamba@main
@@ -30,7 +30,7 @@ jobs:
         environment-file: environment-dev.yml
 
     - name: Configure using CMake
-      run: cmake -G Ninja -Bbuild -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DDOWNLOAD_GTEST=ON -DHAVE_ALL_DEPS=ON
+      run: cmake -G Ninja -Bbuild -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DDOWNLOAD_GTEST=ON -DHAVE_ALL_DEPS=ON
 
     - name: Generate data for zlib test
       working-directory: build/test

@@ -197,18 +197,8 @@ endif()
 
 if(HAVE_HighFive)
   find_package(HighFive REQUIRED)
-  find_package(HDF5 REQUIRED)
-  message(STATUS "HighFive ${HighFive_VERSION} and HDF5 ${HDF5_VERSION} found, HDF5 file support enabled")
-  find_package(HDF5 REQUIRED)
-  get_target_property(HighFive_INCLUDE_DIRECTORIES_EXTRACTED HighFive INTERFACE_INCLUDE_DIRECTORIES)
-  target_include_directories(xtensor-io
-      INTERFACE
-      ${HighFive_INCLUDE_DIRECTORIES_EXTRACTED}
-  )
-  target_link_libraries(xtensor-io
-      INTERFACE
-      ${HDF5_LIBRARIES}
-  )
+  message(STATUS "HighFive ${HighFive_VERSION} found, HDF5 file support enabled")
+  target_link_libraries(xtensor-io INTERFACE HighFive::HighFive)
 else()
   message(STATUS "HighFive not enabled: use -DHAVE_HighFive=ON for HDF5 file support")
 endif()
@@ -245,15 +235,11 @@ else()
 endif()
 
 if(HAVE_storage_client)
-  find_package(storage_client REQUIRED)
-  message(STATUS "storage_client ${storage_client_VERSION} found, Google Cloud Storage IO handler support enabled")
-  target_include_directories(xtensor-io
-    INTERFACE
-      ${storage_client_INCLUDE_DIRS}
-  )
+  find_package(google_cloud_cpp_storage REQUIRED)
+  message(STATUS "google_cloud_cpp_storage ${google_cloud_cpp_storage_VERSION} found, Google Cloud Storage IO handler support enabled")
   target_link_libraries(xtensor-io
     INTERFACE
-      storage_client
+      google-cloud-cpp::storage
   )
 else()
   message(STATUS "storage_client not enabled: use -DHAVE_storage_client=ON for Google Cloud Storage IO handler support")
