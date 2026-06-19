@@ -62,7 +62,7 @@ namespace xt
                                             static_cast<std::size_t>(spec.width),
                                             static_cast<std::size_t>(spec.nchannels)});
 
-        in->read_image(OIIO::BaseTypeFromC<T>::value, image.data());
+        in->read_image(0, 0, 0, spec.nchannels, OIIO::BaseTypeFromC<T>::value, image.data());
 
         in->close(); 
 

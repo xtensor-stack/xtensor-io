@@ -6,7 +6,7 @@ dependencies:
   - cmake
   - ninja
   # Host dependencies
-  - openimageio
+  - openimageio >=3.0,<4
   - fmt
   - libsndfile
   - zlib
