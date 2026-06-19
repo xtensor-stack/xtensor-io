@@ -17,5 +17,3 @@ dependencies:
   - google-cloud-cpp >=3.0,<4
   - aws-sdk-cpp >=1.11,<2
   - xtensor=0.26.0
-  - cpp-filesystem >=1.5,<2
-

@@ -4,7 +4,7 @@
 #include <vector>
 #include <array>
 
-#include "ghc/filesystem.hpp"
+#include <filesystem>
 
 #include <xtl/xsequence.hpp>
 
@@ -671,7 +671,7 @@ namespace xt
     template <class EC, class IP>
     inline std::string xchunk_store_manager<EC, IP>::get_temporary_directory() const
     {
-        namespace fs = ghc::filesystem;
+        namespace fs = std::filesystem;
         fs::path tmp_dir = fs::temp_directory_path();
         std::size_t count = 0;
         while(fs::exists(tmp_dir / std::to_string(count)))
@@ -684,7 +684,7 @@ namespace xt
     template <class EC, class IP>
     inline void xchunk_store_manager<EC, IP>::reset_to_directory(const std::string& directory)
     {
-        namespace fs = ghc::filesystem;
+        namespace fs = std::filesystem;
         fs::remove_all(get_directory());
         fs::rename(directory, get_directory());
         m_unload_index = 0u;
