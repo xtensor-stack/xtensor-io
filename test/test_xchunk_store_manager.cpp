@@ -17,7 +17,7 @@
 
 namespace xt
 {
-    namespace fs = ghc::filesystem;
+    namespace fs = std::filesystem;
 
     template <class S>
     inline auto make_test_chunked_array(const S& shape,
