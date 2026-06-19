@@ -7,8 +7,8 @@
 
 #include <xtl/xtype_traits.hpp>
 
-#include <xtensor/xarray.hpp>
-#include <xtensor/xnoalias.hpp>
+#include <xtensor/containers/xarray.hpp>
+#include <xtensor/core/xnoalias.hpp>
 
 namespace xt
 {

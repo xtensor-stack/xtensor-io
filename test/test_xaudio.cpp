@@ -9,7 +9,7 @@
 
 #include "gtest/gtest.h"
 #include "xtensor-io/xaudio.hpp"
-#include "xtensor/xio.hpp"
+#include "xtensor/io/xio.hpp"
 
 namespace xt
 {

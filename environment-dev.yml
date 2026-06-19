@@ -4,16 +4,18 @@ channels:
 dependencies:
   # Build dependencies
   - cmake
+  - ninja
   # Host dependencies
-  - openimageio=2.2.7
-  - libsndfile=1.0.30
-  - zlib=1.2.11
-  - highfive=2.1.1 
-  - blosc
-  - gdal
+  - openimageio >=3.1,<4
+  - fmt >=12.2,<13
+  - libsndfile >=1.2,<2
+  - zlib >=1.3,<2
+  - highfive >=3.3,<4
+  - blosc >=1.21,<2
+  - gdal >=3.13,<4
   - nlohmann_json
-  - google-cloud-cpp=1.21.0
-  - aws-sdk-cpp
-  - xtensor=0.24.0
-  - cpp-filesystem
+  - google-cloud-cpp >=3.0,<4
+  - aws-sdk-cpp >=1.11,<2
+  - xtensor=0.26.0
+  - cpp-filesystem >=1.5,<2
 

@@ -7,7 +7,7 @@
 # The full license is in the file LICENSE, distributed with this software. #
 ############################################################################
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.30)
 project(xtensor-io)
 
 set(XTENSOR_IO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -42,7 +42,7 @@ message(STATUS "Building xtensor-io v${${PROJECT_NAME}_VERSION}")
 # Dependencies
 # ============
 
-set (xtensor_REQUIRED_VERSION 0.23.0)
+set (xtensor_REQUIRED_VERSION 0.25.0)
 if(TARGET xtensor)
     set(xtensor_VERSION ${XTENSOR_VERSION_MAJOR}.${XTENSOR_VERSION_MINOR}.${XTENSOR_VERSION_PATCH})
     if( NOT ${xtensor_VERSION} VERSION_GREATER_EQUAL ${xtensor_REQUIRED_VERSION})
@@ -121,6 +121,7 @@ endforeach()
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/modules")
 
 add_library(xtensor-io INTERFACE)
+target_compile_features(xtensor-io INTERFACE cxx_std_17)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -197,18 +198,8 @@ endif()
 
 if(HAVE_HighFive)
   find_package(HighFive REQUIRED)
-  find_package(HDF5 REQUIRED)
-  message(STATUS "HighFive ${HighFive_VERSION} and HDF5 ${HDF5_VERSION} found, HDF5 file support enabled")
-  find_package(HDF5 REQUIRED)
-  get_target_property(HighFive_INCLUDE_DIRECTORIES_EXTRACTED HighFive INTERFACE_INCLUDE_DIRECTORIES)
-  target_include_directories(xtensor-io
-      INTERFACE
-      ${HighFive_INCLUDE_DIRECTORIES_EXTRACTED}
-  )
-  target_link_libraries(xtensor-io
-      INTERFACE
-      ${HDF5_LIBRARIES}
-  )
+  message(STATUS "HighFive ${HighFive_VERSION} found, HDF5 file support enabled")
+  target_link_libraries(xtensor-io INTERFACE HighFive::HighFive)
 else()
   message(STATUS "HighFive not enabled: use -DHAVE_HighFive=ON for HDF5 file support")
 endif()
@@ -245,15 +236,11 @@ else()
 endif()
 
 if(HAVE_storage_client)
-  find_package(storage_client REQUIRED)
-  message(STATUS "storage_client ${storage_client_VERSION} found, Google Cloud Storage IO handler support enabled")
-  target_include_directories(xtensor-io
-    INTERFACE
-      ${storage_client_INCLUDE_DIRS}
-  )
+  find_package(google_cloud_cpp_storage REQUIRED)
+  message(STATUS "google_cloud_cpp_storage ${google_cloud_cpp_storage_VERSION} found, Google Cloud Storage IO handler support enabled")
   target_link_libraries(xtensor-io
     INTERFACE
-      storage_client
+      google-cloud-cpp::storage
   )
 else()
   message(STATUS "storage_client not enabled: use -DHAVE_storage_client=ON for Google Cloud Storage IO handler support")

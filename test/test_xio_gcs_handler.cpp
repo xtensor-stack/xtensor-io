@@ -12,6 +12,7 @@
 #include <exception>
 
 #include "gtest/gtest.h"
+#include <google/cloud/credentials.h>
 #include "xtensor-io/xio_gzip.hpp"
 #include "xtensor-io/xio_gcs_handler.hpp"
 
@@ -20,7 +21,10 @@ namespace xt
     TEST(xio_gcs_handler, read)
     {
         xio_gcs_handler<xio_gzip_config> h;
-        xio_gcs_config c = {gcs::Client((gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials()))), "zarr-demo"};
+        xio_gcs_config c = {gcs::Client(google::cloud::Options{}.set<google::cloud::UnifiedCredentialsOption>(
+            google::cloud::MakeInsecureCredentials())),
+            "zarr-demo"};
+
         h.configure_io(c);
         xarray<int32_t> a0;
         h.read(a0, "v3/test.zr3/data/root/arthur/dent/c0/0");

@@ -8,8 +8,8 @@
 
 #include <xtl/xsequence.hpp>
 
-#include "xtensor/xarray.hpp"
-#include "xtensor/xchunked_array.hpp"
+#include "xtensor/containers/xarray.hpp"
+#include "xtensor/chunk/xchunked_array.hpp"
 #include "xfile_array.hpp"
 
 namespace xt
