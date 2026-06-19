@@ -6,15 +6,16 @@ dependencies:
   - cmake
   - ninja
   # Host dependencies
-  - openimageio=2.2.7
-  - libsndfile=1.0.30
-  - zlib=1.2.11
-  - highfive=2.1.1 
+  - openimageio >=3.0,<4
+  - fmt
+  - libsndfile
+  - zlib
+  - highfive
   - blosc
   - gdal
   - nlohmann_json
-  - google-cloud-cpp=1.21.0
+  - google-cloud-cpp >=3.0,<4
   - aws-sdk-cpp
-  - xtensor=0.25.0
+  - xtensor=0.26.0
   - cpp-filesystem
 

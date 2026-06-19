@@ -12,7 +12,7 @@
 
 #include <fstream>
 
-#include "xtensor/xadapt.hpp"
+#include "xtensor/containers/xadapt.hpp"
 #include "xtensor-io.hpp"
 #include "xfile_array.hpp"
 #include "blosc.h"

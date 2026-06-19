@@ -9,7 +9,7 @@
 
 #include "gtest/gtest.h"
 
-#include <xtensor/xbroadcast.hpp>
+#include <xtensor/views/xbroadcast.hpp>
 #include "xtensor-io/xchunk_store_manager.hpp"
 #include "xtensor-io/xfile_array.hpp"
 #include <xtensor-io/xio_binary.hpp>

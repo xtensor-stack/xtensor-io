@@ -15,9 +15,9 @@
 #include <string>
 #include <memory>
 
-#include <xtensor/xarray.hpp>
-#include <xtensor/xmath.hpp>
-#include <xtensor/xeval.hpp>
+#include <xtensor/containers/xarray.hpp>
+#include <xtensor/core/xeval.hpp>
+#include <xtensor/core/xmath.hpp>
 
 #include "xtensor_io_config.hpp"
 
@@ -62,7 +62,7 @@ namespace xt
                                             static_cast<std::size_t>(spec.width),
                                             static_cast<std::size_t>(spec.nchannels)});
 
-        in->read_image(OIIO::BaseTypeFromC<T>::value, image.data());
+        in->read_image(0, 0, 0, spec.nchannels, OIIO::BaseTypeFromC<T>::value, image.data());
 
         in->close(); 
 
