@@ -15,9 +15,9 @@
 #include <string>
 #include <memory>
 
-#include <xtensor/xarray.hpp>
-#include <xtensor/xmath.hpp>
-#include <xtensor/xeval.hpp>
+#include <xtensor/containers/xarray.hpp>
+#include <xtensor/core/xeval.hpp>
+#include <xtensor/core/xmath.hpp>
 
 #include "xtensor_io_config.hpp"
 

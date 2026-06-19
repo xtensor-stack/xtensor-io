@@ -8,9 +8,9 @@
 ****************************************************************************/
 
 #include "gtest/gtest.h"
-#include "xtensor/xoperation.hpp"
-#include "xtensor/xview.hpp"
-#include "xtensor/xio.hpp"
+#include "xtensor/core/xoperation.hpp"
+#include "xtensor/views/xview.hpp"
+#include "xtensor/io/xio.hpp"
 
 #include "xtensor-io/ximage.hpp"
 

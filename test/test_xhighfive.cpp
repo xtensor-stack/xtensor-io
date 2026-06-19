@@ -12,7 +12,7 @@
 #include <exception>
 
 #include "gtest/gtest.h"
-#include "xtensor/xrandom.hpp"
+#include "xtensor/generators/xrandom.hpp"
 #include "xtensor-io/xhighfive.hpp"
 
 namespace xt

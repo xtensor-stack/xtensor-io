@@ -2,8 +2,8 @@
 #define XTENSOR_IO_DISK_HANDLER_HPP
 
 #include <ghc/filesystem.hpp>
-#include <xtensor/xarray.hpp>
-#include <xtensor/xexpression.hpp>
+#include <xtensor/containers/xarray.hpp>
+#include <xtensor/core/xexpression.hpp>
 #include "xio_stream_wrapper.hpp"
 #include "xfile_array.hpp"
 

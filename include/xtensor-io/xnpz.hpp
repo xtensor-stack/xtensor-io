@@ -27,7 +27,7 @@
 
 #include "thirdparty/zstr/zstr.hpp"
 
-#include <xtensor/xnpy.hpp>
+#include <xtensor/io/xnpy.hpp>
 
 #include "xtensor_io_config.hpp"
 

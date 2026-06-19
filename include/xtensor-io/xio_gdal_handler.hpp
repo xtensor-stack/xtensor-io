@@ -1,8 +1,8 @@
 #ifndef XTENSOR_IO_GDAL_HANDLER_HPP
 #define XTENSOR_IO_GDAL_HANDLER_HPP
 
-#include <xtensor/xarray.hpp>
-#include <xtensor/xexpression.hpp>
+#include <xtensor/containers/xarray.hpp>
+#include <xtensor/core/xexpression.hpp>
 #include "xfile_array.hpp"
 #include "xio_vsilfile_wrapper.hpp"
 

@@ -1,8 +1,8 @@
 #ifndef XTENSOR_IO_GCS_HANDLER_HPP
 #define XTENSOR_IO_GCS_HANDLER_HPP
 
-#include <xtensor/xarray.hpp>
-#include <xtensor/xexpression.hpp>
+#include <xtensor/containers/xarray.hpp>
+#include <xtensor/core/xexpression.hpp>
 #include <google/cloud/storage/client.h>
 #include <google/cloud/credentials.h>
 #include "xfile_array.hpp"

@@ -16,6 +16,6 @@ dependencies:
   - nlohmann_json
   - google-cloud-cpp >=3.0,<4
   - aws-sdk-cpp
-  - xtensor=0.25.0
+  - xtensor=0.26.0
   - cpp-filesystem
 

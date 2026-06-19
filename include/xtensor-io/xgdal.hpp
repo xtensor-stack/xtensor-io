@@ -14,7 +14,7 @@
 #include <functional>
 #include <map>
 
-#include <xtensor/xtensor.hpp>
+#include <xtensor/containers/xtensor.hpp>
 #include "xtensor-io.hpp"
 
 // We rely exclusively on the stable C interface to GDAL.

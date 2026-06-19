@@ -1,8 +1,8 @@
 #ifndef XTENSOR_IO_AWS_HANDLER_HPP
 #define XTENSOR_IO_AWS_HANDLER_HPP
 
-#include <xtensor/xarray.hpp>
-#include <xtensor/xexpression.hpp>
+#include <xtensor/containers/xarray.hpp>
+#include <xtensor/core/xexpression.hpp>
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/GetObjectRequest.h>

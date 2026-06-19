@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "xtensor-io/xgdal.hpp"
-#include "xtensor/xadapt.hpp"
-#include "xtensor/xoperation.hpp"
+#include "xtensor/containers/xadapt.hpp"
+#include "xtensor/core/xoperation.hpp"
 
 #include <gdal_frmts.h>
 
