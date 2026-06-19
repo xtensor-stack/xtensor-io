@@ -303,8 +303,11 @@ namespace xt
             }
             else
             {
-                stream.seekg(static_cast<std::streamsize>(entry.compressed_size),
-                             std::ios_base::cur);
+                auto compressed_size = extract_zip64_compressed_size(stream, entry);
+                if (!stream.seekg(std::streamoff(compressed_size), std::ios_base::cur))
+                {
+                    throw std::runtime_error("load_npz: unable to skip the next variable.");
+                }
             }
         }
         throw std::runtime_error("Array "s + search_varname + " not found in file: "s + filename);
