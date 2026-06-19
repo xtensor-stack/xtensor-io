@@ -14,7 +14,7 @@ dependencies:
   - blosc
   - gdal
   - nlohmann_json
-  - google-cloud-cpp
+  - google-cloud-cpp >=3.0,<4
   - aws-sdk-cpp
   - xtensor=0.25.0
   - cpp-filesystem

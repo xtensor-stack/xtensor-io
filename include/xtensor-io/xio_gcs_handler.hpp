@@ -4,6 +4,7 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xexpression.hpp>
 #include <google/cloud/storage/client.h>
+#include <google/cloud/credentials.h>
 #include "xfile_array.hpp"
 #include "xio_stream_wrapper.hpp"
 
@@ -43,7 +44,7 @@ namespace xt
 
     template <class C>
     xio_gcs_handler<C>::xio_gcs_handler()
-        : m_client(gcs::ClientOptions((gcs::oauth2::CreateAnonymousCredentials())))
+        : m_client(google::cloud::Options{}.set<google::cloud::UnifiedCredentialsOption>(google::cloud::MakeInsecureCredentials()))
     {
     }
 
